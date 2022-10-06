@@ -76,7 +76,7 @@ var g_jukebox_instance *Jukebox
 
 type Jukebox struct {
    jukebox_options *JukeboxOptions
-   storage_system StorageSystem
+   storage_system *FSStorageSystem
    debug_print bool
    jukebox_db *JukeboxDB
    current_dir string
@@ -95,7 +95,7 @@ type Jukebox struct {
    //audio_player_command_args = []
    //audio_player_popen = nil
    song_play_length_seconds int
-   cumulative_download_bytes int 
+   cumulative_download_bytes int64
    cumulative_download_time int 
    exit_requested bool 
    is_paused bool
@@ -104,7 +104,7 @@ type Jukebox struct {
 }
 
 func NewJukebox(jb_options *JukeboxOptions,
-                storage_sys StorageSystem,
+                storage_sys *FSStorageSystem,
                 debug_print bool) *Jukebox {
    var jukebox Jukebox
    g_jukebox_instance = &jukebox
@@ -116,10 +116,10 @@ func NewJukebox(jb_options *JukeboxOptions,
    if err == nil {
        jukebox.current_dir = cwd
    }
-   jukebox.song_import_dir = Path_join(jukebox.current_dir, "song-import")
-   jukebox.playlist_import_dir = Path_join(jukebox.current_dir, "playlist-import")
-   jukebox.song_play_dir = Path_join(jukebox.current_dir, "song-play")
-   jukebox.album_art_import_dir = Path_join(jukebox.current_dir, "album-art-import")
+   jukebox.song_import_dir = PathJoin(jukebox.current_dir, "song-import")
+   jukebox.playlist_import_dir = PathJoin(jukebox.current_dir, "playlist-import")
+   jukebox.song_play_dir = PathJoin(jukebox.current_dir, "song-play")
+   jukebox.album_art_import_dir = PathJoin(jukebox.current_dir, "album-art-import")
    jukebox.download_extension = ".download"
    jukebox.metadata_db_file = "jukebox_db.sqlite3"
    jukebox.metadata_container = "music-metadata"
@@ -152,32 +152,33 @@ func NewJukebox(jb_options *JukeboxOptions,
 func (jukebox *Jukebox) Enter() bool {
    // look for stored metadata in the storage system
    if jukebox.storage_system != nil &&
-      jukebox.storage_system.Has_container(jukebox.metadata_container) &&
+      jukebox.storage_system.HasContainer(jukebox.metadata_container) &&
       !jukebox.jukebox_options.Suppress_metadata_download {
 
       // metadata container exists, retrieve container listing
-      container_contents := jukebox.storage_system.List_container_contents(jukebox.metadata_container)
-
-      metadata_file_in_container := false
-      for _, container_item := range container_contents {
-         if container_item == jukebox.metadata_db_file {
-            metadata_file_in_container = true
-	    break
+      metadataFileInContainer := false
+      containerContents, err := jukebox.storage_system.ListContainerContents(jukebox.metadata_container)
+      if err == nil && len(containerContents) > 0 {
+         for _, container := range containerContents {
+            if container == jukebox.metadata_db_file {
+               metadataFileInContainer = true
+	       break
+            }
          }
       }
 
       // does our metadata DB file exist in the metadata container?
-      if container_contents != nil && metadata_file_in_container {
+      if containerContents != nil && metadataFileInContainer {
           // download it
 	  metadata_db_file_path := jukebox.Get_metadata_db_file_path()
 	  download_file := metadata_db_file_path + ".download"
-          if jukebox.storage_system.Get_object(jukebox.metadata_container, jukebox.metadata_db_file, download_file) > 0 {
+          if jukebox.storage_system.GetObject(jukebox.metadata_container, jukebox.metadata_db_file, download_file) > 0 {
               // have an existing metadata DB file?
-              if File_exists(metadata_db_file_path) {
+              if FileExists(metadata_db_file_path) {
                   if jukebox.debug_print {
                       fmt.Println("deleting existing metadata DB file")
                   }
-                  Delete_file(metadata_db_file_path)
+                  DeleteFile(metadata_db_file_path)
                   // rename downloaded file
                   if jukebox.debug_print {
                       fmt.Printf("renaming '%s' to '%s'\n", download_file, metadata_db_file_path)
@@ -243,7 +244,7 @@ func (jukebox *Jukebox) Advance_to_next_song() {
 }
 
 func (jukebox *Jukebox) Get_metadata_db_file_path() (string) {
-   return Path_join(jukebox.current_dir, jukebox.metadata_db_file)
+   return PathJoin(jukebox.current_dir, jukebox.metadata_db_file)
 }
 
 func unencode_value(encoded_value string) (string) {
@@ -429,7 +430,7 @@ func (jukebox *Jukebox) Import_songs() {
       file_import_count = 0
 
       for _, listing_entry := range dir_listing {
-         full_path = Path_join(jukebox.song_import_dir, listing_entry)
+         full_path = PathJoin(jukebox.song_import_dir, listing_entry)
          // ignore it if it's not a file
          if os.path.isfile(full_path) {
             file_name = listing_entry
@@ -506,9 +507,9 @@ func (jukebox *Jukebox) Import_songs() {
                            start_upload_time = time.time()
 
                            // store song file to storage system
-                           if jukebox.storage_system.Put_object(fs_song.Fm.Container_name,
-                                                                fs_song.Fm.Object_name,
-                                                                file_contents) {
+                           if jukebox.storage_system.PutObject(fs_song.Fm.Container_name,
+                                                               fs_song.Fm.Object_name,
+                                                               file_contents) {
                               end_upload_time = time.time()
                               upload_elapsed_time = end_upload_time - start_upload_time
                               cumulative_upload_time += upload_elapsed_time
@@ -521,7 +522,7 @@ func (jukebox *Jukebox) Import_songs() {
                                  // from the storage system since we won't have any way to access it
                                  // since we can't store the song metadata locally.
                                  fmt.Printf("unable to store metadata, deleting obj '%s'", fs_song.Fm.Object_name)
-                                 jukebox.storage_system.Delete_object(fs_song.Fm.Container_name,
+                                 jukebox.storage_system.DeleteObject(fs_song.Fm.Container_name,
                                                                       fs_song.Fm.Object_name)
                               } else {
                                  file_import_count += 1
@@ -575,7 +576,7 @@ func (jukebox *Jukebox) Import_songs() {
 }
 
 func (jukebox *Jukebox) song_path_in_playlist(song *SongMetadata) string {
-    return Path_join(jukebox.song_play_dir, song.Fm.File_uid)
+    return PathJoin(jukebox.song_play_dir, song.Fm.File_uid)
 }
 
 func (jukebox *Jukebox) check_file_integrity(song *SongMetadata) bool {
@@ -583,13 +584,13 @@ func (jukebox *Jukebox) check_file_integrity(song *SongMetadata) bool {
 
     if jukebox.jukebox_options != nil && jukebox.jukebox_options.Check_data_integrity {
 	file_path := jukebox.song_path_in_playlist(song)
-        if File_exists(file_path) {
+        if FileExists(file_path) {
             if jukebox.debug_print {
                 fmt.Printf("checking integrity for %s\n", song.Fm.File_uid)
             }
 
             if song.Fm != nil {
-		playlist_md5, err := Md5_for_file(file_path)
+		playlist_md5, err := Md5ForFile(file_path)
 		if err != nil {
                     // log error
 		} else {
@@ -628,11 +629,22 @@ func (jukebox *Jukebox) batch_download_complete() {
       if jukebox.cumulative_download_time > 0 {
          cumulative_download_kb := jukebox.cumulative_download_bytes / 1000.0
          fmt.Printf("average download throughput = %d KB/sec\n",
-                    cumulative_download_kb / jukebox.cumulative_download_time)
+                    cumulative_download_kb / int64(jukebox.cumulative_download_time))
       }
       jukebox.cumulative_download_bytes = 0
       jukebox.cumulative_download_time = 0
    }
+}
+
+func (jukebox *Jukebox) retrieveFile(fm *FileMetadata, dirPath string) int64 {
+   var bytesRetrieved int64
+
+   if jukebox.storage_system != nil && fm != nil && len(dirPath) > 0 {
+      localFilePath := PathJoin(dirPath, fm.File_name)
+      bytesRetrieved = jukebox.storage_system.GetObject(fm.Container_name, fm.Object_name, localFilePath)
+   }
+
+   return bytesRetrieved
 }
 
 func (jukebox *Jukebox) download_song(song *SongMetadata) (bool) {
@@ -643,7 +655,7 @@ func (jukebox *Jukebox) download_song(song *SongMetadata) (bool) {
    if song != nil {
       file_path := jukebox.song_path_in_playlist(song)
       //download_start_time := time.time()
-      song_bytes_retrieved := jukebox.storage_system.Retrieve_file(song.Fm, jukebox.song_play_dir)
+      song_bytes_retrieved := jukebox.retrieveFile(song.Fm, jukebox.song_play_dir)
       if jukebox.exit_requested {
          return false
       }
@@ -712,8 +724,8 @@ func (jukebox *Jukebox) download_song(song *SongMetadata) (bool) {
 	 } else {
             // we retrieved the file, but it failed our integrity check
             // if file exists, remove it
-            if File_exists(file_path) {
-               Delete_file(file_path)
+            if FileExists(file_path) {
+               DeleteFile(file_path)
             }
          }
       }
@@ -723,7 +735,7 @@ func (jukebox *Jukebox) download_song(song *SongMetadata) (bool) {
 }
 
 func (jukebox *Jukebox) play_song(song_file_path string) {
-   if File_exists(song_file_path) {
+   if FileExists(song_file_path) {
       fmt.Printf("playing %s\n", song_file_path)
       /*
       if jukebox.audio_player_command_args {
@@ -760,7 +772,7 @@ func (jukebox *Jukebox) play_song(song_file_path string) {
 
       if ! jukebox.is_paused {
          // delete the song file from the play list directory
-         Delete_file(song_file_path)
+         DeleteFile(song_file_path)
       }
       */
    } else {
@@ -794,7 +806,7 @@ func (jukebox *Jukebox) download_songs() {
       if listing_entry.IsDir() {
           continue
       }
-      full_path := Path_join(jukebox.song_play_dir, listing_entry.Name())
+      full_path := PathJoin(jukebox.song_play_dir, listing_entry.Name())
       extension := filepath.Ext(full_path)
       if len(extension) > 0 && extension != jukebox.download_extension {
           song_file_count += 1
@@ -816,7 +828,7 @@ func (jukebox *Jukebox) download_songs() {
          if check_index != jukebox.song_index {
             si = jukebox.song_list[check_index]
             file_path = jukebox.song_path_in_playlist(si)
-            if ! File_exists(file_path) {
+            if ! FileExists(file_path) {
                dl_songs.append(si)
                if len(dl_songs) >= file_cache_count {
                   break
@@ -852,7 +864,7 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
         }
 
         // does play list directory exist?
-        if ! File_exists(jukebox.song_play_dir) {
+        if ! FileExists(jukebox.song_play_dir) {
             if jukebox.debug_print {
                 fmt.Println("song-play directory does not exist, creating it")
             }
@@ -870,9 +882,9 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
                     if theFile.IsDir() {
                         continue
                     }
-                    file_path := Path_join(jukebox.song_play_dir, theFile.Name())
+                    file_path := PathJoin(jukebox.song_play_dir, theFile.Name())
                     //try:
-                    Delete_file(file_path)
+                    DeleteFile(file_path)
                     //except OSError:
                     //    pass
                 }
@@ -930,7 +942,7 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
                     }
                 }
             }
-            Delete_file("jukebox.pid")
+            DeleteFile("jukebox.pid")
         } else {
             fmt.Println("error: unable to download songs")
             os.Exit(1)
@@ -941,8 +953,13 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
 
 func (jukebox *Jukebox) Show_list_containers() {
    if jukebox.storage_system != nil {
-      for _, container_name := range jukebox.storage_system.Get_container_names() {
-         fmt.Println(container_name)
+      listContainers, err := jukebox.storage_system.GetContainerNames()
+      if err == nil {
+         for _, containerName := range listContainers {
+            fmt.Println(containerName)
+         }
+      } else {
+         fmt.Println("error: unable to retrieve list of containers")
       }
    }
 }
@@ -1030,8 +1047,8 @@ func (jukebox *Jukebox) read_file_contents(file_path string,
 func (jukebox *Jukebox) Upload_metadata_db() bool {
     metadata_db_upload := false
     have_metadata_container := false
-    if ! jukebox.storage_system.Has_container(jukebox.metadata_container) {
-        have_metadata_container = jukebox.storage_system.Create_container(jukebox.metadata_container)
+    if ! jukebox.storage_system.HasContainer(jukebox.metadata_container) {
+        have_metadata_container = jukebox.storage_system.CreateContainer(jukebox.metadata_container)
     } else {
         have_metadata_container = true
     }
@@ -1050,9 +1067,9 @@ func (jukebox *Jukebox) Upload_metadata_db() bool {
         with open(jukebox.Get_metadata_db_file_path(), 'rb') as db_file:
             db_file_contents = db_file.read()
 
-        metadata_db_upload = jukebox.storage_system.Put_object(jukebox.metadata_container,
-                                                               jukebox.metadata_db_file,
-                                                               db_file_contents)
+        metadata_db_upload = jukebox.storage_system.PutObject(jukebox.metadata_container,
+                                                              jukebox.metadata_db_file,
+                                                              db_file_contents)
         */
 
         if jukebox.debug_print {
@@ -1080,8 +1097,8 @@ func (jukebox *Jukebox) Import_playlists() {
       }
 
       have_container := false
-      if ! jukebox.storage_system.Has_container(jukebox.playlist_container) {
-         have_container = jukebox.storage_system.Create_container(jukebox.playlist_container)
+      if ! jukebox.storage_system.HasContainer(jukebox.playlist_container) {
+         have_container = jukebox.storage_system.CreateContainer(jukebox.playlist_container)
       } else {
          have_container = true
       }
@@ -1091,27 +1108,25 @@ func (jukebox *Jukebox) Import_playlists() {
          return
       }
 
-      headers := make(map[string]string)
-
       for _, listing_entry := range dir_listing {
          if listing_entry.IsDir() {
             continue
          }
 
-	 full_path := Path_join(jukebox.playlist_import_dir, listing_entry.Name())
+	 full_path := PathJoin(jukebox.playlist_import_dir, listing_entry.Name())
          // ignore it if it's not a file
 	 object_name := listing_entry.Name()
 	 file_read, file_contents, _ := jukebox.read_file_contents(full_path, false)
          if file_read && file_contents != nil {
-            if jukebox.storage_system.Put_object(jukebox.playlist_container,
-                                                 object_name,
-                                                 file_contents,
-                                                 headers) {
+            if jukebox.storage_system.PutObject(jukebox.playlist_container,
+                                                object_name,
+                                                file_contents,
+                                                nil) {
                fmt.Println("put of playlist succeeded")
                if ! jukebox.store_song_playlist(object_name, file_contents) {
                   fmt.Println("storing of playlist to db failed")
-                  jukebox.storage_system.Delete_object(jukebox.playlist_container,
-                                                       object_name)
+                  jukebox.storage_system.DeleteObject(jukebox.playlist_container,
+                                                      object_name)
                } else {
                   fmt.Println("storing of playlist succeeded")
                   file_import_count += 1
@@ -1140,7 +1155,7 @@ func (jukebox *Jukebox) Show_playlist(playlist string) {
    bucket_name := "cj-playlists"
    object_name := fmt.Sprintf("%s.json", encode_value(playlist))
    download_file := object_name
-   if jukebox.storage_system.Get_object(bucket_name,
+   if jukebox.storage_system.GetObject(bucket_name,
                                         object_name,
                                         download_file) > 0 {
       //file_read := false
@@ -1195,9 +1210,9 @@ func (jukebox *Jukebox) Play_playlist(playlist string) {
    object_name := fmt.Sprintf("%s.json", encode_value(playlist))
    download_file := object_name
 
-   if jukebox.storage_system.Get_object(bucket_name,
-                                        object_name,
-                                        download_file) > 0 {
+   if jukebox.storage_system.GetObject(bucket_name,
+                                       object_name,
+                                       download_file) > 0 {
       //TODO: implement play_playlist
       /*
       with open(download_file, 'rb') as content_file:
@@ -1255,9 +1270,9 @@ func (jukebox *Jukebox) Play_album(artist string, album string) {
    bucket_name := "cj-albums"
    object_name := fmt.Sprintf("%s--%s.json", encode_value(artist), encode_value(album))
    download_file := object_name
-   if jukebox.storage_system.Get_object(bucket_name,
-                                        object_name,
-                                        download_file) > 0 {
+   if jukebox.storage_system.GetObject(bucket_name,
+                                       object_name,
+                                       download_file) > 0 {
       //TODO: implement play_album
       /*
       //try:
@@ -1307,7 +1322,7 @@ func (jukebox *Jukebox) Delete_song(song_uid string, upload_metadata bool) bool 
          container_value := *container
          ss_deleted := false
          if len(container_value) > 0 {
-            ss_deleted = jukebox.storage_system.Delete_object(container_value, song_uid)
+            ss_deleted = jukebox.storage_system.DeleteObject(container_value, song_uid)
             if db_deleted && upload_metadata {
                jukebox.Upload_metadata_db()
             }
@@ -1355,7 +1370,7 @@ func (jukebox *Jukebox) Delete_album(album string) bool {
 	 for _, song := range list_album_songs {
             fmt.Printf("%s %s\n", song.Fm.Container_name, song.Fm.Object_name)
             // delete each song audio file
-            if jukebox.storage_system.Delete_object(song.Fm.Container_name,
+            if jukebox.storage_system.DeleteObject(song.Fm.Container_name,
                                                     song.Fm.Object_name) {
                num_songs_deleted += 1
                // delete song metadata
@@ -1388,7 +1403,7 @@ func (jukebox *Jukebox) Delete_playlist(playlist_name string) (bool) {
       db_deleted := jukebox.jukebox_db.delete_playlist(playlist_name)
       if db_deleted {
          fmt.Printf("container='%s', object='%s'\n", jukebox.playlist_container, object_name_value)
-         if jukebox.storage_system.Delete_object(jukebox.playlist_container, object_name_value) {
+         if jukebox.storage_system.DeleteObject(jukebox.playlist_container, object_name_value) {
             is_deleted = true
          } else {
             fmt.Println("error: object delete failed")
@@ -1423,8 +1438,8 @@ func (jukebox *Jukebox) Import_album_art() {
 
       have_container := false
 
-      if ! jukebox.storage_system.Has_container(jukebox.album_art_container) {
-         have_container = jukebox.storage_system.Create_container(jukebox.album_art_container)
+      if ! jukebox.storage_system.HasContainer(jukebox.album_art_container) {
+         have_container = jukebox.storage_system.CreateContainer(jukebox.album_art_container)
       } else {
          have_container = true
       }
@@ -1434,21 +1449,19 @@ func (jukebox *Jukebox) Import_album_art() {
          return
       }
 
-      headers := make(map[string]string)
-
       for _, listing_entry := range dir_listing {
          if listing_entry.IsDir() {
             continue
          }
 
-         full_path := Path_join(jukebox.album_art_import_dir, listing_entry.Name())
+         full_path := PathJoin(jukebox.album_art_import_dir, listing_entry.Name())
 	 object_name := listing_entry.Name()
 	 file_read, file_contents, _ := jukebox.read_file_contents(full_path, false)
          if file_read && file_contents != nil {
-            if jukebox.storage_system.Put_object(jukebox.album_art_container,
-                                                 object_name,
-                                                 file_contents,
-                                                 headers) {
+            if jukebox.storage_system.PutObject(jukebox.album_art_container,
+                                                object_name,
+                                                file_contents,
+                                                nil) {
                file_import_count += 1
             }
          }

@@ -18,7 +18,7 @@ func NewSongDownloader(jukebox *Jukebox,
 func (sd *SongDownloader) run() {
     if sd.jukebox != nil && sd.list_songs != nil {
         sd.jukebox.batch_download_start()
-	for _, song := range sd.list_songs {
+        for _, song := range sd.list_songs {
             if sd.jukebox.exit_requested {
                 break
             } else {

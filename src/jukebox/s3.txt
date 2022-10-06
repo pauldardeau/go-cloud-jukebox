@@ -91,7 +91,7 @@ func (s3_ss S3StorageSystem) Enter() bool {
 /*
     creds := credentials.NewStaticCredentialsProvider(s3_ss.aws_access_key,
                                                       s3_ss.aws_secret_key,
-						      "")
+                                                      "")
     endpoint := "https://s3.us-central-1.wasabisys.com"
 
     //config := aws.Config{
@@ -116,7 +116,7 @@ func (s3_ss S3StorageSystem) Enter() bool {
     } else {
         fmt.Println("established S3 session")
         s3_ss.s3_session = sess
-	connected = true
+        connected = true
     }
     */
 
@@ -149,7 +149,7 @@ func (s3_ss *S3StorageSystem) List_account_containers() (*[]string, error) {
     }
 
     if s3_ss.s3_session != nil {
-	    /*
+        /*
         input := &s3.ListBucketsInput{}
 
         result, err := s3_ss.s3_session.ListBuckets(input)
@@ -164,8 +164,8 @@ func (s3_ss *S3StorageSystem) List_account_containers() (*[]string, error) {
                 // Message from an error.
                 fmt.Println(err.Error())
             }
-	    err := errors.New("ListBuckets not implemented")
-	    return nil, err
+            err := errors.New("ListBuckets not implemented")
+            return nil, err
         } else {
             list_container_names := []string{}
             for _, bucket := range result.Buckets {
@@ -176,8 +176,8 @@ func (s3_ss *S3StorageSystem) List_account_containers() (*[]string, error) {
 
             return &list_container_names, nil
         }
-	*/
-	return nil, errors.New("ListBuckets not implemented")
+        */
+        return nil, errors.New("ListBuckets not implemented")
     }
 
     err := errors.New("No existing S3 session")
@@ -232,7 +232,7 @@ func (s3_ss S3StorageSystem) Delete_container(container_name string) bool {
 
     if s3_ss.s3_session != nil {
 
-	    /*
+/*
 input := &s3.DeleteBucketInput{
     Bucket: aws.String(container_name),
 }
@@ -301,22 +301,22 @@ func (s3_ss S3StorageSystem) Get_object_metadata(container_name string,
 
     // https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#S3.HeadObject
     if s3_ss.s3_session != nil && len(container_name) > 0 && len(object_name) > 0 {
-	    /*
+        /*
         request := s3.HeadObjectInput{
-	   Bucket: &container_name,
-	   Key: &object_name,
-	}
+           Bucket: &container_name,
+           Key: &object_name,
+        }
         response, err := s3_ss.s3_session.HeadObject(&request)
-	if err != nil {
+        if err != nil {
            return nil
         } else {
            dict_headers := make(map[string]interface{})
-	   //if response.ArchiveStatus != nil {
-	   //   dict_headers["ArchiveStatus"] = *response.ArchiveStatus
+           //if response.ArchiveStatus != nil {
+           //   dict_headers["ArchiveStatus"] = *response.ArchiveStatus
            //}
-	   //if response.BucketKeyEnabled != nil {
+           //if response.BucketKeyEnabled != nil {
            //   enabled := *response.BucketKeyEnabled
-	   //   var enabled_value string
+           //   var enabled_value string
 	   //   if enabled {
            //      enabled_value = "true"
            //   } else {

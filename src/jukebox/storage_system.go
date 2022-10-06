@@ -18,7 +18,7 @@ type StorageSystem interface {
     Store_file(fm *FileMetadata, file_contents []byte) bool
     Add_file_from_path(container_name string,
                        object_name string,
-		       file_path string) bool
+                       file_path string) bool
 
     Get_object_metadata(container_name string,
                         object_name string) *map[string]interface{}

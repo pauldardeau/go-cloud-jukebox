@@ -8,8 +8,8 @@ import (
 type FileMetadata struct {
    File_uid string
    File_name string
-   Origin_file_size int
-   Stored_file_size int
+   Origin_file_size int64
+   Stored_file_size int64
    Pad_char_count int
    File_time string
    Md5_hash string
@@ -25,15 +25,15 @@ func (fm *FileMetadata) Equals(other *FileMetadata) bool {
    }
    return fm.File_uid == other.File_uid &&
           fm.File_name == other.File_name &&
-	  fm.Origin_file_size == other.Origin_file_size &&
-	  fm.Stored_file_size == other.Stored_file_size &&
-	  fm.Pad_char_count == other.Pad_char_count &&
-	  fm.File_time == other.File_time &&
-	  fm.Md5_hash == other.Md5_hash &&
-	  fm.Compressed == other.Compressed &&
-	  fm.Encrypted == other.Encrypted &&
-	  fm.Container_name == other.Container_name &&
-	  fm.Object_name == other.Object_name
+          fm.Origin_file_size == other.Origin_file_size &&
+          fm.Stored_file_size == other.Stored_file_size &&
+          fm.Pad_char_count == other.Pad_char_count &&
+          fm.File_time == other.File_time &&
+          fm.Md5_hash == other.Md5_hash &&
+          fm.Compressed == other.Compressed &&
+          fm.Encrypted == other.Encrypted &&
+          fm.Container_name == other.Container_name &&
+          fm.Object_name == other.Object_name
 }
 
 func NewFileMetadata() *FileMetadata {
@@ -67,22 +67,22 @@ func (fm *FileMetadata) From_Dictionary_With_Prefix(dictionary map[string]string
       }
 
       if value, isPresent := dictionary[prefix + "origin_file_size"]; isPresent {
-	 int_value, err := strconv.Atoi(value)
-	 if err == nil {
+         int_value, err := strconv.ParseInt(value, 10, 64)
+         if err == nil {
             fm.Origin_file_size = int_value
          }
       }
 
       if value, isPresent := dictionary[prefix + "stored_file_size"]; isPresent {
-         int_value, err := strconv.Atoi(value)
-	 if err == nil {
+         int_value, err := strconv.ParseInt(value, 10, 64)
+         if err == nil {
             fm.Stored_file_size = int_value
          }
       }
 
       if value, isPresent := dictionary[prefix + "pad_char_count"]; isPresent {
          int_value, err := strconv.Atoi(value)
-	 if err == nil {
+         if err == nil {
             fm.Pad_char_count = int_value
          }
       }

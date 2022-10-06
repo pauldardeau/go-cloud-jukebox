@@ -23,8 +23,8 @@ func (sm *SongMetadata) Equals(other *SongMetadata) bool {
    }
    return sm.Artist_uid == other.Artist_uid &&
           sm.Artist_name == other.Artist_name &&
-	  sm.Album_uid == other.Album_uid &&
-	  sm.Song_name == other.Song_name
+          sm.Album_uid == other.Album_uid &&
+          sm.Song_name == other.Song_name
 }
 
 func NewSongMetadata() *SongMetadata {

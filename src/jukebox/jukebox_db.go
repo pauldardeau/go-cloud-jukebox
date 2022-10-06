@@ -217,8 +217,8 @@ func (jukeboxDB *JukeboxDB) songs_for_query_results(rows *sql.Rows) []*SongMetad
     for rows.Next() {
         var file_uid string
         var file_time string
-        var o_file_size int
-        var s_file_size int
+        var o_file_size int64
+        var s_file_size int64
         var pad_count int
         var artist_name string
         var artist_uid string

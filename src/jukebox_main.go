@@ -9,183 +9,24 @@ import (
 )
 
 
-func connect_swift_system(credentials map[string]string,
-                          prefix string,
-                          in_debug_mode bool,
-                          is_update bool) jukebox.StorageSystem {
-   //if ! swift.is_available() {
-   //   print("error: swift is not supported on this system. please install swiftclient first.")
-   //   os.Exit(1)
-   //}
-
-   swift_auth_host := ""
-   swift_account := ""
-   swift_user := ""
-   swift_password := ""
-   update_swift_user := ""
-   update_swift_password := ""
-
-   swift_auth_host, _ = credentials["swift_auth_host"]
-   swift_account, _ = credentials["swift_account"]
-   swift_user, _ = credentials["swift_user"]
-   swift_password, _ = credentials["swift_password"]
-   update_swift_user, _ = credentials["update_swift_user"]
-   update_swift_password, _ = credentials["update_swift_password"]
-
-   if in_debug_mode {
-      fmt.Printf("swift_auth_host='%s'", swift_auth_host)
-      fmt.Printf("swift_account='%s'", swift_account)
-      fmt.Printf("swift_user='%s'", swift_user)
-      fmt.Printf("swift_password='%s'", swift_password)
-      if len(update_swift_user) > 0 && len(update_swift_password) > 0 {
-         fmt.Printf("update_swift_user='%s'", update_swift_user)
-         fmt.Printf("update_swift_password='%s'", update_swift_password)
-      }
-   }
-
-   if len(swift_account) == 0 || len(swift_user) == 0 || len(swift_password) == 0 {
-      fmt.Println("error: no swift credentials given. please specify swift_account," +
-                  "swift_user, and swift_password in credentials")
-      os.Exit(1)
-   }
-
-   //user := ""
-   //password := ""
-
-   //if is_update {
-   //   user = update_swift_user
-   //   password = update_swift_password
-   //} else {
-   //   user = swift_user
-   //   password = swift_password
-   //}
-
-   return nil
-   //return SwiftStorageSystem(swift_auth_host,
-   //                          swift_account,
-   //                          user,
-   //                          password,
-   //                          in_debug_mode)
-}
-
-
-func connect_s3_system(credentials map[string]string,
-                       prefix string,
-                       in_debug_mode bool,
-                       is_update bool) jukebox.StorageSystem {
-
-   aws_access_key := ""
-   aws_secret_key := ""
-   update_aws_access_key := ""
-   update_aws_secret_key := ""
-
-   aws_access_key, _ = credentials["aws_access_key"]
-   aws_secret_key, _ = credentials["aws_secret_key"]
-   update_aws_access_key, _ = credentials["update_aws_access_key"]
-   update_aws_secret_key, _ = credentials["update_aws_secret_key"]
-
-   if in_debug_mode {
-      fmt.Printf("aws_access_key='%s'\n", aws_access_key)
-      fmt.Printf("aws_secret_key='%s'\n", aws_secret_key)
-      if len(update_aws_access_key) > 0 && len(update_aws_secret_key) > 0 {
-         fmt.Printf("update_aws_access_key='%s'\n", update_aws_access_key)
-         fmt.Printf("update_aws_secret_key='%s'\n", update_aws_secret_key)
-      }
-   }
-
-   if len(aws_access_key) == 0 || len(aws_secret_key) == 0 {
-      fmt.Println("error: no s3 credentials given. please specify aws_access_key" +
-                  " and aws_secret_key in credentials file")
-      os.Exit(1)
-   } else {
-      access_key := ""
-      secret_key := ""
-
-      if is_update {
-         access_key = update_aws_access_key
-         secret_key = update_aws_secret_key
-      } else {
-         access_key = aws_access_key
-         secret_key = aws_secret_key
-      }
-
-      return jukebox.NewS3StorageSystem(access_key,
-                                        secret_key,
-                                        prefix,
-					in_debug_mode)
-   }
-
-   return nil
-}
-
-func connect_azure_system(credentials map[string]string,
-                          prefix string,
-			  in_debug_mode bool,
-			  is_update bool) jukebox.StorageSystem {
-   //if ! azure.is_available() {
-   //   print("error: azure is not supported on this system. please install azure client first.")
-   //   os.Exit(1)
-   //}
-
-   azure_account_name := ""
-   azure_account_key := ""
-   update_azure_account_name := ""
-   update_azure_account_key := ""
-
-   azure_account_name, _ = credentials["azure_account_name"]
-   azure_account_key, _ = credentials["azure_account_key"]
-   update_azure_account_name, _ = credentials["update_azure_account_name"]
-   update_azure_account_key, _ = credentials["update_azure_account_key"]
-
-   if in_debug_mode {
-      fmt.Printf("azure_account_name='%s'", azure_account_name)
-      fmt.Printf("azure_account_key='%s'", azure_account_key)
-      if len(update_azure_account_name) > 0 && len(update_azure_account_key) > 0 {
-         fmt.Printf("update_azure_account_name='%s'", update_azure_account_name)
-         fmt.Printf("update_azure_account_key='%s'", update_azure_account_key)
-      }
-   }
-
-   if len(azure_account_name) == 0 || len(azure_account_key) == 0 {
-      fmt.Println("error: no azure credentials given. please specify azure_account_name" +
-                  " and azure_account_key in credentials file")
-      os.Exit(1)
-   } else {
-      //account_name := ""
-      //account_key := ""
-
-      //if is_update {
-      //   account_name = update_azure_account_name
-      //   account_key = update_azure_account_key
-      //} else {
-      //   account_name = azure_account_name
-      //   account_key = azure_account_key
-      //}
-
-      return nil
-      //return AzureStorageSystem(account_name,
-      //                          account_key,
-      //                          prefix,
-      //                          in_debug_mode)
-   }
-
-   return nil
-}
-
 func connect_storage_system(system_name string,
                             credentials map[string]string,
                             prefix string,
                             in_debug_mode bool,
-                            is_update bool) jukebox.StorageSystem {
+                            is_update bool) *jukebox.FSStorageSystem {
    if system_name == "swift" {
-      return connect_swift_system(credentials, prefix, in_debug_mode, is_update)
+      //return connect_swift_system(credentials, prefix, in_debug_mode, is_update)
    } else if system_name == "s3" {
-      return connect_s3_system(credentials, prefix, in_debug_mode, is_update)
+      //return connect_s3_system(credentials, prefix, in_debug_mode, is_update)
    } else if system_name == "azure" {
-      return connect_azure_system(credentials, prefix, in_debug_mode, is_update)
-   } else {
-      return nil
+      //return connect_azure_system(credentials, prefix, in_debug_mode, is_update)
+   } else if system_name == "fs" {
+      rootDir, exists := credentials["root_dir"]
+      if exists && len(rootDir) > 0 {
+         return jukebox.NewFSStorageSystem(rootDir, in_debug_mode)  
+      }
    }
+   return nil
 }
 
 func show_usage() {
@@ -325,7 +166,7 @@ func main() {
 
    storage_value, storage_exists := args["storage"]
    if storage_exists {
-      supported_systems := []string{"swift", "s3", "azure"}
+      supported_systems := []string{"swift", "s3", "azure", "fs"}
       selected_system_supported := false
       for _, supported_system := range supported_systems {
          if supported_system == storage_value {
@@ -378,32 +219,32 @@ func main() {
       creds_file_path := ""
       wd, err_wd := os.Getwd()
       if err_wd == nil {
-         creds_file_path = jukebox.Path_join(wd, creds_file)
+         creds_file_path = jukebox.PathJoin(wd, creds_file)
       }
 
-      if jukebox.File_exists(creds_file_path) {
+      if jukebox.FileExists(creds_file_path) {
          if debug_mode {
             fmt.Printf("reading creds file '%s'\n", creds_file_path)
          }
 
-	 readFile, err := os.Open(creds_file_path)
+         readFile, err := os.Open(creds_file_path)
          if err != nil {
             fmt.Println(err)
-	    os.Exit(1)
+            os.Exit(1)
          }
-	 defer readFile.Close()
+         defer readFile.Close()
 
          fileScanner := bufio.NewScanner(readFile)
          fileScanner.Split(bufio.ScanLines)
 
          for fileScanner.Scan() {
-	    file_line := strings.Trim(fileScanner.Text(), "\t \n")
-	    if len(file_line) > 0 {
+            file_line := strings.Trim(fileScanner.Text(), "\t \n")
+            if len(file_line) > 0 {
                line_tokens := strings.Split(file_line, "=")
-	       if len(line_tokens) == 2 {
+               if len(line_tokens) == 2 {
                   key := strings.Trim(line_tokens[0], " ")
-		  value := strings.Trim(line_tokens[1], " ")
-		  creds[key] = value
+                  value := strings.Trim(line_tokens[1], " ")
+                  creds[key] = value
                }
             }
          }
@@ -499,7 +340,7 @@ func main() {
                       jukebox := jukebox.NewJukebox(options, storage_system, debug_mode)
                       if jukebox.Enter() {
                           defer jukebox.Exit()
-			  fmt.Println("jukebox entered")
+                          fmt.Println("jukebox entered")
 
                           if command == "import-songs" {
                               jukebox.Import_songs()
