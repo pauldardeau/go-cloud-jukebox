@@ -44,7 +44,7 @@ func (jukeboxDB *JukeboxDB) open() bool {
    open_success := false
    db, err := sql.Open("sqlite3", jukeboxDB.metadata_db_file_path)
    if err != nil {
-      //TODO: log error
+      fmt.Printf("error: unable to open SQLite db: %v\n", err)
    } else {
       jukeboxDB.db_connection = db
       if !jukeboxDB.have_tables() {
@@ -99,6 +99,7 @@ func (jukeboxDB *JukeboxDB) create_table(sql string) bool {
         stmt, err := jukeboxDB.db_connection.Prepare(sql)
 	if err != nil {
             fmt.Printf("prepare of sql failed: %s\n", sql)
+	    fmt.Printf("error: %v\n", err)
 	    return false
 	}
 	defer stmt.Close()
@@ -123,9 +124,9 @@ func (jukeboxDB *JukeboxDB) create_tables() bool {
         }
 
 	create_genre_table := "CREATE TABLE genre (" +
-                             "genre_uid TEXT UNIQUE NOT NULL," +
-                             "genre_name TEXT UNIQUE NOT NULL," +
-                             "genre_description TEXT)"
+                              "genre_uid TEXT UNIQUE NOT NULL, " +
+                              "genre_name TEXT UNIQUE NOT NULL, " +
+                              "genre_description TEXT);"
 
         create_artist_table := "CREATE TABLE artist (" +
                               "artist_uid TEXT UNIQUE NOT NULL," +
