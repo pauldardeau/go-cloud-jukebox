@@ -353,10 +353,10 @@ func (jukeboxDB *JukeboxDB) delete_playlist(pl_name string) bool {
     return delete_success
 }
 
-func (jukeboxDB *JukeboxDB) insert_song(song SongMetadata) bool {
+func (jukeboxDB *JukeboxDB) insert_song(song *SongMetadata) bool {
     insert_success := false
 
-    if jukeboxDB.db_connection != nil {
+    if jukeboxDB.db_connection != nil && song != nil {
         sql := "INSERT INTO song VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	tx, err_tx := jukeboxDB.db_connection.Begin()
 	if err_tx != nil {
@@ -390,10 +390,10 @@ func (jukeboxDB *JukeboxDB) insert_song(song SongMetadata) bool {
     return insert_success
 }
 
-func (jukeboxDB *JukeboxDB) update_song(song SongMetadata) bool {
+func (jukeboxDB *JukeboxDB) update_song(song *SongMetadata) bool {
         update_success := false
 
-        if jukeboxDB.db_connection != nil && len(song.Fm.File_uid) > 0 {
+        if jukeboxDB.db_connection != nil && song != nil && len(song.Fm.File_uid) > 0 {
             sql := `
                 UPDATE song SET file_time=?,
                    origin_file_size=?,
@@ -442,11 +442,13 @@ func (jukeboxDB *JukeboxDB) update_song(song SongMetadata) bool {
         return update_success
 }
 
-func (jukeboxDB *JukeboxDB) store_song_metadata(song SongMetadata) bool {
+func (jukeboxDB *JukeboxDB) store_song_metadata(song *SongMetadata) bool {
+    if song == nil {
+       return false
+    }
     db_song := jukeboxDB.retrieve_song(song.Fm.File_uid)
     if db_song != nil {
-	pSong := &song
-        if ! pSong.Equals(db_song) {
+        if ! song.Equals(db_song) {
             return jukeboxDB.update_song(song)
         } else {
             return true  // no insert or update needed (already up-to-date)

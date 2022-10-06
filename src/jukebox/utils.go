@@ -2,20 +2,21 @@ package jukebox
 
 import (
    "crypto/md5"
-   "errors"
    "fmt"
    "io"
    "os"
    "path/filepath"
+   "strings"
+   "time"
 )
 
 
 func FileExists(pathToFile string) bool {
-   if _, err := os.Stat(pathToFile); errors.Is(err, os.ErrNotExist) {
+   file, err := os.Stat(pathToFile)
+   if err != nil {
       return false
-   } else {
-      return true
    }
+   return !file.IsDir()
 }
 
 func DeleteFile(pathToFile string) bool {
@@ -77,6 +78,54 @@ func PathJoin(dirPath string, fileName string) string {
    return filepath.Join(dirPath, fileName)
 }
 
+func PathSplitExt(path string) (string, string) {
+   // python: os.path.splitext
+
+   // splitext("bar") -> ("bar", "")
+   // splitext("foo.bar.exe") -> ("foo.bar", ".exe")
+   // splitext("/foo/bar.exe") -> ("/foo/bar", ".exe")
+   // splitext(".cshrc") -> (".cshrc", "")
+   // splitext("/foo/....jpg") -> ("/foo/....jpg", "")
+
+   root := ""
+   ext := ""
+
+   if len(path) > 0 {
+      pos_last_dot := strings.LastIndex(path, ".")
+      if pos_last_dot == -1 {
+         // no '.' exists in path (i.e., "bar")
+         root = path
+      } else {
+         // is the last '.' the first character? (i.e., ".cshrc")
+         if pos_last_dot == 0 {
+            root = path
+         } else {
+            preceding := path[pos_last_dot-1]
+            // is the preceding char also a '.'? (i.e., "/foo/....jpg")
+            if preceding == '.' {
+               root = path
+            } else {
+               // splitext("foo.bar.exe") -> ("foo.bar", ".exe")
+               // splitext("/foo/bar.exe") -> ("/foo/bar", ".exe")
+	       root = path[0:pos_last_dot]
+	       ext = path[pos_last_dot:]
+            }
+         }
+      }
+   }
+
+   return root, ext
+}
+
+func PathGetMtime(path string) (time.Time, error) {
+   fi, err := os.Stat(path)
+   if err != nil {
+      return time.Now(), err
+   } else {
+      return fi.ModTime(), nil
+   }
+}
+
 func GetFileSize(filePath string) int64 {
    fi, err := os.Stat(filePath)
    if err != nil {
@@ -86,23 +135,47 @@ func GetFileSize(filePath string) int64 {
 }
 
 func FileReadAllText(filePath string) (string, error) {
-   //TODO: implement FileReadAllText
-   return "", errors.New("function not implemented")
+   content, err := os.ReadFile(filePath)
+   if err != nil {
+      fmt.Printf("error: unable to read file '%s': %v\n", filePath, err)
+      return "", err
+   } else {
+      return string(content), nil
+   }
 }
 
 func FileWriteAllText(filePath string, fileContents string) bool {
-   //TODO: implement FileWriteAllText
-   return false
+   f, err := os.Create(filePath)
+   if err != nil {
+      fmt.Printf("error: unable to create file '%s': %v\n", filePath, err)
+      return false
+   }
+   defer f.Close()
+ 
+   f.Write([]byte(fileContents))
+   return true
 }
 
 func FileWriteAllBytes(filePath string, fileContents []byte) bool {
-   //TODO: implement FileWriteAllBytes
-   return false
+   f, err := os.Create(filePath)
+   if err != nil {
+      fmt.Printf("error: unable to create file '%s': %v\n", filePath, err)
+      return false
+   }
+   defer f.Close()
+
+   f.Write(fileContents)
+   return true
 }
 
 func FileReadAllBytes(filePath string) ([]byte, error) {
-   //TODO: implement FileReadAllBytes
-   return nil, errors.New("function not implemented")
+   content, err := os.ReadFile(filePath)
+   if err != nil {
+      fmt.Printf("error: unable to read file '%s': %v\n", filePath, err)
+      return nil, err
+   } else {
+      return content, nil
+   }
 }
 
 func Md5ForFile(pathToFile string) (string, error) {

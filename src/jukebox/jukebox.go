@@ -276,41 +276,40 @@ func components_from_file_name(file_name string) (string,string,string) {
    }
 }
 
-func artist_from_file_name(file_name string) (*string) {
-   if len(file_name) > 0 {
-      artist, _, _ := components_from_file_name(file_name)
+func (jb *Jukebox) artistFromFileName(fileName string) string {
+   if len(fileName) > 0 {
+      artist, _, _ := components_from_file_name(fileName)
       if len(artist) > 0 {
-         return &artist
+         return artist
       }
    }
-   return nil
+   return ""
 }
 
-func album_from_file_name(file_name string) (*string) {
-   if len(file_name) > 0 {
-      _, album, _ := components_from_file_name(file_name)
+func (jb *Jukebox) albumFromFileName(fileName string) string {
+   if len(fileName) > 0 {
+      _, album, _ := components_from_file_name(fileName)
       if len(album) > 0 {
-         return &album
+         return album
       }
    }
-   return nil
+   return "" 
 }
 
-func song_from_file_name(file_name string) (*string) {
-   if len(file_name) > 0 {
-      _, _, song := components_from_file_name(file_name)
+func (jb *Jukebox) songFromFileName(fileName string) string {
+   if len(fileName) > 0 {
+      _, _, song := components_from_file_name(fileName)
       if len(song) > 0 {
-         return &song
+         return song
       }
    }
-   return nil
+   return ""
 }
 
-func (jukebox *Jukebox) store_song_metadata(fs_song SongMetadata) (bool) {
+func (jukebox *Jukebox) store_song_metadata(fs_song *SongMetadata) (bool) {
    db_song := jukebox.jukebox_db.retrieve_song(fs_song.Fm.File_uid)
    if db_song != nil {
-      p_fs_song := &fs_song
-      if ! p_fs_song.Equals(db_song) {
+      if ! fs_song.Equals(db_song) {
          return jukebox.jukebox_db.update_song(fs_song)
       } else {
          return true  // no insert or update needed (already up-to-date)
@@ -372,19 +371,19 @@ func (jukebox *Jukebox) object_file_suffix() (string) {
    return suffix
 }
 
-func (jukebox *Jukebox) container_for_song(song_uid string) *string {
+func (jukebox *Jukebox) container_for_song(song_uid string) string {
    if len(song_uid) == 0 {
-      return nil
+      return ""
    }
    container_suffix := "-artist-songs" + jukebox.container_suffix()
 
-   artist := artist_from_file_name(song_uid)
-   if artist == nil || len(*artist) == 0 {
-      return nil
+   artist := jukebox.artistFromFileName(song_uid)
+   if len(artist) == 0 {
+      return ""
    }
 
    var artist_letter string
-   artist_value := *artist
+   artist_value := artist
 
    if strings.HasPrefix(artist_value, "A ") {
       artist_letter = artist_value[2:3]
@@ -395,28 +394,27 @@ func (jukebox *Jukebox) container_for_song(song_uid string) *string {
    }
 
    container_name := strings.ToLower(artist_letter) + container_suffix
-   return &container_name
+   return container_name
 }
 
 func (jukebox *Jukebox) Import_songs() {
    if jukebox.jukebox_db != nil && jukebox.jukebox_db.is_open() {
-      /*
-      dir_listing, err := ioutil.ReadDir(jukebox.song_import_dir)
+      dir_listing, err := ListFilesInDirectory(jukebox.song_import_dir)
       if err != nil {
          return
       }
-      num_entries = float(len(dir_listing))
-      progressbar_chars = 0.0
-      progressbar_width = 40
-      progress_chars_per_iteration = progressbar_width / num_entries
-      progressbar_char = '#'
-      bar_chars = 0
+      //num_entries := float(len(dir_listing))
+      //progressbar_chars := 0.0
+      //progressbar_width := 40
+      //progress_chars_per_iteration := progressbar_width / num_entries
+      //progressbar_char := '#'
+      //bar_chars := 0
 
       if ! jukebox.debug_print {
          // setup progressbar
-         sys.stdout.write("[%s]" % (" " * progressbar_width))
-         sys.stdout.flush()
-         sys.stdout.write("\b" * (progressbar_width + 1))  // return to start of line, after '['
+         //sys.stdout.write("[%s]" % (" " * progressbar_width))
+         //sys.stdout.flush()
+         //sys.stdout.write("\b" * (progressbar_width + 1))  // return to start of line, after '['
       }
 
       //if jukebox.jukebox_options != nil && jukebox.jukebox_options.use_encryption {
@@ -425,34 +423,40 @@ func (jukebox *Jukebox) Import_songs() {
       //   encryption = nil
       //}
 
-      cumulative_upload_time = 0
-      cumulative_upload_bytes = 0
-      file_import_count = 0
+      cumulative_upload_time := 0
+      cumulative_upload_bytes := 0
+      file_import_count := 0
 
       for _, listing_entry := range dir_listing {
-         full_path = PathJoin(jukebox.song_import_dir, listing_entry)
+         full_path := PathJoin(jukebox.song_import_dir, listing_entry)
          // ignore it if it's not a file
-         if os.path.isfile(full_path) {
-            file_name = listing_entry
-            extension = os.path.splitext(full_path)[1]
-            if extension {
-               file_size = Get_file_size(full_path)
-               artist = jukebox.artist_from_file_name(file_name)
-               album = jukebox.album_from_file_name(file_name)
-               song = jukebox.song_from_file_name(file_name)
-               if file_size > 0 && artist != nil && album != nil && song != nil {
-                  object_name = file_name + jukebox.object_file_suffix()
-                  fs_song = NewSongMetadata()
+         if FileExists(full_path) {
+            file_name := listing_entry
+	    _, extension := PathSplitExt(full_path)
+            if len(extension) > 0 {
+               file_size := GetFileSize(full_path)
+	       artist := jukebox.artistFromFileName(file_name)
+	       album := jukebox.albumFromFileName(file_name)
+	       song := jukebox.songFromFileName(file_name)
+               if file_size > 0 && len(artist) > 0 && len(album) > 0 && len(song) > 0 {
+                  object_name := file_name + jukebox.object_file_suffix()
+		  fs_song := NewSongMetadata()
                   fs_song.Fm = NewFileMetadata()
                   fs_song.Fm.File_uid = object_name
-                  fs_song.Album_uid = nil
+                  fs_song.Album_uid = ""
                   fs_song.Fm.Origin_file_size = file_size
-                  fs_song.Fm.File_time = datetime.datetime.fromtimestamp(os.path.getmtime(full_path))
+		  mtime, errTime := PathGetMtime(full_path)
+		  if errTime == nil {
+                     fs_song.Fm.File_time = mtime.Format(time.RFC3339) 
+	          }
                   fs_song.Artist_name = artist
                   fs_song.Song_name = song
-                  fs_song.Fm.Md5_hash = Md5_for_file(full_path)
-                  fs_song.Fm.Compressed = jukebox.jukebox_options.use_compression
-                  fs_song.Fm.Encrypted = jukebox.jukebox_options.use_encryption
+		  md5Hash, errHash := Md5ForFile(full_path)
+		  if errHash == nil {
+                     fs_song.Fm.Md5_hash = md5Hash
+                  }
+                  fs_song.Fm.Compressed = jukebox.jukebox_options.Use_compression
+                  fs_song.Fm.Encrypted = jukebox.jukebox_options.Use_encryption
                   fs_song.Fm.Object_name = object_name
                   fs_song.Fm.Pad_char_count = 0
 
@@ -460,118 +464,129 @@ func (jukebox *Jukebox) Import_songs() {
 
                   // read file contents
 		  file_read := false
-		  file_contents := nil
 
-                  //try:
-                  //   with open(full_path, 'rb') as content_file:
-                  //      file_contents = content_file.read()
-                  //   file_read = true
-                  //except IOError:
-                  //   fmt.Printf("error: unable to read file %s\n", full_path)
+		  file_contents, errFile := FileReadAllBytes(full_path)
+		  if errFile == nil {
+                     file_read = true
+                  } else {
+                     fmt.Printf("error: unable to read file %s\n", full_path)
+                  }
 
                   if file_read && file_contents != nil {
-                     if file_contents {
+                     if len(file_contents) > 0 {
                         // for general purposes, it might be useful or helpful to have
                         // a minimum size for compressing
 			//TODO: add support for compression and encryption
-                        if jukebox.jukebox_options.use_compression {
+                        if jukebox.jukebox_options.Use_compression {
                            if jukebox.debug_print {
                               fmt.Println("compressing file")
                            }
 
-                           file_bytes = bytes(file_contents, 'utf-8')
-                           file_contents = zlib.compress(file_bytes, 9)
+                           //FUTURE: compression
+                           //file_bytes = bytes(file_contents, 'utf-8')
+                           //file_contents = zlib.compress(file_bytes, 9)
+                        }
 
-                           if jukebox.jukebox_options.use_encryption {
-                              if jukebox.debug_print {
-                                 fmt.Println("encrypting file")
-                              }
-
-                              // the length of the data to encrypt must be a multiple of 16
-                              num_extra_chars = len(file_contents) % 16
-                              if num_extra_chars > 0 {
-                                 if jukebox.debug_print {
-                                    fmt.Println("padding file for encryption")
-                                 }
-                                 num_pad_chars = 16 - num_extra_chars
-                                 file_contents += "".ljust(num_pad_chars, ' ')
-                                 fs_song.Fm.Pad_char_count = num_pad_chars
-                              }
-
-                              file_contents = encryption.encrypt(file_contents)
+                        if jukebox.jukebox_options.Use_encryption {
+                           if jukebox.debug_print {
+                              fmt.Println("encrypting file")
                            }
 
-                           // now that we have the data that will be stored, set the file size for
-                           // what's being stored
-                           fs_song.Fm.Stored_file_size = len(file_contents)
-                           start_upload_time = time.time()
+                           //FUTURE: encryption
+
+                           // the length of the data to encrypt must be a multiple of 16
+                           //num_extra_chars = len(file_contents) % 16
+                           //if num_extra_chars > 0 {
+                           //   if jukebox.debug_print {
+                           //      fmt.Println("padding file for encryption")
+                           //   }
+                           //   num_pad_chars = 16 - num_extra_chars
+                           //   file_contents += "".ljust(num_pad_chars, ' ')
+                           //   fs_song.Fm.Pad_char_count = num_pad_chars
+                           //}
+
+                           //file_contents = encryption.encrypt(file_contents)
+                        }
+                     }
+
+
+                     // now that we have the data that will be stored, set the file size for
+                     // what's being stored
+                     fs_song.Fm.Stored_file_size = int64(len(file_contents))
+		     //start_upload_time := time.Now()
 
                            // store song file to storage system
-                           if jukebox.storage_system.PutObject(fs_song.Fm.Container_name,
-                                                               fs_song.Fm.Object_name,
-                                                               file_contents) {
-                              end_upload_time = time.time()
-                              upload_elapsed_time = end_upload_time - start_upload_time
-                              cumulative_upload_time += upload_elapsed_time
-                              cumulative_upload_bytes += len(file_contents)
+                     if jukebox.storage_system.PutObject(fs_song.Fm.Container_name,
+                                                         fs_song.Fm.Object_name,
+                                                         file_contents,
+						         nil) {
+                        //end_upload_time := time.Now()
+			// end_upload_time - start_upload_time
+			//upload_elapsed_time := end_upload_time.Add(-start_upload_time)
+                        //cumulative_upload_time.Add(upload_elapsed_time)
+                        cumulative_upload_bytes += len(file_contents)
 
-                              // store song metadata in local database
-                              if ! jukebox.store_song_metadata(fs_song) {
-                                 // we stored the song to the storage system, but were unable to store
-                                 // the metadata in the local database. we need to delete the song
-                                 // from the storage system since we won't have any way to access it
-                                 // since we can't store the song metadata locally.
-                                 fmt.Printf("unable to store metadata, deleting obj '%s'", fs_song.Fm.Object_name)
-                                 jukebox.storage_system.DeleteObject(fs_song.Fm.Container_name,
-                                                                      fs_song.Fm.Object_name)
-                              } else {
-                                 file_import_count += 1
-                              }
-                           } else {
-                              fmt.Printf("error: unable to upload '%s' to '%s'\n",
-                                         fs_song.Fm.Object_name,
-                                         fs_song.Fm.Container_name)
-                           }
-
-                if ! jukebox.debug_print {
-                    progressbar_chars += progress_chars_per_iteration
-                    if int(progressbar_chars) > bar_chars {
-                        num_new_chars = int(progressbar_chars) - bar_chars
-                        if num_new_chars > 0 {
-                            // update progress bar
-                            for j in iter(range(num_new_chars)) {
-                                sys.stdout.write(progressbar_char)
-                            }
-                            sys.stdout.flush()
-                            bar_chars += num_new_chars
+                        // store song metadata in local database
+                        if ! jukebox.store_song_metadata(fs_song) {
+                           // we stored the song to the storage system, but were unable to store
+                           // the metadata in the local database. we need to delete the song
+                           // from the storage system since we won't have any way to access it
+                           // since we can't store the song metadata locally.
+                           fmt.Printf("unable to store metadata, deleting obj '%s'", fs_song.Fm.Object_name)
+                           jukebox.storage_system.DeleteObject(fs_song.Fm.Container_name,
+                                                               fs_song.Fm.Object_name)
+                        } else {
+                           file_import_count += 1
                         }
-                    }
-                }
+                     } else {
+                        fmt.Printf("error: unable to upload '%s' to '%s'\n",
+                                   fs_song.Fm.Object_name,
+                                   fs_song.Fm.Container_name)
+                     }
+                  }
+               }
+            }
 
             if ! jukebox.debug_print {
-                // if we haven't filled up the progress bar, fill it now
-                if bar_chars < progressbar_width {
-                    num_new_chars = progressbar_width - bar_chars
-                    for j in iter(range(num_new_chars)) {
-                        sys.stdout.write(progressbar_char)
-                    }
-                    sys.stdout.flush()
-                }
-                sys.stdout.write("\n")
+               //progressbar_chars += progress_chars_per_iteration
+               //if int(progressbar_chars) > bar_chars {
+                  //num_new_chars = int(progressbar_chars) - bar_chars
+                  //if num_new_chars > 0 {
+                     // update progress bar
+                     //for j in iter(range(num_new_chars)) {
+                     //    sys.stdout.write(progressbar_char)
+                     //}
+                     //sys.stdout.flush()
+                     //bar_chars += num_new_chars
+                  //}
+               //}
             }
+         }
+      }
 
-            if file_import_count > 0 {
-                jukebox.Upload_metadata_db()
-            }
+      if ! jukebox.debug_print {
+         // if we haven't filled up the progress bar, fill it now
+         //if bar_chars < progressbar_width {
+            //num_new_chars = progressbar_width - bar_chars
+            //for j in iter(range(num_new_chars)) {
+            //    sys.stdout.write(progressbar_char)
+            //}
+            //sys.stdout.flush()
+         //}
+         //sys.stdout.write("\n")
+      }
 
-            fmt.Printf("%d song files imported\n", file_import_count)
+      if file_import_count > 0 {
+         jukebox.Upload_metadata_db()
+      }
 
-            if cumulative_upload_time > 0 {
-                cumulative_upload_kb := cumulative_upload_bytes / 1000.0
-                fmt.Printf("average upload throughput = %d KB/sec\n",
-                           cumulative_upload_kb / cumulative_upload_time)
-            }
-	    */
+      fmt.Printf("%d song files imported\n", file_import_count)
+
+      if cumulative_upload_time > 0 {
+         cumulative_upload_kb := cumulative_upload_bytes / 1000.0
+         fmt.Printf("average upload throughput = %d KB/sec\n",
+                    cumulative_upload_kb / cumulative_upload_time)
+      }
    }
 }
 
@@ -1318,16 +1333,12 @@ func (jukebox *Jukebox) Delete_song(song_uid string, upload_metadata bool) bool 
    if len(song_uid) > 0 {
       db_deleted := jukebox.jukebox_db.delete_song(song_uid)
       container := jukebox.container_for_song(song_uid)
-      if container != nil {
-         container_value := *container
-         ss_deleted := false
-         if len(container_value) > 0 {
-            ss_deleted = jukebox.storage_system.DeleteObject(container_value, song_uid)
-            if db_deleted && upload_metadata {
-               jukebox.Upload_metadata_db()
-            }
-            is_deleted = db_deleted || ss_deleted
+      if len(container) > 0 {
+	 ss_deleted := jukebox.storage_system.DeleteObject(container, song_uid)
+         if db_deleted && upload_metadata {
+            jukebox.Upload_metadata_db()
          }
+         is_deleted = db_deleted || ss_deleted
       }
    }
 
@@ -1474,3 +1485,43 @@ func (jukebox *Jukebox) Import_album_art() {
       }
    }
 }
+
+func InitializeStorageSystem(storage_sys *FSStorageSystem) bool {
+   // create the containers that will hold songs
+   artistSongChars := "0123456789abcdefghijklmnopqrstuvwxyz"
+   containerSuffix := "-artist-songs"
+
+   for _, ch := range artistSongChars {
+      containerName := fmt.Sprintf("%c%s", ch, containerSuffix)
+      if !storage_sys.CreateContainer(containerName) {
+         fmt.Printf("error: unable to create container '%s'\n", containerName)
+         return false
+      }
+   }
+
+   // create the other (non-song) containers
+   containerNames := make([]string, 0)
+   containerNames = append(containerNames, "music-metadata")
+   containerNames = append(containerNames, "album-art")
+   containerNames = append(containerNames, "albums")
+   containerNames = append(containerNames, "playlists")
+
+   for _, containerName := range containerNames {
+      if !storage_sys.CreateContainer(containerName) {
+         fmt.Printf("error: unable to create container '%s'\n", containerName)
+         return false
+      }
+   }
+
+   // delete metadata DB file if present
+   metadata_db_file := "jukebox_db.sqlite3"
+   if FileExists(metadata_db_file) {
+      //if (debug_print) {
+      //   printf("deleting existing metadata DB file\n");
+      //}
+      DeleteFile(metadata_db_file)
+   }
+
+   return true
+}
+

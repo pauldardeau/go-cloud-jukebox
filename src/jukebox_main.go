@@ -52,10 +52,19 @@ func show_usage() {
    fmt.Println("\tplay-album         - play specified album")
    fmt.Println("\tretrieve-catalog   - retrieve copy of music catalog")
    fmt.Println("\tupload-metadata-db - upload SQLite metadata")
+   fmt.Println("\tinit-storage       - initialize storage system")
    fmt.Println("\tusage              - show this help message")
    fmt.Println("")
 }
 
+func initStorageSystem(storage_sys *jukebox.FSStorageSystem) {
+   if jukebox.InitializeStorageSystem(storage_sys) {
+      fmt.Println("storage system successfully initialized")
+   } else {
+      fmt.Println("error: unable to initialize storage system")
+      os.Exit(1)
+   }
+}
 
 func main() {
    debug_mode := false
@@ -266,7 +275,7 @@ func main() {
                                 "import-album-art", "play-album"}
       update_cmds := []string{"import-songs", "import-playlists", "delete-song",
                               "delete-album", "delete-playlist", "delete-artist",
-                              "upload-metadata-db", "import-album-art"}
+                              "upload-metadata-db", "import-album-art", "init-storage"}
       all_cmds := []string{}
       for _, cmd := range help_cmds {
          all_cmds = append(all_cmds, cmd)
@@ -276,7 +285,9 @@ func main() {
          all_cmds = append(all_cmds, cmd)
       } 
 
-      //TODO: what about update_cmds? do they need to be appended too?
+      for _, cmd := range update_cmds {
+         all_cmds = append(all_cmds, cmd)
+      }
 
       command_in_all_cmds := false
       command_in_help_cmds := false
@@ -336,6 +347,11 @@ func main() {
                   if storage_system.Enter() {
                       defer storage_system.Exit()
                       fmt.Println("storage system entered")
+
+		      if command == "init-storage" {
+                          initStorageSystem(storage_system)
+			  os.Exit(0)
+		      }
 
                       jukebox := jukebox.NewJukebox(options, storage_system, debug_mode)
                       if jukebox.Enter() {
