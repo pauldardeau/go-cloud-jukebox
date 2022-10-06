@@ -105,7 +105,7 @@ func (fs *FSStorageSystem) PutObject(containerName string,
       containerDir := PathJoin(fs.rootDir, containerName)
       if DirectoryExists(containerDir) {
          objectPath := PathJoin(containerDir, objectName)
-	 objectAdded := FileWriteAllBytes(objectPath, fileContents)
+	 objectAdded = FileWriteAllBytes(objectPath, fileContents)
          if objectAdded {
             if fs.debugMode {
                fmt.Println("object added: %s/%s", containerName, objectName)
