@@ -43,6 +43,7 @@
 package jukebox
 
 import (
+   "encoding/json"
    "fmt"
    "os"
    "os/exec"
@@ -321,17 +322,20 @@ func (jukebox *Jukebox) store_song_metadata(fs_song *SongMetadata) (bool) {
 }
 
 func (jukebox *Jukebox) store_song_playlist(file_name string, file_contents []byte) bool {
-/*
-        pl = json.loads(file_contents)
-        if "name" in pl.keys() {
-            pl_name = pl["name"]
-            pl_uid = file_name
-            return jukebox.jukebox_db.insert_playlist(pl_uid, pl_name)
-        } else {
-            return false
-        }
-*/
-    return false
+   var result map[string]interface{}
+   err := json.Unmarshal(file_contents, &result)
+   if err == nil {
+      any_pl_name, exists := result["name"]
+      if exists {
+	 pl_uid := file_name
+	 pl_name := fmt.Sprintf("%v", any_pl_name)
+         return jukebox.jukebox_db.insert_playlist(pl_uid, pl_name, "")
+      } else {
+         return false
+      }
+   } else {
+      return false
+   }
 }
 
 /*
