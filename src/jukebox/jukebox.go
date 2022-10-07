@@ -133,8 +133,8 @@ func NewJukebox(jb_options *JukeboxOptions,
    jukebox.song_list = []*SongMetadata{}
    jukebox.number_songs = 0
    jukebox.song_index = -1
-   //jukebox.audio_player_command_args = []
-   //jukebox.audio_player_command = nil
+   jukebox.audio_player_exe_file_name = ""
+   jukebox.audio_player_command_args = ""
    jukebox.audio_player_process = nil
    jukebox.song_play_length_seconds = 20
    jukebox.cumulative_download_bytes = 0
@@ -210,12 +210,11 @@ func (jukebox *Jukebox) Enter() bool {
                                           jukebox.jukebox_options.Use_encryption,
                                           jukebox.jukebox_options.Use_compression,
                                           debug_print)
-        return jukebox.jukebox_db.enter()
-	/*
-        if !jukebox.jukebox_db.open() {
+        jukebox_db_success := jukebox.jukebox_db.enter()
+        if !jukebox_db_success {
             fmt.Println("unable to connect to database")
         }
-	*/
+        return jukebox_db_success
     }
 
     return false
@@ -443,7 +442,7 @@ func (jukebox *Jukebox) ImportSongs() {
       progressbar_chars := 0.0
       progressbar_width := 40
       progress_chars_per_iteration := float32(progressbar_width) / num_entries
-      progressbar_char := '#'
+      progressbar_char := "#"
       bar_chars := 0
 
       if ! jukebox.debug_print {
@@ -989,20 +988,7 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
             if jukebox.debug_print {
                 fmt.Println("deleting existing files in song-play directory")
             }
-            dir_files, err_dir := os.ReadDir(jukebox.song_play_dir)
-	    if err_dir != nil {
-                fmt.Printf("error: unable to read song_play directory\n")
-		fmt.Printf("error: %v\n", err_dir)
-		return
-            } else {
-	        for _, theFile := range dir_files {
-                    if theFile.IsDir() {
-                        continue
-                    }
-                    file_path := PathJoin(jukebox.song_play_dir, theFile.Name())
-                    DeleteFile(file_path)
-                }
-            }
+	    DeleteFilesInDirectory(jukebox.song_play_dir)
         }
 
         jukebox.song_index = 0

@@ -24,6 +24,25 @@ func DeleteFile(pathToFile string) bool {
    return err == nil
 }
 
+func DeleteFilesInDirectory(dirPath string) bool {
+   dirFiles, errDir := os.ReadDir(dirPath)
+   if errDir != nil {
+      fmt.Printf("error: unable to read directory\n")
+      fmt.Printf("error: %v\n", errDir)
+      return false
+   } else {
+      for _, theFile := range dirFiles {
+         if theFile.IsDir() {
+            continue
+         }
+         if !DeleteFile(PathJoin(dirPath, theFile.Name())) {
+            return false
+         }
+      }
+      return true
+   }
+}
+
 func DirectoryExists(dirPath string) bool {
    file, err := os.Stat(dirPath)
    if err != nil {
