@@ -366,44 +366,44 @@ func main() {
                           fmt.Println("jukebox entered")
 
                           if command == "import-songs" {
-                              jukebox.Import_songs()
+                              jukebox.ImportSongs()
                           } else if command == "import-playlists" {
-                              jukebox.Import_playlists()
+                              jukebox.ImportPlaylists()
                           } else if command == "play" {
                               shuffle := false
-                              jukebox.Play_songs(shuffle, artist, album)
+                              jukebox.PlaySongs(shuffle, artist, album)
                           } else if command == "shuffle-play" {
                               shuffle := true
-                              jukebox.Play_songs(shuffle, artist, album)
+                              jukebox.PlaySongs(shuffle, artist, album)
                           } else if command == "list-songs" {
-                              jukebox.Show_listings()
+                              jukebox.ShowListings()
                           } else if command == "list-artists" {
-                              jukebox.Show_artists()
+                              jukebox.ShowArtists()
                           } else if command == "list-containers" {
-                              jukebox.Show_list_containers()
+                              jukebox.ShowListContainers()
                           } else if command == "list-genres" {
-                              jukebox.Show_genres()
+                              jukebox.ShowGenres()
                           } else if command == "list-albums" {
-                              jukebox.Show_albums()
+                              jukebox.ShowAlbums()
                           } else if command == "list-playlists" {
-                              jukebox.Show_playlists()
+                              jukebox.ShowPlaylists()
                           } else if command == "show-playlist" {
                               if len(playlist) > 0 {
-                                  jukebox.Show_playlist(playlist)
+                                  jukebox.ShowPlaylist(playlist)
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
                                   os.Exit(1)
                               }
                           } else if command == "play-playlist" {
                               if len(playlist) > 0 {
-                                  jukebox.Play_playlist(playlist)
+                                  jukebox.PlayPlaylist(playlist)
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
                                   os.Exit(1)
                               }
                           } else if command == "play-album" {
                               if len(album) > 0 && len(artist) > 0 {
-                                  jukebox.Play_album(artist, album)
+                                  jukebox.PlayAlbum(artist, album)
                               } else {
                                   fmt.Println("error: artist and album must be specified using --artist and --album options")
                               }
@@ -411,7 +411,7 @@ func main() {
                               //pass
                           } else if command == "delete-song" {
                               if len(song) > 0 {
-                                  if jukebox.Delete_song(song, false) {
+                                  if jukebox.DeleteSong(song, false) {
                                       fmt.Println("song deleted")
                                   } else {
                                       fmt.Println("error: unable to delete song")
@@ -423,7 +423,7 @@ func main() {
                               }
                           } else if command == "delete-artist" {
                               if len(artist) > 0 {
-                                  if jukebox.Delete_artist(artist) {
+                                  if jukebox.DeleteArtist(artist) {
                                       fmt.Println("artist deleted")
                                   } else {
                                       fmt.Println("error: unable to delete artist")
@@ -435,7 +435,7 @@ func main() {
                               }
                           } else if command == "delete-album" {
                               if len(album) > 0 {
-                                  if jukebox.Delete_album(album) {
+                                  if jukebox.DeleteAlbum(album) {
                                       fmt.Println("album deleted")
                                   } else {
                                       fmt.Println("error: unable to delete album")
@@ -447,7 +447,7 @@ func main() {
                               }
                           } else if command == "delete-playlist" {
                               if len(playlist) > 0 {
-                                  if jukebox.Delete_playlist(playlist) {
+                                  if jukebox.DeletePlaylist(playlist) {
                                       fmt.Println("playlist deleted")
                                   } else {
                                       fmt.Println("error: unable to delete playlist")
@@ -458,14 +458,14 @@ func main() {
                                   os.Exit(1)
                               }
                           } else if command == "upload-metadata-db" {
-                              if jukebox.Upload_metadata_db() {
+                              if jukebox.UploadMetadataDb() {
                                   fmt.Println("metadata db uploaded")
                               } else {
                                   fmt.Println("error: unable to upload metadata db")
                                   os.Exit(1)
                               }
                           } else if command == "import-album-art" {
-                              jukebox.Import_album_art()
+                              jukebox.ImportAlbumArt()
                           }
                       } else {
                           fmt.Println("unable to enter jukebox")
