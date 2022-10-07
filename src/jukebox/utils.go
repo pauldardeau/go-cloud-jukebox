@@ -11,6 +11,14 @@ import (
 )
 
 
+func UnencodeValue(encodedValue string) (string) {
+   return strings.Replace(encodedValue, "-", " ", -1)
+}
+
+func EncodeValue(value string) (string) {
+   return strings.Replace(value, " ", "-", -1)
+}
+
 func FileExists(pathToFile string) bool {
    file, err := os.Stat(pathToFile)
    if err != nil {

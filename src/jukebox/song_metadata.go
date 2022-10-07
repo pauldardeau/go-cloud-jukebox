@@ -37,14 +37,14 @@ func NewSongMetadata() *SongMetadata {
    return &sm
 }
 
-func (sm *SongMetadata) From_Dictionary(dictionary map[string]string) {
-   sm.From_Dictionary_With_Prefix(dictionary, "")
+func (sm *SongMetadata) FromDictionary(dictionary map[string]string) {
+   sm.FromDictionaryWithPrefix(dictionary, "")
 }
 
-func (sm *SongMetadata) From_Dictionary_With_Prefix(dictionary map[string]string,
+func (sm *SongMetadata) FromDictionaryWithPrefix(dictionary map[string]string,
                                                     prefix string) {
    sm.Fm = NewFileMetadata()
-   sm.Fm.From_Dictionary_With_Prefix(dictionary, prefix)
+   sm.Fm.FromDictionaryWithPrefix(dictionary, prefix)
 
    if value, isPresent := dictionary[prefix + "artist_uid"]; isPresent {
       sm.Artist_uid = value
@@ -63,13 +63,13 @@ func (sm *SongMetadata) From_Dictionary_With_Prefix(dictionary map[string]string
    }
 }
 
-func (sm *SongMetadata) To_Dictionary() map[string]string {
-   return sm.To_Dictionary_With_Prefix("")
+func (sm *SongMetadata) ToDictionary() map[string]string {
+   return sm.ToDictionaryWithPrefix("")
 }
 
-func (sm *SongMetadata) To_Dictionary_With_Prefix(prefix string) map[string]string {
+func (sm *SongMetadata) ToDictionaryWithPrefix(prefix string) map[string]string {
    fm_dict := make(map[string]string)
-   sm.Fm.To_Dictionary_With_Prefix(prefix)
+   sm.Fm.ToDictionaryWithPrefix(prefix)
 
    sm_dict := map[string]string {
            prefix + "artist_uid": sm.Artist_uid,

@@ -55,7 +55,7 @@ func (o *JukeboxOptions) Show() {
    fmt.Println("========= End JukeboxOptions =========")
 }
 
-func (o *JukeboxOptions) Validate_options() (bool) {
+func (o *JukeboxOptions) ValidateOptions() (bool) {
    if o.File_cache_count < 0 {
       fmt.Println("error: file cache count must be non-negative integer value")
       return false

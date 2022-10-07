@@ -76,23 +76,23 @@ func main() {
    album := ""
 
    opt_parser := jukebox.NewArgumentParser()
-   opt_parser.Add_optional_bool_flag("--debug", "run in debug mode")
-   opt_parser.Add_optional_int_argument("--file-cache-count", "number of songs to buffer in cache")
-   opt_parser.Add_optional_bool_flag("--integrity-checks", "check file integrity after download")
-   opt_parser.Add_optional_bool_flag("--compress", "use gzip compression")
-   opt_parser.Add_optional_bool_flag("--encrypt", "encrypt file contents")
-   opt_parser.Add_optional_string_argument("--key", "encryption key")
-   opt_parser.Add_optional_string_argument("--keyfile", "path to file containing encryption key")
-   opt_parser.Add_optional_string_argument("--storage", "storage system type (s3, swift, azure)")
-   opt_parser.Add_optional_string_argument("--artist", "limit operations to specified artist")
-   opt_parser.Add_optional_string_argument("--playlist", "limit operations to specified playlist")
-   opt_parser.Add_optional_string_argument("--song", "limit operations to specified song")
-   opt_parser.Add_optional_string_argument("--album", "limit operations to specified album")
-   opt_parser.Add_required_argument("command", "command for jukebox")
+   opt_parser.AddOptionalBoolFlag("--debug", "run in debug mode")
+   opt_parser.AddOptionalIntArgument("--file-cache-count", "number of songs to buffer in cache")
+   opt_parser.AddOptionalBoolFlag("--integrity-checks", "check file integrity after download")
+   opt_parser.AddOptionalBoolFlag("--compress", "use gzip compression")
+   opt_parser.AddOptionalBoolFlag("--encrypt", "encrypt file contents")
+   opt_parser.AddOptionalStringArgument("--key", "encryption key")
+   opt_parser.AddOptionalStringArgument("--keyfile", "path to file containing encryption key")
+   opt_parser.AddOptionalStringArgument("--storage", "storage system type (s3, swift, azure)")
+   opt_parser.AddOptionalStringArgument("--artist", "limit operations to specified artist")
+   opt_parser.AddOptionalStringArgument("--playlist", "limit operations to specified playlist")
+   opt_parser.AddOptionalStringArgument("--song", "limit operations to specified song")
+   opt_parser.AddOptionalStringArgument("--album", "limit operations to specified album")
+   opt_parser.AddRequiredArgument("command", "command for jukebox")
 
    console_args := os.Args[1:]
 
-   args := opt_parser.Parse_args(console_args)
+   args := opt_parser.ParseArgs(console_args)
 
    //args := make(map[string]string);
 
@@ -326,7 +326,7 @@ func main() {
           if command_in_help_cmds {
               show_usage()
           } else {
-              if ! options.Validate_options() {
+              if ! options.ValidateOptions() {
                   os.Exit(1)
               }
 

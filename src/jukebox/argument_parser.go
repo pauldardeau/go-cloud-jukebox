@@ -32,9 +32,9 @@ func NewArgumentParser() *ArgumentParser {
    return &arg_parser
 }
 
-func (ap *ArgumentParser) add_option(o string,
-                                     option_type string,
-                                     help string) {
+func (ap *ArgumentParser) addOption(o string,
+                                    option_type string,
+                                    help string) {
     ap.dict_all_reserved_words[o] = option_type
 
     if (option_type == TYPE_BOOL) {
@@ -46,24 +46,24 @@ func (ap *ArgumentParser) add_option(o string,
     }
 }
 
-func (ap *ArgumentParser) Add_optional_bool_flag(flag string, help string) {
-    ap.add_option(flag, TYPE_BOOL, help)
+func (ap *ArgumentParser) AddOptionalBoolFlag(flag string, help string) {
+    ap.addOption(flag, TYPE_BOOL, help)
 }
 
-func (ap *ArgumentParser) Add_optional_int_argument(arg string, help string) {
-    ap.add_option(arg, TYPE_INT, help)
+func (ap *ArgumentParser) AddOptionalIntArgument(arg string, help string) {
+    ap.addOption(arg, TYPE_INT, help)
 }
 
-func (ap *ArgumentParser) Add_optional_string_argument(arg string, help string) {
-    ap.add_option(arg, TYPE_STRING, help)
+func (ap *ArgumentParser) AddOptionalStringArgument(arg string, help string) {
+    ap.addOption(arg, TYPE_STRING, help)
 }
 
-func (ap *ArgumentParser) Add_required_argument(arg string, help string) {
+func (ap *ArgumentParser) AddRequiredArgument(arg string, help string) {
     ap.dict_commands[arg] = help
     ap.list_commands = append(ap.list_commands, arg)
 }
 
-func (ap *ArgumentParser) Parse_args(args []string) map[string]interface{} {
+func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 
     dict_args := make(map[string]interface{})
 

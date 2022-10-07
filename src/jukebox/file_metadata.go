@@ -52,11 +52,11 @@ func NewFileMetadata() *FileMetadata {
    return &fm
 }
 
-func (fm *FileMetadata) From_Dictionary(dictionary map[string]string) {
-   fm.From_Dictionary_With_Prefix(dictionary, "")
+func (fm *FileMetadata) FromDictionary(dictionary map[string]string) {
+   fm.FromDictionaryWithPrefix(dictionary, "")
 }
 
-func (fm *FileMetadata) From_Dictionary_With_Prefix(dictionary map[string]string, prefix string) {
+func (fm *FileMetadata) FromDictionaryWithPrefix(dictionary map[string]string, prefix string) {
    if dictionary != nil {
       if value, isPresent := dictionary[prefix + "file_uid"]; isPresent {
          fm.File_uid = value
@@ -113,11 +113,11 @@ func (fm *FileMetadata) From_Dictionary_With_Prefix(dictionary map[string]string
    }
 }
 
-func (fm *FileMetadata) To_Dictionary() map[string]string {
-   return fm.To_Dictionary_With_Prefix("")
+func (fm *FileMetadata) ToDictionary() map[string]string {
+   return fm.ToDictionaryWithPrefix("")
 }
 
-func (fm *FileMetadata) To_Dictionary_With_Prefix(prefix string) map[string]string {
+func (fm *FileMetadata) ToDictionaryWithPrefix(prefix string) map[string]string {
    compressed_value := "0"
    encrypted_value := "0"
    if fm.Compressed {

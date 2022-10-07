@@ -35,7 +35,7 @@ func NewJukeboxDB(metadata_db_file_path string,
    return &jukeboxDB
 }
 
-func (jukeboxDB *JukeboxDB) is_open() bool {
+func (jukeboxDB *JukeboxDB) isOpen() bool {
    return jukeboxDB.db_connection != nil
 }
 
@@ -47,8 +47,8 @@ func (jukeboxDB *JukeboxDB) open() bool {
       fmt.Printf("error: unable to open SQLite db: %v\n", err)
    } else {
       jukeboxDB.db_connection = db
-      if !jukeboxDB.have_tables() {
-         open_success = jukeboxDB.create_tables()
+      if !jukeboxDB.haveTables() {
+         open_success = jukeboxDB.createTables()
          if !open_success {
             fmt.Println("error: unable to create all tables")
          }
@@ -92,7 +92,7 @@ func (jukeboxDB *JukeboxDB) exit() {
     }
 }
 
-func (jukeboxDB *JukeboxDB) create_table(sqlStatement string) bool {
+func (jukeboxDB *JukeboxDB) createTable(sqlStatement string) bool {
     if jukeboxDB.db_connection != nil {
         stmt, err := jukeboxDB.db_connection.Prepare(sqlStatement)
 	if err != nil {
@@ -115,7 +115,7 @@ func (jukeboxDB *JukeboxDB) create_table(sqlStatement string) bool {
     }
 }
 
-func (jukeboxDB *JukeboxDB) create_tables() bool {
+func (jukeboxDB *JukeboxDB) createTables() bool {
     if jukeboxDB.db_connection != nil {
         if jukeboxDB.debug_print {
             fmt.Println("creating tables")
@@ -164,18 +164,18 @@ func (jukeboxDB *JukeboxDB) create_tables() bool {
                                      "playlist_uid TEXT NOT NULL REFERENCES playlist(playlist_uid)," +
                                      "song_uid TEXT NOT NULL REFERENCES song(song_uid))"
 
-        return jukeboxDB.create_table(create_genre_table) &&
-               jukeboxDB.create_table(create_artist_table) &&
-               jukeboxDB.create_table(create_album_table) &&
-               jukeboxDB.create_table(create_song_table) &&
-               jukeboxDB.create_table(create_playlist_table) &&
-               jukeboxDB.create_table(create_playlist_song_table)
+        return jukeboxDB.createTable(create_genre_table) &&
+               jukeboxDB.createTable(create_artist_table) &&
+               jukeboxDB.createTable(create_album_table) &&
+               jukeboxDB.createTable(create_song_table) &&
+               jukeboxDB.createTable(create_playlist_table) &&
+               jukeboxDB.createTable(create_playlist_song_table)
     }
 
     return false
 }
 
-func (jukeboxDB *JukeboxDB) have_tables() bool {
+func (jukeboxDB *JukeboxDB) haveTables() bool {
    have_tables_in_db := false
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT name " +
@@ -199,7 +199,7 @@ func (jukeboxDB *JukeboxDB) have_tables() bool {
    return have_tables_in_db
 }
 
-func (jukeboxDB *JukeboxDB) get_playlist(playlist_name string) *string {
+func (jukeboxDB *JukeboxDB) getPlaylist(playlist_name string) *string {
     var pl_object string
     if len(playlist_name) > 0 {
         sqlQuery := "SELECT playlist_uid FROM playlist WHERE playlist_name = ?"
@@ -215,7 +215,7 @@ func (jukeboxDB *JukeboxDB) get_playlist(playlist_name string) *string {
     return &pl_object
 }
 
-func (jukeboxDB *JukeboxDB) songs_for_query_results(rows *sql.Rows) []*SongMetadata {
+func (jukeboxDB *JukeboxDB) songsForQueryResults(rows *sql.Rows) []*SongMetadata {
     result_songs := []*SongMetadata{}
 
     for rows.Next() {
@@ -268,7 +268,7 @@ func (jukeboxDB *JukeboxDB) songs_for_query_results(rows *sql.Rows) []*SongMetad
     return result_songs
 }
 
-func (jukeboxDB *JukeboxDB) retrieve_song(file_name string) *SongMetadata {
+func (jukeboxDB *JukeboxDB) retrieveSong(file_name string) *SongMetadata {
     if jukeboxDB.db_connection != nil {
         sqlQuery := `
             SELECT song_uid,
@@ -299,7 +299,7 @@ func (jukeboxDB *JukeboxDB) retrieve_song(file_name string) *SongMetadata {
 	if err_rows != nil {
             return nil
         }
-	song_results := jukeboxDB.songs_for_query_results(rows)
+	song_results := jukeboxDB.songsForQueryResults(rows)
         if song_results != nil && len(song_results) > 0 {
             return song_results[0]
         }
@@ -307,9 +307,9 @@ func (jukeboxDB *JukeboxDB) retrieve_song(file_name string) *SongMetadata {
     return nil
 }
 
-func (jukeboxDB *JukeboxDB) insert_playlist(pl_uid string,
-                                            pl_name string,
-                                            pl_desc string) bool {
+func (jukeboxDB *JukeboxDB) insertPlaylist(pl_uid string,
+                                           pl_name string,
+                                           pl_desc string) bool {
     insert_success := false
 
     if jukeboxDB.db_connection != nil &&
@@ -339,7 +339,7 @@ func (jukeboxDB *JukeboxDB) insert_playlist(pl_uid string,
     return insert_success
 }
 
-func (jukeboxDB *JukeboxDB) delete_playlist(pl_name string) bool {
+func (jukeboxDB *JukeboxDB) deletePlaylist(pl_name string) bool {
     delete_success := false
 
     if jukeboxDB.db_connection != nil && len(pl_name) > 0 {
@@ -365,7 +365,7 @@ func (jukeboxDB *JukeboxDB) delete_playlist(pl_name string) bool {
     return delete_success
 }
 
-func (jukeboxDB *JukeboxDB) insert_song(song *SongMetadata) bool {
+func (jukeboxDB *JukeboxDB) insertSong(song *SongMetadata) bool {
     insert_success := false
 
     if jukeboxDB.db_connection != nil && song != nil {
@@ -404,7 +404,7 @@ func (jukeboxDB *JukeboxDB) insert_song(song *SongMetadata) bool {
     return insert_success
 }
 
-func (jukeboxDB *JukeboxDB) update_song(song *SongMetadata) bool {
+func (jukeboxDB *JukeboxDB) updateSong(song *SongMetadata) bool {
         update_success := false
 
         if jukeboxDB.db_connection != nil && song != nil && len(song.Fm.File_uid) > 0 {
@@ -458,24 +458,24 @@ func (jukeboxDB *JukeboxDB) update_song(song *SongMetadata) bool {
         return update_success
 }
 
-func (jukeboxDB *JukeboxDB) store_song_metadata(song *SongMetadata) bool {
+func (jukeboxDB *JukeboxDB) storeSongMetadata(song *SongMetadata) bool {
     if song == nil {
        return false
     }
-    db_song := jukeboxDB.retrieve_song(song.Fm.File_uid)
+    db_song := jukeboxDB.retrieveSong(song.Fm.File_uid)
     if db_song != nil {
         if ! song.Equals(db_song) {
-            return jukeboxDB.update_song(song)
+            return jukeboxDB.updateSong(song)
         } else {
             return true  // no insert or update needed (already up-to-date)
         }
     } else {
         // song is not in the database, insert it
-        return jukeboxDB.insert_song(song)
+        return jukeboxDB.insertSong(song)
     }
 }
 
-func (jukeboxDB *JukeboxDB) sql_where_clause() string {
+func (jukeboxDB *JukeboxDB) sqlWhereClause() string {
    var encryption int
    if jukeboxDB.use_encryption {
       encryption = 1
@@ -500,8 +500,8 @@ func (jukeboxDB *JukeboxDB) sql_where_clause() string {
    return where_clause
 }
 
-func (jukeboxDB *JukeboxDB) retrieve_songs(artist string,
-                                           album string) []*SongMetadata {
+func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
+                                          album string) []*SongMetadata {
     var songs []*SongMetadata
     if jukeboxDB.db_connection != nil {
         sqlQuery := `
@@ -521,12 +521,12 @@ func (jukeboxDB *JukeboxDB) retrieve_songs(artist string,
             album_uid FROM song
         `
 
-        sqlQuery += jukeboxDB.sql_where_clause()
+        sqlQuery += jukeboxDB.sqlWhereClause()
         //if len(artist) > 0:
         //    sqlQuery += " AND artist_name='%s'" % artist
         if len(album) > 0 {
-            encoded_artist := encode_value(artist)
-            encoded_album := encode_value(album)
+            encoded_artist := EncodeValue(artist)
+            encoded_album := EncodeValue(album)
             added_clause := fmt.Sprintf(" AND object_name LIKE '%s--%s%%'",
                                         encoded_artist,
                                         encoded_album)
@@ -549,12 +549,12 @@ func (jukeboxDB *JukeboxDB) retrieve_songs(artist string,
             return nil
         }
 
-        songs = jukeboxDB.songs_for_query_results(rows)
+        songs = jukeboxDB.songsForQueryResults(rows)
     }
     return songs
 }
 
-func (jukeboxDB* JukeboxDB) songs_for_artist(artist_name string) []*SongMetadata {
+func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
     songs := []*SongMetadata{}
     if jukeboxDB.db_connection != nil {
         sqlQuery := `
@@ -573,7 +573,7 @@ func (jukeboxDB* JukeboxDB) songs_for_artist(artist_name string) []*SongMetadata
             object_name,
             album_uid FROM song
         `
-        sqlQuery += jukeboxDB.sql_where_clause()
+        sqlQuery += jukeboxDB.sqlWhereClause()
         sqlQuery += " AND artist = ?"
         stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
         if err != nil {
@@ -587,12 +587,12 @@ func (jukeboxDB* JukeboxDB) songs_for_artist(artist_name string) []*SongMetadata
         if err != nil {
            return nil
         }
-        songs = jukeboxDB.songs_for_query_results(rows)
+        songs = jukeboxDB.songsForQueryResults(rows)
     }
     return songs
 }
 
-func (jukeboxDB *JukeboxDB) show_listings() {
+func (jukeboxDB *JukeboxDB) showListings() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT artist_name, song_name " +
                   "FROM song " +
@@ -622,7 +622,7 @@ func (jukeboxDB *JukeboxDB) show_listings() {
    }
 }
 
-func (jukeboxDB *JukeboxDB) show_artists() {
+func (jukeboxDB *JukeboxDB) showArtists() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT DISTINCT artist_name " +
                   "FROM song " +
@@ -649,7 +649,7 @@ func (jukeboxDB *JukeboxDB) show_artists() {
    }
 }
 
-func (jukeboxDB *JukeboxDB) show_genres() {
+func (jukeboxDB *JukeboxDB) showGenres() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT genre_name " +
                   "FROM genre " +
@@ -675,7 +675,7 @@ func (jukeboxDB *JukeboxDB) show_genres() {
    }
 }
 
-func (jukeboxDB *JukeboxDB) show_albums() {
+func (jukeboxDB *JukeboxDB) showAlbums() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT album.album_name, artist.artist_name " +
                   "FROM album, artist " +
@@ -704,7 +704,7 @@ func (jukeboxDB *JukeboxDB) show_albums() {
    }
 }
 
-func (jukeboxDB *JukeboxDB) show_playlists() {
+func (jukeboxDB *JukeboxDB) showPlaylists() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT playlist_uid, playlist_name " +
                   "FROM playlist " +
@@ -731,7 +731,7 @@ func (jukeboxDB *JukeboxDB) show_playlists() {
    }
 }
 
-func (jukeboxDB *JukeboxDB) delete_song(song_uid string) bool {
+func (jukeboxDB *JukeboxDB) deleteSong(song_uid string) bool {
    was_deleted := false
    if jukeboxDB.db_connection != nil {
       if len(song_uid) > 0 {
