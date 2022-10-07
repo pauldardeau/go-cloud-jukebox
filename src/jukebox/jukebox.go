@@ -96,7 +96,7 @@ type Jukebox struct {
    song_index int
    audio_player_exe_file_name string
    audio_player_command_args string
-   //pid_t audio_player_process;
+   audio_player_process *os.Process
    song_play_length_seconds int
    cumulative_download_bytes int64
    cumulative_download_time int 
@@ -132,6 +132,7 @@ func NewJukebox(jb_options *JukeboxOptions,
    jukebox.song_index = -1
    //jukebox.audio_player_command_args = []
    //jukebox.audio_player_command = nil
+   jukebox.audio_player_process = nil
    jukebox.song_play_length_seconds = 20
    jukebox.cumulative_download_bytes = 0
    jukebox.cumulative_download_time = 0
@@ -228,10 +229,10 @@ func (jukebox *Jukebox) Toggle_pause_play() {
    jukebox.is_paused = ! jukebox.is_paused
    if jukebox.is_paused {
       fmt.Println("paused")
-      //if jukebox.audio_player_popen != nil {
+      if jukebox.audio_player_process != nil {
          // capture current song position (seconds into song)
-      //   jukebox.audio_player_popen.terminate()
-      //}
+         jukebox.audio_player_process.Kill()
+      }
    } else {
       fmt.Println("resuming play")
    }
@@ -239,9 +240,9 @@ func (jukebox *Jukebox) Toggle_pause_play() {
 
 func (jukebox *Jukebox) Advance_to_next_song() {
    fmt.Println("advancing to next song")
-   //if jukebox.audio_player_popen != nil {
-   //   jukebox.audio_player_popen.terminate()
-   //}
+   if jukebox.audio_player_process != nil {
+      jukebox.audio_player_process.Kill()
+   }
 }
 
 func (jukebox *Jukebox) Get_metadata_db_file_path() (string) {
@@ -821,17 +822,16 @@ func (jukebox *Jukebox) play_song(song_file_path string) {
 	    return
          }
 
-	 err := cmd.Run()
+	 err := cmd.Start()  // will not wait for process to run and exit
 	 if err == nil {
             started_audio_player = true
-            //jukebox.audio_player_popen = audio_player_proc
+	    jukebox.audio_player_process = cmd.Process
 	    errWait := cmd.Wait()
-	    if errWait == nil {
-            } else {
+	    if errWait != nil {
                fmt.Printf("error: unable to wait for audio player process\n")
 	       fmt.Printf("error: %v\n", errWait)
             }
-            //jukebox.audio_player_popen = nil
+            jukebox.audio_player_process = nil
          } else {
             fmt.Printf("error: unable to start audio player\n")
 	    fmt.Printf("error: %v\n", err)
@@ -929,9 +929,7 @@ func downloadSongs(jukebox *Jukebox, dl_songs []*SongMetadata) {
 }
 
 func (jukebox *Jukebox) Play_songs(shuffle bool, artist string, album string) {
-    fmt.Printf("Play_songs entered, calling retrieve_songs\n")
     song_list := jukebox.jukebox_db.retrieve_songs(artist, album)
-    fmt.Printf("back from retrieve_songs, length = %d\n", len(song_list))
     jukebox.play_song_list(song_list, shuffle)
 }
 
@@ -1006,8 +1004,9 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
 
         if jukebox.download_song(jukebox.song_list[0]) {
             fmt.Println("first song downloaded. starting playing now.")
-            //with open("jukebox.pid", "w") as f:
-            //    f.write('%d\n' % os.getpid())
+
+	    pidAsText := fmt.Sprintf("%d\n", os.Getpid())
+	    FileWriteAllText("jukebox.pid", pidAsText)
 
             for true {
                 if ! jukebox.exit_requested {
