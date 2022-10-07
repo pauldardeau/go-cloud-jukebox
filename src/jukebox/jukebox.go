@@ -787,9 +787,11 @@ func (jukebox *Jukebox) download_song(song *SongMetadata) (bool) {
    return false
 }
 
-func (jukebox *Jukebox) play_song(song_file_path string) {
+func (jukebox *Jukebox) play_song(song *SongMetadata) {
+   song_file_path := jukebox.song_path_in_playlist(song)
+
    if FileExists(song_file_path) {
-      fmt.Printf("playing %s\n", song_file_path)
+      fmt.Printf("playing %s\n", song.Fm.File_uid)
       if len(jukebox.audio_player_exe_file_name) > 0 {
          var args []string
          if len(jukebox.audio_player_command_args) > 0 {
@@ -1045,7 +1047,7 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
                 if ! jukebox.exit_requested {
                     if ! jukebox.is_paused {
                         jukebox.download_songs()
-                        jukebox.play_song(jukebox.song_path_in_playlist(jukebox.song_list[jukebox.song_index]))
+                        jukebox.play_song(jukebox.song_list[jukebox.song_index])
                     }
                     if ! jukebox.is_paused {
                         jukebox.song_index += 1
