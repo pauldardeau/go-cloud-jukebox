@@ -117,7 +117,7 @@ func (fs *FSStorageSystem) PutObject(containerName string,
                }
             }
          } else {
-            fmt.Println("file_write_all_bytes failed to write object contents, put failed")
+            fmt.Println("FileWriteAllBytes failed to write object contents, put failed")
          }
       } else {
          if fs.debugMode {
@@ -189,10 +189,15 @@ func (fs *FSStorageSystem) GetObject(containerName string,
       if FileExists(objectPath) {
 	 objFileContents, err := FileReadAllBytes(objectPath)
 	 if err == nil {
-            fmt.Printf("attempting to write object to '%s'\n", localFilePath)
+            if fs.debugMode {
+               fmt.Printf("attempting to write object to '%s'\n", localFilePath)
+            }
             if FileWriteAllBytes(localFilePath, objFileContents) {
                bytesRetrieved = int64(len(objFileContents))
             }
+         } else {
+            fmt.Printf("error: unable to read object file '%s'\n", objectPath)
+            fmt.Printf("error: %v\n", err)
          }
       }
    }

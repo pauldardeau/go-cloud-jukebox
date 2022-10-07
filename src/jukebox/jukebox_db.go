@@ -344,7 +344,7 @@ func (jukeboxDB *JukeboxDB) delete_playlist(pl_name string) bool {
 
     if jukeboxDB.db_connection != nil && len(pl_name) > 0 {
         sqlQuery := "DELETE FROM playlist " +
-               "WHERE playlist_name = ? "
+                    "WHERE playlist_name = ? "
         tx, err_tx := jukeboxDB.db_connection.Begin()
 	if err_tx != nil {
             return false
@@ -525,7 +525,7 @@ func (jukeboxDB *JukeboxDB) retrieve_songs(artist string,
 
         sqlQuery += jukeboxDB.sql_where_clause()
         //if len(artist) > 0:
-        //    sql += " AND artist_name='%s'" % artist
+        //    sqlQuery += " AND artist_name='%s'" % artist
         if len(album) > 0 {
             encoded_artist := encode_value(artist)
             encoded_album := encode_value(album)
@@ -597,8 +597,8 @@ func (jukeboxDB* JukeboxDB) songs_for_artist(artist_name string) []*SongMetadata
 func (jukeboxDB *JukeboxDB) show_listings() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT artist_name, song_name " +
-             "FROM song " +
-             "ORDER BY artist_name, song_name"
+                  "FROM song " +
+                  "ORDER BY artist_name, song_name"
       stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
       if err != nil {
           fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
@@ -627,8 +627,8 @@ func (jukeboxDB *JukeboxDB) show_listings() {
 func (jukeboxDB *JukeboxDB) show_artists() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT DISTINCT artist_name " +
-             "FROM song " +
-             "ORDER BY artist_name"
+                  "FROM song " +
+                  "ORDER BY artist_name"
       stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
@@ -654,8 +654,8 @@ func (jukeboxDB *JukeboxDB) show_artists() {
 func (jukeboxDB *JukeboxDB) show_genres() {
    if jukeboxDB.db_connection != nil {
       sqlQuery := "SELECT genre_name " +
-             "FROM genre " +
-             "ORDER BY genre_name"
+                  "FROM genre " +
+                  "ORDER BY genre_name"
       stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)

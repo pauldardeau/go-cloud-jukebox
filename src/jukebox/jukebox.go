@@ -101,7 +101,6 @@ type Jukebox struct {
    cumulative_download_time int 
    exit_requested bool 
    is_paused bool
-   //song_start_time int
    song_seconds_offset int 
 }
 
@@ -137,7 +136,6 @@ func NewJukebox(jb_options *JukeboxOptions,
    jukebox.cumulative_download_time = 0
    jukebox.exit_requested = false
    jukebox.is_paused = false
-   //jukebox.song_start_time = 0
    jukebox.song_seconds_offset = 0
 
    if jukebox.jukebox_options != nil && jukebox.jukebox_options.Debug_mode {
@@ -517,7 +515,7 @@ func (jukebox *Jukebox) Import_songs() {
                      fs_song.Fm.Stored_file_size = int64(len(file_contents))
 		     //start_upload_time := time.Now()
 
-                           // store song file to storage system
+                     // store song file to storage system
                      if jukebox.storage_system.PutObject(fs_song.Fm.Container_name,
                                                          fs_song.Fm.Object_name,
                                                          file_contents,
@@ -609,7 +607,9 @@ func (jukebox *Jukebox) check_file_integrity(song *SongMetadata) bool {
             if song.Fm != nil {
 		playlist_md5, err := Md5ForFile(file_path)
 		if err != nil {
-                    // log error
+                    fmt.Printf("error: unable to calculate MD5 hash for file '%s'\n", file_path)
+                    fmt.Printf("error: %v\n", err)
+		    file_integrity_passed = false
 		} else {
                     if playlist_md5 == song.Fm.Md5_hash {
                         if jukebox.debug_print {
@@ -820,7 +820,6 @@ func (jukebox *Jukebox) play_song(song_file_path string) {
 	 err := cmd.Run()
 	 if err == nil {
             started_audio_player = true
-            //jukebox.song_start_time = time.Now()
             //jukebox.audio_player_popen = audio_player_proc
 	    errWait := cmd.Wait()
 	    if errWait == nil {
