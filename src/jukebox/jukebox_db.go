@@ -502,8 +502,6 @@ func (jukeboxDB *JukeboxDB) sql_where_clause() string {
 
 func (jukeboxDB *JukeboxDB) retrieve_songs(artist string,
                                            album string) []*SongMetadata {
-    fmt.Printf("retrieve_songs entered\n")
-
     var songs []*SongMetadata
     if jukeboxDB.db_connection != nil {
         sqlQuery := `
