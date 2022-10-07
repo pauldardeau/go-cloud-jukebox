@@ -132,9 +132,9 @@ func (ps *PropertySet) WriteToFile(filePath string) bool {
       } else if pv.IsInt() {
          f.WriteString(fmt.Sprintf("%s|%s|%d\n", psTypeInt, key, pv.GetIntValue()))
       } else if pv.IsLong() {
-         f.WriteString(fmt.Sprintf("%s|%s|%ld\n", psTypeLong, key, pv.GetLongValue()))
+         f.WriteString(fmt.Sprintf("%s|%s|%d\n", psTypeLong, key, pv.GetLongValue()))
       } else if pv.IsUlong() {
-         f.WriteString(fmt.Sprintf("%s|%s|%lu\n", psTypeUlong, key, pv.GetUlongValue()))
+         f.WriteString(fmt.Sprintf("%s|%s|%d\n", psTypeUlong, key, pv.GetUlongValue()))
       }
    }
    success = true

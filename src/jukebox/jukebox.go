@@ -714,7 +714,7 @@ func (jukebox *Jukebox) download_song(song *SongMetadata) (bool) {
       }
 
       if jukebox.debug_print {
-         fmt.Println("bytes retrieved: %d\n", song_bytes_retrieved)
+         fmt.Printf("bytes retrieved: %d\n", song_bytes_retrieved)
       }
 
       if song_bytes_retrieved > 0 {
@@ -1490,7 +1490,7 @@ func (jukebox *Jukebox) DeleteAlbum(album string) bool {
                // delete song metadata
                jukebox.jukebox_db.delete_song(song.Fm.Object_name)
             } else {
-               fmt.Println("error: unable to delete song %s\n", song.Fm.Object_name)
+               fmt.Printf("error: unable to delete song %s\n", song.Fm.Object_name)
             }
          }
          //TODO: delete song metadata if we got 404
@@ -1582,7 +1582,7 @@ func (jukebox *Jukebox) ImportAlbumArt() {
       }
 
       if file_import_count > 0 {
-         fmt.Println("%d album art files imported", file_import_count)
+         fmt.Printf("%d album art files imported\n", file_import_count)
       } else {
          fmt.Println("no files imported")
       }

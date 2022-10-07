@@ -54,7 +54,7 @@ func (fs *FSStorageSystem) CreateContainer(containerName string) bool {
    containerCreated := CreateDirectory(containerDir)
    if containerCreated {
       if fs.debugMode {
-         fmt.Println("container created: '%s'", containerName)
+         fmt.Printf("container created: '%s'\n", containerName)
       }
    }
    return containerCreated
@@ -65,7 +65,7 @@ func (fs *FSStorageSystem) DeleteContainer(containerName string) bool {
    containerDeleted := DirectoryDeleteDirectory(containerDir)
    if containerDeleted {
       if fs.debugMode {
-         fmt.Println("container deleted: '%s'", containerName)
+         fmt.Printf("container deleted: '%s'\n", containerName)
       }
    }
    return containerDeleted
@@ -108,7 +108,7 @@ func (fs *FSStorageSystem) PutObject(containerName string,
 	 objectAdded = FileWriteAllBytes(objectPath, fileContents)
          if objectAdded {
             if fs.debugMode {
-               fmt.Println("object added: %s/%s", containerName, objectName)
+               fmt.Printf("object added: %s/%s\n", containerName, objectName)
             }
             if headers != nil {
                if headers.Count() > 0 {
@@ -152,7 +152,7 @@ func (fs *FSStorageSystem) DeleteObject(containerName string,
          objectDeleted = DeleteFile(objectPath)
          if objectDeleted {
             if fs.debugMode {
-               fmt.Println("object deleted: %s/%s", containerName, objectName)
+               fmt.Printf("object deleted: %s/%s\n", containerName, objectName)
             }
 	    metaPath := objectPath + ".meta"
             if FileExists(metaPath) {
