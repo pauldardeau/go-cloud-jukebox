@@ -192,3 +192,7 @@ func Md5ForFile(pathToFile string) (string, error) {
    return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
+func TimeSleepSeconds(seconds int) {
+   time.Sleep(time.Duration(seconds) * time.Second)
+}
+

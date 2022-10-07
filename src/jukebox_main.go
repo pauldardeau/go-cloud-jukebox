@@ -103,6 +103,9 @@ func main() {
 
    options := jukebox.NewJukeboxOptions()
 
+   //fmt.Println("initial values for options:")
+   //options.Show()
+
    _, debug_exists := args["debug"] 
    if debug_exists {
       debug_mode = true
@@ -141,7 +144,7 @@ func main() {
       if debug_mode {
          fmt.Println("setting encryption on")
       }
-      options.Use_encryption = true
+      //options.Use_encryption = true
    }
 
    key_value, key_exists := args["key"]
@@ -154,23 +157,24 @@ func main() {
 
    _, keyfile_exists := args["keyfile"]
    if keyfile_exists {
-        /*
+	   /*
+        keyFile := pvKeyFile.GetStringValue()
         if debug_mode {
-            fmt.Printf("reading encryption key file='%s'\n", keyfile_value)
+            fmt.Printf("reading encryption key file='%s'\n", keyFile)
         }
 
-        //try:
-            with open(keyfile_value, 'rt') as key_file:
-                options.encryption_key = key_file.read().strip()
-        //except IOError:
-            //print("error: unable to read key file '%s'" % keyfile_value)
-            //os.Exit(1)
-
-        if options.encryption_key is nil || len(options.encryption_key) == 0 {
-            fmt.Printf("error: no key found in file '%s'\n", keyfile_value)
+	encryptKey, errKey := jukebox.FileReadAllText(keyFile)
+	if errKey != nil {
+            fmt.Printf("error: unable to read key file '%s'\n", keyFile)
             os.Exit(1)
         }
-        */
+        options.Encryption_key = strings.TrimSpace(encryptKey)
+
+        if len(options.Encryption_key) == 0 {
+            fmt.Printf("error: no key found in file '%s'\n", keyFile)
+            os.Exit(1)
+        }
+	*/
    }
 
    storage_value, storage_exists := args["storage"]
@@ -352,6 +356,9 @@ func main() {
                           initStorageSystem(storage_system)
 			  os.Exit(0)
 		      }
+
+		      //fmt.Println("options given to jukebox:")
+		      //options.Show()
 
                       jukebox := jukebox.NewJukebox(options, storage_system, debug_mode)
                       if jukebox.Enter() {

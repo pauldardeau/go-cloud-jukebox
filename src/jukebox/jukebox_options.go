@@ -32,6 +32,29 @@ func NewJukeboxOptions() (*JukeboxOptions) {
    return &o
 }
 
+func printBoolValue(varName string, boolValue bool) {
+   if boolValue {
+      fmt.Printf("%s = true\n", varName)
+   } else {
+      fmt.Printf("%s = false\n", varName)
+   }
+}
+
+func (o *JukeboxOptions) Show() {
+   fmt.Println("========= Start JukeboxOptions ========")
+   printBoolValue("Debug_mode", o.Debug_mode)
+   printBoolValue("Use_encryption", o.Use_encryption)
+   printBoolValue("Use_compression", o.Use_compression)
+   printBoolValue("Check_data_integrity", o.Check_data_integrity)
+   fmt.Printf("File_cache_count = %d\n", o.File_cache_count)
+   fmt.Printf("Number_songs = %d\n", o.Number_songs)
+   fmt.Printf("Encryption_key = '%s'\n", o.Encryption_key)
+   fmt.Printf("Encryption_key_file = '%s'\n", o.Encryption_key_file)
+   fmt.Printf("Encryption_iv = '%s'\n", o.Encryption_iv)
+   printBoolValue("Suppress_metadata_download", o.Suppress_metadata_download)
+   fmt.Println("========= End JukeboxOptions =========")
+}
+
 func (o *JukeboxOptions) Validate_options() (bool) {
    if o.File_cache_count < 0 {
       fmt.Println("error: file cache count must be non-negative integer value")

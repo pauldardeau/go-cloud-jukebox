@@ -3,12 +3,12 @@ package jukebox
 
 type SongDownloader struct {
    jukebox *Jukebox
-   list_songs []SongMetadata
+   list_songs []*SongMetadata
 }
 
 
 func NewSongDownloader(jukebox *Jukebox,
-                       list_songs []SongMetadata) *SongDownloader {
+                       list_songs []*SongMetadata) *SongDownloader {
     var sd SongDownloader;
     sd.jukebox = jukebox
     sd.list_songs = list_songs
@@ -22,7 +22,7 @@ func (sd *SongDownloader) run() {
             if sd.jukebox.exit_requested {
                 break
             } else {
-                sd.jukebox.download_song(&song)
+                sd.jukebox.download_song(song)
             }
         }
         sd.jukebox.batch_download_complete()

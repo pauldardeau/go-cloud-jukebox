@@ -189,6 +189,7 @@ func (fs *FSStorageSystem) GetObject(containerName string,
       if FileExists(objectPath) {
 	 objFileContents, err := FileReadAllBytes(objectPath)
 	 if err == nil {
+            fmt.Printf("attempting to write object to '%s'\n", localFilePath)
             if FileWriteAllBytes(localFilePath, objFileContents) {
                bytesRetrieved = int64(len(objFileContents))
             }
