@@ -403,18 +403,18 @@ func (jukebox *Jukebox) Import_songs() {
       if err != nil {
          return
       }
-      //num_entries := float(len(dir_listing))
-      //progressbar_chars := 0.0
-      //progressbar_width := 40
-      //progress_chars_per_iteration := progressbar_width / num_entries
-      //progressbar_char := '#'
-      //bar_chars := 0
+      num_entries := float32(len(dir_listing))
+      progressbar_chars := 0.0
+      progressbar_width := 40
+      progress_chars_per_iteration := float32(progressbar_width) / num_entries
+      progressbar_char := '#'
+      bar_chars := 0
 
       if ! jukebox.debug_print {
          // setup progressbar
-         //sys.stdout.write("[%s]" % (" " * progressbar_width))
+         fmt.Printf("[%s]", strings.Repeat(" ", progressbar_width))
          //sys.stdout.flush()
-         //sys.stdout.write("\b" * (progressbar_width + 1))  // return to start of line, after '['
+         fmt.Printf(strings.Repeat("\b", progressbar_width + 1)) // return to start of line, after '['
       }
 
       //if jukebox.jukebox_options != nil && jukebox.jukebox_options.use_encryption {
@@ -548,32 +548,32 @@ func (jukebox *Jukebox) Import_songs() {
             }
 
             if ! jukebox.debug_print {
-               //progressbar_chars += progress_chars_per_iteration
-               //if int(progressbar_chars) > bar_chars {
-                  //num_new_chars = int(progressbar_chars) - bar_chars
-                  //if num_new_chars > 0 {
+               progressbar_chars += float64(progress_chars_per_iteration)
+               if int(progressbar_chars) > bar_chars {
+                  num_new_chars := int(progressbar_chars) - bar_chars
+                  if num_new_chars > 0 {
                      // update progress bar
-                     //for j in iter(range(num_new_chars)) {
-                     //    sys.stdout.write(progressbar_char)
-                     //}
+		     for j:=0; j < num_new_chars; j++ {
+                         fmt.Print(progressbar_char)
+                     }
                      //sys.stdout.flush()
-                     //bar_chars += num_new_chars
-                  //}
-               //}
+                     bar_chars += num_new_chars
+                  }
+               }
             }
          }
       }
 
       if ! jukebox.debug_print {
          // if we haven't filled up the progress bar, fill it now
-         //if bar_chars < progressbar_width {
-            //num_new_chars = progressbar_width - bar_chars
-            //for j in iter(range(num_new_chars)) {
-            //    sys.stdout.write(progressbar_char)
-            //}
+         if bar_chars < progressbar_width {
+            num_new_chars := progressbar_width - bar_chars
+	    for j:=0; j < num_new_chars; j++ {
+                fmt.Print(progressbar_char)
+            }
             //sys.stdout.flush()
-         //}
-         //sys.stdout.write("\n")
+         }
+         fmt.Printf("\n")
       }
 
       if file_import_count > 0 {
