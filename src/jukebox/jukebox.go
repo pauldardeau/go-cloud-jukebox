@@ -47,34 +47,14 @@ import (
    "fmt"
    "os"
    "os/exec"
+   "os/signal"
    "path/filepath"
    "runtime"
    "strings"
+   "syscall"
    "time"
 )
 
-
-
-var g_jukebox_instance *Jukebox
-
-
-//def signal_handler(signum: int, frame):
-//    if signum == signal.SIGUSR1 {
-//        if g_jukebox_instance != nil {
-//            g_jukebox_instance.toggle_pause_play()
-//        }
-//} else if signum == signal.SIGUSR2 {
-//        if g_jukebox_instance != nil {
-//            g_jukebox_instance.advance_to_next_song()
-//}
-//}
-
-
-
-//def install_signal_handlers():
-//    if os.name == 'posix':
-//        signal.signal(signal.SIGUSR1, signal_handler)
-//        signal.signal(signal.SIGUSR2, signal_handler)
 
 type Jukebox struct {
    jukebox_options *JukeboxOptions
@@ -105,11 +85,34 @@ type Jukebox struct {
    song_seconds_offset int 
 }
 
+
+func signalHandler(signalChannel chan os.Signal, jukebox *Jukebox) {
+   for {
+      s := <-signalChannel
+      if jukebox != nil {
+         if s == syscall.SIGUSR1 {
+            jukebox.TogglePausePlay()
+         } else if s == syscall.SIGUSR2 {
+            jukebox.AdvanceToNextSong()
+         } else if s == syscall.SIGINT {
+            jukebox.PrepareForTermination()
+         } else if s == syscall.SIGWINCH {
+            jukebox.DisplayInfo()
+         }
+      }
+   }
+}
+
+func (jukebox *Jukebox) installSignalHandlers() {
+   signalChannel := make(chan os.Signal, 1)
+   signal.Notify(signalChannel)
+   go signalHandler(signalChannel, jukebox)
+}
+
 func NewJukebox(jb_options *JukeboxOptions,
                 storage_sys *FSStorageSystem,
                 debug_print bool) *Jukebox {
    var jukebox Jukebox
-   g_jukebox_instance = &jukebox
    jukebox.jukebox_options = jb_options
    jukebox.storage_system = storage_sys
    jukebox.debug_print = debug_print
@@ -225,7 +228,7 @@ func (jukebox *Jukebox) Exit() {
    }
 }
 
-func (jukebox *Jukebox) Toggle_pause_play() {
+func (jukebox *Jukebox) TogglePausePlay() {
    jukebox.is_paused = ! jukebox.is_paused
    if jukebox.is_paused {
       fmt.Println("paused")
@@ -238,10 +241,38 @@ func (jukebox *Jukebox) Toggle_pause_play() {
    }
 }
 
-func (jukebox *Jukebox) Advance_to_next_song() {
+func (jukebox *Jukebox) AdvanceToNextSong() {
    fmt.Println("advancing to next song")
    if jukebox.audio_player_process != nil {
       jukebox.audio_player_process.Kill()
+   }
+}
+
+func (jukebox *Jukebox) PrepareForTermination() {
+   fmt.Println("Ctrl-C detected, shutting down")
+
+   // indicate that it's time to shutdown
+   jukebox.exit_requested = true
+
+   // terminate audio player if it's running
+   if jukebox.audio_player_process != nil {
+      jukebox.audio_player_process.Kill()
+   }
+}
+
+func (jukebox *Jukebox) DisplayInfo() {
+   if len(jukebox.song_list) > 0 {
+      max_index := len(jukebox.song_list) - 1
+      if jukebox.song_index + 3 <= max_index {
+         fmt.Printf("----- songs on deck -----\n")
+	 first_song := jukebox.song_list[jukebox.song_index+1]
+         fmt.Printf("%s\n", first_song.Fm.File_uid)
+	 second_song := jukebox.song_list[jukebox.song_index+2]
+         fmt.Printf("%s\n", second_song.Fm.File_uid)
+	 third_song := jukebox.song_list[jukebox.song_index+3]
+         fmt.Printf("%s\n", third_song.Fm.File_uid)
+         fmt.Printf("-------------------------\n")
+      }
    }
 }
 
@@ -828,8 +859,10 @@ func (jukebox *Jukebox) play_song(song_file_path string) {
 	    jukebox.audio_player_process = cmd.Process
 	    errWait := cmd.Wait()
 	    if errWait != nil {
-               fmt.Printf("error: unable to wait for audio player process\n")
-	       fmt.Printf("error: %v\n", errWait)
+               if jukebox.debug_print {
+                  fmt.Printf("error: unable to wait for audio player process\n")
+	          fmt.Printf("error: %v\n", errWait)
+               }
             }
             jukebox.audio_player_process = nil
          } else {
@@ -971,7 +1004,7 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
         }
 
         jukebox.song_index = 0
-        //install_signal_handlers()
+        jukebox.installSignalHandlers()
 
         osId := runtime.GOOS
         if strings.HasPrefix(osId, "darwin") {
@@ -1022,6 +1055,8 @@ func (jukebox *Jukebox) play_song_list(song_list []*SongMetadata, shuffle bool) 
                     } else {
                         time.Sleep(1 * time.Second)
                     }
+                } else {
+                   break
                 }
             }
             DeleteFile("jukebox.pid")
