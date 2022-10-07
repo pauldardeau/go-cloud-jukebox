@@ -118,24 +118,24 @@ func PathSplitExt(path string) (string, string) {
    ext := ""
 
    if len(path) > 0 {
-      pos_last_dot := strings.LastIndex(path, ".")
-      if pos_last_dot == -1 {
+      posLastDot := strings.LastIndex(path, ".")
+      if posLastDot == -1 {
          // no '.' exists in path (i.e., "bar")
          root = path
       } else {
          // is the last '.' the first character? (i.e., ".cshrc")
-         if pos_last_dot == 0 {
+         if posLastDot == 0 {
             root = path
          } else {
-            preceding := path[pos_last_dot-1]
+            preceding := path[posLastDot-1]
             // is the preceding char also a '.'? (i.e., "/foo/....jpg")
             if preceding == '.' {
                root = path
             } else {
                // splitext("foo.bar.exe") -> ("foo.bar", ".exe")
                // splitext("/foo/bar.exe") -> ("/foo/bar", ".exe")
-	       root = path[0:pos_last_dot]
-	       ext = path[pos_last_dot:]
+	       root = path[0:posLastDot]
+	       ext = path[posLastDot:]
             }
          }
       }
