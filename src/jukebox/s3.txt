@@ -20,56 +20,56 @@ import (
 
 type S3StorageSystem struct {
    AbstractStorageSystem
-   aws_access_key string
-   aws_secret_key string
-   container_prefix string
-   s3_session *s3.Client
+   awsAccessKey string
+   awsSecretKey string
+   containerPrefix string
+   s3Session *s3.Client
 }
 
 
-func NewS3StorageSystem(access_key string,
-                        secret_key string,
-                        cnr_prefix string,
-                        debug_mode bool) StorageSystem {
+func NewS3StorageSystem(accessKey string,
+                        secretKey string,
+                        cnrPrefix string,
+                        debugMode bool) *S3StorageSystem {
 
-   s3_ss := S3StorageSystem {
+   ss := S3StorageSystem {
       AbstractStorageSystem{
-         Debug_mode: debug_mode,
+         DebugMode: debugMode,
          Authenticated: false,
-         Compress_files: false,
-         Encrypt_files: false,
-         List_container_names: []string{},
-         Container_prefix: "",
-         Metadata_prefix: "",
-         Storage_system_type: "S3",
+         CompressFiles: false,
+         EncryptFiles: false,
+         ListContainerNames: []string{},
+         ContainerPrefix: "",
+         MetadataPrefix: "",
+         StorageSystemType: "S3",
       },
-      access_key,
-      secret_key,
-      cnr_prefix,
+      accessKey,
+      secretKey,
+      cnrPrefix,
       nil,
     }
 
-    if debug_mode {
-        fmt.Printf("Using access_key='%s', secret_key='%s'\n", access_key, secret_key)
+    if debugMode {
+        fmt.Printf("Using accessKey='%s', secretKey='%s'\n", accessKey, secretKey)
     }
 
-    if len(cnr_prefix) > 0 {
-        if debug_mode {
-            fmt.Printf("using container_prefix='%s'\n", cnr_prefix)
+    if len(cnrPrefix) > 0 {
+        if debugMode {
+            fmt.Printf("using containerPrefix='%s'\n", cnrPrefix)
         }
     }
 
-    return s3_ss
+    return &ss 
 }
 
-func (s3_ss S3StorageSystem) Enter() bool {
+func (ss *S3StorageSystem) Enter() bool {
     connected := false
-    if s3_ss.Debug_mode {
+    if ss.DebugMode {
         fmt.Println("attempting to connect to S3")
     }
 
     s3Config := aws.Config{
-        Credentials:      credentials.NewStaticCredentials(s3_ss.aws_access_key, s3_ss.aws_secret_key, ""),
+        Credentials:      credentials.NewStaticCredentials(s3SS.awsAccessKey, s3SS.awsSecretKey, ""),
         Endpoint:         aws.String("https://s3.wasabisys.com"),
         Region:           aws.String("us-central-1"),
         S3ForcePathStyle: aws.Bool(true),
@@ -84,7 +84,7 @@ func (s3_ss S3StorageSystem) Enter() bool {
         s3Client := s3.New(session)
 
         fmt.Println("established S3 session")
-        s3_ss.s3_session = s3Client
+        ss.s3Session = s3Client
         connected = true
     }
 
@@ -115,40 +115,40 @@ func (s3_ss S3StorageSystem) Enter() bool {
         fmt.Println("unable to establish S3 session")
     } else {
         fmt.Println("established S3 session")
-        s3_ss.s3_session = sess
+        s3Session = sess
         connected = true
     }
     */
 
     if connected {
-        s3_ss.Authenticated = true
-        list_buckets, err := s3_ss.List_account_containers()
+        ss.Authenticated = true
+        list_buckets, err := ss.ListAccountContainers()
         if err == nil {
-            s3_ss.List_container_names = *list_buckets
+            ss.ListContainerNames = *list_buckets
         }
     }
 
     return connected
 }
 
-func (s3_ss S3StorageSystem) Exit() {
-    if s3_ss.s3_session != nil {
-        if s3_ss.Debug_mode {
+func (ss *S3StorageSystem) Exit() {
+    if ss.s3Session != nil {
+        if ss.DebugMode {
             fmt.Println("closing S3 connection object")
         }
 
-        s3_ss.Authenticated = false
-        s3_ss.List_container_names = nil
-        s3_ss.s3_session = nil
+        ss.Authenticated = false
+        ss.ListContainerNames = nil
+        ss.s3Session = nil
     }
 }
 
-func (s3_ss *S3StorageSystem) List_account_containers() (*[]string, error) {
-    if s3_ss.Debug_mode {
-        fmt.Println("list_account_containers")
+func (ss *S3StorageSystem) ListAccountContainers() (*[]string, error) {
+    if ss.DebugMode {
+        fmt.Println("ListAccountContainers")
     }
 
-    if s3_ss.s3_session != nil {
+    if ss.s3Session != nil {
         /*
         input := &s3.ListBucketsInput{}
 
@@ -185,16 +185,16 @@ func (s3_ss *S3StorageSystem) List_account_containers() (*[]string, error) {
     return nil, err
 }
 
-func (s3_ss S3StorageSystem) Create_container(container_name string) bool {
-    if s3_ss.Debug_mode {
-        fmt.Printf("create_container: '%s'\n", container_name)
+func (ss *S3StorageSystem) CreateContainer(containerName string) bool {
+    if ss.DebugMode {
+        fmt.Printf("CreateContainer: '%s'\n", containerName)
     }
 
-    container_created := false
+    containerCreated := false
 
-    if s3_ss.s3_session != nil {
+    if ss.s3Session != nil {
        /*
-       resp, err := s3_ss.s3_session.CreateBucket(&s3.CreateBucketInput{
+       resp, err := ss.s3Session.CreateBucket(&s3.CreateBucketInput{
           Bucket: aws.String(BUCKET_NAME),
           CreateBucketConfiguration: &s3.CreateBucketConfiguration{
              LocationConstraint: aws.String(REGION),
@@ -216,25 +216,25 @@ func (s3_ss S3StorageSystem) Create_container(container_name string) bool {
        */
     }
 
-    if container_created {
-       s3_ss.Add_container(container_name)
+    if containerCreated {
+       ss.AddContainer(containerName)
     }
 
-    return container_created
+    return containerCreated
 }
 
-func (s3_ss S3StorageSystem) Delete_container(container_name string) bool {
-    if s3_ss.Debug_mode {
-        fmt.Printf("delete_container: '%s'\n", container_name)
+func (ss *S3StorageSystem) DeleteContainer(containerName string) bool {
+    if ss.DebugMode {
+        fmt.Printf("DeleteContainer: '%s'\n", containerName)
     }
 
-    container_deleted := false
+    containerDeleted := false
 
-    if s3_ss.s3_session != nil {
+    if ss.s3Session != nil {
 
 /*
 input := &s3.DeleteBucketInput{
-    Bucket: aws.String(container_name),
+    Bucket: aws.String(containerName),
 }
 
 result, err := svc.DeleteBucket(input)
@@ -251,22 +251,22 @@ if err != nil {
     }
 }
 */
-            container_deleted = true
+            containerDeleted = true
     }
 
-    if container_deleted {
-       s3_ss.Remove_container(container_name)
+    if containerDeleted {
+       ss.Remove_container(containerName)
     }
 
-    return container_deleted
+    return containerDeleted
 }
 
-func (s3_ss S3StorageSystem) List_container_contents(container_name string) []string {
-    if s3_ss.Debug_mode {
-        fmt.Printf("list_container_contents: '%s'\n", container_name)
+func (ss *S3StorageSystem) ListContainerContents(containerName string) []string {
+    if ss.DebugMode {
+        fmt.Printf("ListContainerContents: '%s'\n", containerName)
     }
 
-    if s3_ss.s3_session != nil {
+    if ss.s3Session != nil {
         //try:
         /*
             response = s3.conn.list_objects_v2(container_name)
@@ -291,22 +291,22 @@ func (s3_ss S3StorageSystem) List_container_contents(container_name string) []st
     return nil
 }
 
-func (s3_ss S3StorageSystem) Get_object_metadata(container_name string,
-                                                 object_name string) *map[string]interface{} {
-    if s3_ss.Debug_mode {
-        fmt.Printf("get_object_metadata: container='%s', object='%s'\n",
-                   container_name,
-                   object_name)
+func (ss *S3StorageSystem) GetObjectMetadata(containerName string,
+                                             objectName string) *map[string]interface{} {
+    if ss.DebugMode {
+        fmt.Printf("GetObjectMetadata: container='%s', object='%s'\n",
+                   containerName,
+                   objectName)
     }
 
     // https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#S3.HeadObject
-    if s3_ss.s3_session != nil && len(container_name) > 0 && len(object_name) > 0 {
+    if ss.s3Session != nil && len(containerName) > 0 && len(objectName) > 0 {
         /*
         request := s3.HeadObjectInput{
-           Bucket: &container_name,
-           Key: &object_name,
+           Bucket: &containerName,
+           Key: &objectName,
         }
-        response, err := s3_ss.s3_session.HeadObject(&request)
+        response, err := ss.s3Session.HeadObject(&request)
         if err != nil {
            return nil
         } else {
@@ -431,31 +431,31 @@ func (s3_ss S3StorageSystem) Get_object_metadata(container_name string,
     return nil
 }
 
-func (s3_ss S3StorageSystem) Put_object(container_name string,
-                                        object_name string,
-                                        file_contents []byte,
-                                        headers map[string]string) bool {
+func (ss *S3StorageSystem) PutObject(containerName string,
+                                     objectName string,
+                                     fileContents []byte,
+                                     headers map[string]string) bool {
 
-    object_added := false
+    objectAdded := false
 
-    if s3_ss.s3_session != nil && len(container_name) > 0 &&
-       len(object_name) > 0 && len(file_contents) > 0 {
+    if ss.s3Session != nil && len(containerName) > 0 &&
+       len(objectName) > 0 && len(fileContents) > 0 {
 
         /*
-        bucket := container_name
-        result = s3.conn.put_object(file_contents, bucket, object_name)
+        bucket := containerName
+        result = s3.conn.put_object(fileContents, bucket, objectName)
         if "HTTPStatusCode" in result {
-            status_code = result["HTTPStatusCode"]
-            if status_code == 200 {
-                object_added = true
+            statusCode = result["HTTPStatusCode"]
+            if statusCode == 200 {
+                objectAdded = true
             }
         } else {
             if "ResponseMetadata" in result {
-                resp_meta = result["ResponseMetadata"]
-                if "HTTPStatusCode" in resp_meta {
-                    status_code = resp_meta["HTTPStatusCode"]
-                    if status_code == 200 {
-                        object_added = true
+                respMeta = result["ResponseMetadata"]
+                if "HTTPStatusCode" in respMeta {
+                    statusCode = respMeta["HTTPStatusCode"]
+                    if statusCode == 200 {
+                        objectAdded = true
                     }
                 }
             } else {
@@ -465,93 +465,92 @@ func (s3_ss S3StorageSystem) Put_object(container_name string,
         */
     }
 
-    return object_added
+    return objectAdded
 }
 
-func (s3_ss S3StorageSystem) Delete_object(container_name string, object_name string) bool {
-    if s3_ss.Debug_mode {
-        fmt.Printf("delete_object: container='%s', object='%s'\n",
-                   container_name,
-                   object_name)
+func (ss *S3StorageSystem) DeleteObject(containerName string, objectName string) bool {
+    if ss.DebugMode {
+        fmt.Printf("DeleteObject: container='%s', object='%s'\n",
+                   containerName,
+                   objectName)
     }
 
-    object_deleted := false
+    objectDeleted := false
 
-    if s3_ss.s3_session != nil && len(container_name) > 0 && len(object_name) > 0 {
+    if ss.s3Session != nil && len(containerName) > 0 && len(objectName) > 0 {
 	    /*
        request := &s3.DeleteObjectInput{
-		Bucket: &container_name,
-		Key:    &object_name,
+		Bucket: &containerName,
+		Key:    &objectName,
        }
 
-       _, err := s3_ss.s3_session.DeleteObject(request)
+       _, err := ss.s3Session.DeleteObject(request)
        if err == nil {
-          object_deleted = true
+          objectDeleted = true
        }
        */
     }
 
-    return object_deleted
+    return objectDeleted
 }
 
-func (s3_ss S3StorageSystem) Get_object(container_name string,
-                                        object_name string,
-                                        local_file_path string) int {
-    if s3_ss.Debug_mode {
-        fmt.Printf("get_object: container='%s', object='%s', local_file_path='%s'\n",
-                   container_name,
-                   object_name,
-                   local_file_path)
+func (ss *S3StorageSystem) GetObject(containerName string,
+                                     objectName string,
+                                     localFilePath string) int {
+    if ss.DebugMode {
+        fmt.Printf("GetObject: container='%s', object='%s', localFilePath='%s'\n",
+                   containerName,
+                   objectName,
+                   localFilePath)
     }
 
-    bytes_retrieved := 0
+    bytesRetrieved := 0
 
-    if s3_ss.s3_session != nil && len(container_name) > 0 &&
-       len(object_name) > 0 && len(local_file_path) > 0 {
+    if ss.s3Session != nil && len(containerName) > 0 &&
+       len(objectName) > 0 && len(localFilePath) > 0 {
 
-        //s3_ss.s3_session.download_file(container_name, object_name, local_file_path)
-        //if File_exists(local_file_path) {
-        //    bytes_retrieved = int(Get_file_size(local_file_path))
+        //ss.s3Session.download_file(containerName, objectName, localFilePath)
+        //if FileExists(localFilePath) {
+        //    bytesRetrieved = int(GetFileSize(localFilePath))
         //}
     }
 
-    return bytes_retrieved
+    return bytesRetrieved
 }
 
-func (s3 S3StorageSystem) Add_container(container_name string) {
-   //ss.List_container_names = append(ss.List_container_names, container_name)
+func (s3 *S3StorageSystem) AddCcontainer(containerName string) {
 }
 
-func (ss S3StorageSystem) Add_file_from_path(container_name string,
-                                             object_name string,
-                                             file_path string) bool {
+func (ss *S3StorageSystem) AddFileFromPath(containerName string,
+                                           objectName string,
+                                           filePath string) bool {
    return false
 }
 
-func (ss S3StorageSystem) Get_container_names() []string {
+func (ss *S3StorageSystem) GetContainerNames() []string {
    names := []string{}
    return names
 }
 
-func (ss S3StorageSystem) Has_container(container_name string) bool {
+func (ss *S3StorageSystem) HasContainer(containerName string) bool {
    return false
 }
 
-func (ss S3StorageSystem) List_containers() []string {
+func (ss *S3StorageSystem) ListContainers() []string {
    containers := []string{}
    return containers
 }
 
-func (ss S3StorageSystem) Remove_container(constiner_name string) {
+func (ss *S3StorageSystem) RemoveContainer(containerName string) {
 }
 
-func (ss S3StorageSystem) Retrieve_file(fm *FileMetadata,
-                                        local_directory string) int {
+func (ss *S3StorageSystem) RetrieveFile(fm *FileMetadata,
+                                        localDirectory string) int {
    return 0
 }
 
-func (ss S3StorageSystem) Store_file(fm *FileMetadata,
-                                     file_contents []byte) bool {
+func (ss *S3StorageSystem) StoreFile(fm *FileMetadata,
+                                     fileContents []byte) bool {
    return false
 }
 

@@ -31,7 +31,7 @@ func NewSongMetadata() *SongMetadata {
    var sm SongMetadata
    sm.Fm = nil
    sm.ArtistUid = ""
-   sm.ArtistName = ""  // keep temporarily until artist_uid is hooked up to artist table
+   sm.ArtistName = ""  // keep temporarily until ArtistUid is hooked up to artist table
    sm.AlbumUid = ""
    sm.SongName = ""
    return &sm
@@ -68,18 +68,18 @@ func (sm *SongMetadata) ToDictionary() map[string]string {
 }
 
 func (sm *SongMetadata) ToDictionaryWithPrefix(prefix string) map[string]string {
-   fm_dict := make(map[string]string)
+   fmDict := make(map[string]string)
    sm.Fm.ToDictionaryWithPrefix(prefix)
 
-   sm_dict := map[string]string {
+   smDict := map[string]string {
            prefix + "ArtistUid": sm.ArtistUid,
            prefix + "ArtistName": sm.ArtistName,
            prefix + "AlbumUid": sm.AlbumUid,
            prefix + "SongName": sm.SongName}
 
-   for key, value := range fm_dict {
-      sm_dict[prefix + key] = value
+   for key, value := range fmDict {
+      smDict[prefix + key] = value
    }
 
-   return sm_dict
+   return smDict
 }

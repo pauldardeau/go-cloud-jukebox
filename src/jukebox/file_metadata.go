@@ -128,7 +128,7 @@ func (fm *FileMetadata) ToDictionaryWithPrefix(prefix string) map[string]string 
    }
    return map[string]string{
       prefix + "FileUid": fm.FileUid,
-      prefix + "File_name": fm.FileName,
+      prefix + "FileName": fm.FileName,
       prefix + "OriginFileSize": fmt.Sprintf("%d", fm.OriginFileSize),
       prefix + "StoredFileSize": fmt.Sprintf("%d", fm.StoredFileSize),
       prefix + "PadCharCount": fmt.Sprintf("%d", fm.PadCharCount),

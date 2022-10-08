@@ -553,7 +553,7 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
     return songs
 }
 
-func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
+func (jukeboxDB* JukeboxDB) songsForArtist(artistName string) []*SongMetadata {
     songs := []*SongMetadata{}
     if jukeboxDB.dbConnection != nil {
         sqlQuery := `
@@ -582,7 +582,7 @@ func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
         }
         defer stmt.Close()
 
-        rows, err := stmt.Query(artist_name)
+        rows, err := stmt.Query(artistName)
         if err != nil {
            fmt.Printf("error: query by artist name failed\n")
            fmt.Printf("error: %v\n", err)

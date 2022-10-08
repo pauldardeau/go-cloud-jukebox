@@ -264,12 +264,12 @@ func (jukebox *Jukebox) DisplayInfo() {
       maxIndex := len(jukebox.songList) - 1
       if jukebox.songIndex + 3 <= maxIndex {
          fmt.Printf("----- songs on deck -----\n")
-	 first_song := jukebox.songList[jukebox.songIndex+1]
-         fmt.Printf("%s\n", first_song.Fm.FileUid)
-	 second_song := jukebox.songList[jukebox.songIndex+2]
-         fmt.Printf("%s\n", second_song.Fm.FileUid)
-	 third_song := jukebox.songList[jukebox.songIndex+3]
-         fmt.Printf("%s\n", third_song.Fm.FileUid)
+	 firstSong := jukebox.songList[jukebox.songIndex+1]
+         fmt.Printf("%s\n", firstSong.Fm.FileUid)
+	 secondSong := jukebox.songList[jukebox.songIndex+2]
+         fmt.Printf("%s\n", secondSong.Fm.FileUid)
+	 thirdSong := jukebox.songList[jukebox.songIndex+3]
+         fmt.Printf("%s\n", thirdSong.Fm.FileUid)
          fmt.Printf("-------------------------\n")
       }
    }
@@ -362,13 +362,13 @@ func (jukebox *Jukebox) storeSongPlaylist(fileName string, fileContents []byte) 
 }
 
 /*
-func (jukebox *Jukebox) get_encryptor() {
-    // key_block_size = 16  // AES-128
-    // key_block_size = 24  // AES-192
-    key_block_size = 32  // AES-256
-    return AESBlockEncryption(key_block_size,
-                              jukebox.jukeboxOptions.encryption_key,
-                              jukebox.jukeboxOptions.encryption_iv)
+func (jukebox *Jukebox) getEncryptor() {
+    // keyBlockSize = 16  // AES-128
+    // keyBlockSize = 24  // AES-192
+    keyBlockSize = 32  // AES-256
+    return AESBlockEncryption(keyBlockSize,
+                              jukebox.jukeboxOptions.EncryptionKey,
+                              jukebox.jukeboxOptions.EncryptionIv)
 }
 */
 
@@ -445,7 +445,7 @@ func (jukebox *Jukebox) ImportSongs() {
       }
 
       //if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.useEncryption {
-      //   encryption = jukebox.get_encryptor()
+      //   encryption = jukebox.getEncryptor()
       //} else {
       //   encryption = nil
       //}
@@ -510,8 +510,8 @@ func (jukebox *Jukebox) ImportSongs() {
                            }
 
                            //FUTURE: compression
-                           //file_bytes = bytes(file_contents, 'utf-8')
-                           //file_contents = zlib.compress(file_bytes, 9)
+                           //fileBytes = bytes(fileContents, 'utf-8')
+                           //fileContents = zlib.compress(fileBytes, 9)
                         }
 
                         if jukebox.jukeboxOptions.UseEncryption {
@@ -522,17 +522,17 @@ func (jukebox *Jukebox) ImportSongs() {
                            //FUTURE: encryption
 
                            // the length of the data to encrypt must be a multiple of 16
-                           //num_extra_chars = len(file_contents) % 16
-                           //if num_extra_chars > 0 {
+			   //numExtraChars := len(fileContents) % 16
+                           //if numExtraChars > 0 {
                            //   if jukebox.debugPrint {
                            //      fmt.Println("padding file for encryption")
                            //   }
-                           //   num_pad_chars = 16 - num_extra_chars
-                           //   file_contents += "".ljust(num_pad_chars, ' ')
-                           //   fs_song.Fm.Pad_char_count = num_pad_chars
+                           //   numPadChars = 16 - numExtraChars
+                           //   fileContents += "".ljust(numPadChars, ' ')
+                           //   fsSong.Fm.PadCharCount = numPadChars
                            //}
 
-                           //file_contents = encryption.encrypt(file_contents)
+                           //fileContents = encryption.encrypt(fileContents)
                         }
                      }
 
@@ -540,17 +540,17 @@ func (jukebox *Jukebox) ImportSongs() {
                      // now that we have the data that will be stored, set the file size for
                      // what's being stored
                      fsSong.Fm.StoredFileSize = int64(len(fileContents))
-		     //start_upload_time := time.Now()
+		     //startUploadTime := time.Now()
 
                      // store song file to storage system
                      if jukebox.storageSystem.PutObject(fsSong.Fm.ContainerName,
                                                         fsSong.Fm.ObjectName,
                                                         fileContents,
                                                         nil) {
-                        //end_upload_time := time.Now()
-			// end_upload_time - start_upload_time
-			//upload_elapsed_time := end_upload_time.Add(-start_upload_time)
-                        //cumulativeUploadTime.Add(upload_elapsed_time)
+                        //endUploadTime := time.Now()
+			// endUploadTime - startUploadTime
+			//uploadElapsedTime := endUploadTime.Add(-startUploadTime)
+                        //cumulativeUploadTime.Add(uploadElapsedTime)
                         cumulativeUploadBytes += len(fileContents)
 
                         // store song metadata in local database
@@ -698,7 +698,7 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
 
    if song != nil {
       filePath := jukebox.songPathInPlaylist(song)
-      //download_start_time := time.time()
+      //downloadStartTime := time.time()
       songBytesRetrieved := jukebox.retrieveFile(song.Fm, jukebox.songPlayDir)
       if jukebox.exitRequested {
          return false
@@ -709,9 +709,9 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
       }
 
       if songBytesRetrieved > 0 {
-         //download_end_time := time.time()
-	 //download_elapsed_time := download_end_time - download_start_time
-         //jukebox.cumulativeDownloadTime += download_elapsed_time
+         //downloadEndTime := time.time()
+	 //downloadElapsedTime := downloadEndTime - downloadStartTime
+         //jukebox.cumulativeDownloadTime += downloadElapsedTime
          jukebox.cumulativeDownloadBytes += songBytesRetrieved
 
          // are we checking data integrity?

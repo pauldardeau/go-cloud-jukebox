@@ -5,34 +5,34 @@ type StorageSystem interface {
     Enter() bool
     Exit()
 
-    List_containers() []string
-    Has_container(container_name string) bool
-    Add_container(container_name string)
-    Remove_container(container_name string)
-    Create_container(container_name string) bool
-    Delete_container(container_name string) bool
-    List_container_contents(container_name string) []string
-    Get_container_names() []string
+    ListContainers() []string
+    HasContainer(containerName string) bool
+    AddContainer(containerName string)
+    RemoveContainer(containerName string)
+    CreateContainer(containerName string) bool
+    DeleteContainer(containerName string) bool
+    ListContainerContents(containerName string) []string
+    GetContainerNames() []string
 
-    Retrieve_file(fm *FileMetadata, local_directory string) int
-    Store_file(fm *FileMetadata, file_contents []byte) bool
-    Add_file_from_path(container_name string,
-                       object_name string,
-                       file_path string) bool
+    RetrieveFile(fm *FileMetadata, localDirectory string) int
+    StoreFile(fm *FileMetadata, fileContents []byte) bool
+    AddFileFromPath(containerName string,
+                    objectName string,
+                    filePath string) bool
 
-    Get_object_metadata(container_name string,
-                        object_name string) *map[string]interface{}
+    GetObjectMetadata(containerName string,
+                      objectName string) *map[string]interface{}
 
-    Put_object(container_name string,
-               object_name string,
-               file_contents []byte,
-               headers map[string]string) bool
+    PutObject(containerName string,
+              objectName string,
+              fileContents []byte,
+              headers map[string]string) bool
 
-    Delete_object(container_name string,
-                  object_name string) bool
+    DeleteObject(containerName string,
+                 objectName string) bool
 
-    Get_object(container_name string,
-               object_name string,
-               local_file_path string) int
+    GetObject(containerName string,
+              objectName string,
+              localFilePath string) int
 }
 
