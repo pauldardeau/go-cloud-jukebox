@@ -55,6 +55,12 @@ import (
    "time"
 )
 
+const (
+   downloadExtension = ".download"
+   metadataContainer = "music-metadata"
+   playlistContainer = "playlists"
+   albumArtContainer = "album-art"
+)
 
 type Jukebox struct {
    jukeboxOptions *JukeboxOptions
@@ -66,11 +72,7 @@ type Jukebox struct {
    playlistImportDir string
    songPlayDir string
    albumArtImportDir string
-   downloadExtension string
    metadataDbFile string
-   metadataContainer string
-   playlistContainer string
-   albumArtContainer string
    songList []*SongMetadata
    numberSongs int
    songIndex int
@@ -125,11 +127,7 @@ func NewJukebox(jbOptions *JukeboxOptions,
    jukebox.playlistImportDir = PathJoin(jukebox.currentDir, "playlist-import")
    jukebox.songPlayDir = PathJoin(jukebox.currentDir, "song-play")
    jukebox.albumArtImportDir = PathJoin(jukebox.currentDir, "album-art-import")
-   jukebox.downloadExtension = ".download"
    jukebox.metadataDbFile = "jukebox_db.sqlite3"
-   jukebox.metadataContainer = "music-metadata"
-   jukebox.playlistContainer = "playlists"
-   jukebox.albumArtContainer = "album-art"
    jukebox.songList = []*SongMetadata{}
    jukebox.numberSongs = 0
    jukebox.songIndex = -1
@@ -157,12 +155,12 @@ func NewJukebox(jbOptions *JukeboxOptions,
 func (jukebox *Jukebox) Enter() bool {
    // look for stored metadata in the storage system
    if jukebox.storageSystem != nil &&
-      jukebox.storageSystem.HasContainer(jukebox.metadataContainer) &&
+      jukebox.storageSystem.HasContainer(metadataContainer) &&
       !jukebox.jukeboxOptions.SuppressMetadataDownload {
 
       // metadata container exists, retrieve container listing
       metadataFileInContainer := false
-      containerContents, err := jukebox.storageSystem.ListContainerContents(jukebox.metadataContainer)
+      containerContents, err := jukebox.storageSystem.ListContainerContents(metadataContainer)
       if err == nil && len(containerContents) > 0 {
          for _, container := range containerContents {
             if container == jukebox.metadataDbFile {
@@ -177,7 +175,7 @@ func (jukebox *Jukebox) Enter() bool {
           // download it
           metadataDbFilePath := jukebox.GetMetadataDbFilePath()
           downloadFile := metadataDbFilePath + ".download"
-          if jukebox.storageSystem.GetObject(jukebox.metadataContainer, jukebox.metadataDbFile, downloadFile) > 0 {
+          if jukebox.storageSystem.GetObject(metadataContainer, jukebox.metadataDbFile, downloadFile) > 0 {
               // have an existing metadata DB file?
               if FileExists(metadataDbFilePath) {
                   if jukebox.debugPrint {
@@ -912,7 +910,7 @@ func (jukebox *Jukebox) downloadSongs() {
    songFileCount := 0
    for _, fileName := range dirListing {
       extension := filepath.Ext(fileName)
-      if len(extension) > 0 && extension != jukebox.downloadExtension {
+      if len(extension) > 0 && extension != downloadExtension {
           songFileCount += 1
       }
    }
@@ -1140,8 +1138,8 @@ func (jukebox *Jukebox) readFileContents(filePath string,
 func (jukebox *Jukebox) UploadMetadataDb() bool {
     metadataDbUpload := false
     haveMetadataContainer := false
-    if ! jukebox.storageSystem.HasContainer(jukebox.metadataContainer) {
-        haveMetadataContainer = jukebox.storageSystem.CreateContainer(jukebox.metadataContainer)
+    if ! jukebox.storageSystem.HasContainer(metadataContainer) {
+        haveMetadataContainer = jukebox.storageSystem.CreateContainer(metadataContainer)
     } else {
         haveMetadataContainer = true
     }
@@ -1158,7 +1156,7 @@ func (jukebox *Jukebox) UploadMetadataDb() bool {
         dbFilePath := jukebox.GetMetadataDbFilePath()
         dbFileContents, errFile := FileReadAllBytes(dbFilePath)
         if errFile == nil {
-           metadataDbUpload = jukebox.storageSystem.PutObject(jukebox.metadataContainer,
+           metadataDbUpload = jukebox.storageSystem.PutObject(metadataContainer,
                                                               jukebox.metadataDbFile,
                                                               dbFileContents,
                                                               nil)
@@ -1192,8 +1190,8 @@ func (jukebox *Jukebox) ImportPlaylists() {
       }
 
       haveContainer := false
-      if ! jukebox.storageSystem.HasContainer(jukebox.playlistContainer) {
-         haveContainer = jukebox.storageSystem.CreateContainer(jukebox.playlistContainer)
+      if ! jukebox.storageSystem.HasContainer(playlistContainer) {
+         haveContainer = jukebox.storageSystem.CreateContainer(playlistContainer)
       } else {
          haveContainer = true
       }
@@ -1208,14 +1206,14 @@ func (jukebox *Jukebox) ImportPlaylists() {
          objectName := fileName
          fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
          if fileRead && fileContents != nil {
-            if jukebox.storageSystem.PutObject(jukebox.playlistContainer,
+            if jukebox.storageSystem.PutObject(playlistContainer,
                                                objectName,
                                                fileContents,
                                                nil) {
                fmt.Println("put of playlist succeeded")
                if ! jukebox.storeSongPlaylist(objectName, fileContents) {
                   fmt.Println("storing of playlist to db failed")
-                  jukebox.storageSystem.DeleteObject(jukebox.playlistContainer,
+                  jukebox.storageSystem.DeleteObject(playlistContainer,
                                                      objectName)
                } else {
                   fmt.Println("storing of playlist succeeded")
@@ -1491,8 +1489,8 @@ func (jukebox *Jukebox) DeletePlaylist(playlistName string) (bool) {
       objectNameValue := *objectName
       dbDeleted := jukebox.jukeboxDb.deletePlaylist(playlistName)
       if dbDeleted {
-         fmt.Printf("container='%s', object='%s'\n", jukebox.playlistContainer, objectNameValue)
-         if jukebox.storageSystem.DeleteObject(jukebox.playlistContainer, objectNameValue) {
+         fmt.Printf("container='%s', object='%s'\n", playlistContainer, objectNameValue)
+         if jukebox.storageSystem.DeleteObject(playlistContainer, objectNameValue) {
             isDeleted = true
          } else {
             fmt.Println("error: object delete failed")
@@ -1527,8 +1525,8 @@ func (jukebox *Jukebox) ImportAlbumArt() {
 
       haveContainer := false
 
-      if ! jukebox.storageSystem.HasContainer(jukebox.albumArtContainer) {
-         haveContainer = jukebox.storageSystem.CreateContainer(jukebox.albumArtContainer)
+      if ! jukebox.storageSystem.HasContainer(albumArtContainer) {
+         haveContainer = jukebox.storageSystem.CreateContainer(albumArtContainer)
       } else {
          haveContainer = true
       }
@@ -1543,7 +1541,7 @@ func (jukebox *Jukebox) ImportAlbumArt() {
          objectName := fileName
          fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
          if fileRead && fileContents != nil {
-            if jukebox.storageSystem.PutObject(jukebox.albumArtContainer,
+            if jukebox.storageSystem.PutObject(albumArtContainer,
                                                objectName,
                                                fileContents,
                                                nil) {
