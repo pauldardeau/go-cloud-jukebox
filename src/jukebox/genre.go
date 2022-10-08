@@ -1,18 +1,18 @@
 package jukebox
 
 type Genre struct {
-   Genre_uid string
-   Genre_name string
-   Genre_description string
+   GenreUid string
+   GenreName string
+   GenreDescription string
 }
 
-func NewGenre(genre_uid string,
-              genre_name string,
-	      genre_description string) (*Genre) {
+func NewGenre(genreUid string,
+              genreName string,
+	      genreDescription string) (*Genre) {
    var genre Genre
-   genre.Genre_uid = genre_uid
-   genre.Genre_name = genre_name
-   genre.Genre_description = genre_description
+   genre.GenreUid = genreUid
+   genre.GenreName = genreName
+   genre.GenreDescription = genreDescription
    return &genre
 }
 

@@ -1,17 +1,17 @@
 package jukebox
 
 type Artist struct {
-   Artist_uid string
-   Artist_name string
-   Artist_description string
+   ArtistUid string
+   ArtistName string
+   ArtistDescription string
 }
 
-func NewArtist(artist_uid string,
-               artist_name string,
-	       artist_description string) (*Artist) {
+func NewArtist(artistUid string,
+               artistName string,
+	       artistDescription string) (*Artist) {
    var artist Artist
-   artist.Artist_uid = artist_uid
-   artist.Artist_name = artist_name
-   artist.Artist_description = artist_description
+   artist.ArtistUid = artistUid
+   artist.ArtistName = artistName
+   artist.ArtistDescription = artistDescription
    return &artist
 }

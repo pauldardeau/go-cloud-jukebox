@@ -8,13 +8,13 @@ type Playlist struct {
    Songs []*SongMetadata
 }
 
-func NewPlaylist(playlist_uid string,
-                 playlist_name string,
-                 playlist_description string) (*Playlist) {
+func NewPlaylist(playlistUid string,
+                 playlistName string,
+                 playlistDescription string) (*Playlist) {
    var pl Playlist
-   pl.Uid = playlist_uid
-   pl.Name = playlist_name
-   pl.Description = playlist_description
+   pl.Uid = playlistUid
+   pl.Name = playlistName
+   pl.Description = playlistDescription
    pl.Songs = []*SongMetadata{}
    return &pl
 }

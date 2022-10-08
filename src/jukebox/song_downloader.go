@@ -3,23 +3,23 @@ package jukebox
 
 type SongDownloader struct {
    jukebox *Jukebox
-   list_songs []*SongMetadata
+   listSongs []*SongMetadata
 }
 
 
 func NewSongDownloader(jukebox *Jukebox,
-                       list_songs []*SongMetadata) *SongDownloader {
+                       listSongs []*SongMetadata) *SongDownloader {
     var sd SongDownloader;
     sd.jukebox = jukebox
-    sd.list_songs = list_songs
+    sd.listSongs = listSongs
     return &sd
 }
 
 func (sd *SongDownloader) run() {
-    if sd.jukebox != nil && sd.list_songs != nil {
+    if sd.jukebox != nil && sd.listSongs != nil {
         sd.jukebox.batchDownloadStart()
-        for _, song := range sd.list_songs {
-            if sd.jukebox.exit_requested {
+        for _, song := range sd.listSongs {
+            if sd.jukebox.exitRequested {
                 break
             } else {
                 sd.jukebox.downloadSong(song)

@@ -7,12 +7,12 @@ import (
 )
 
 type ArgumentParser struct {
-   dict_all_reserved_words map[string]string
-   dict_bool_options map[string]string
-   dict_int_options map[string]string
-   dict_string_options map[string]string
-   dict_commands map[string]string
-   list_commands []string
+   dictAllReservedWords map[string]string
+   dictBoolOptions map[string]string
+   dictIntOptions map[string]string
+   dictStringOptions map[string]string
+   dictCommands map[string]string
+   listCommands []string
 }
 
 
@@ -22,27 +22,27 @@ const TYPE_STRING = "string"
 
 
 func NewArgumentParser() *ArgumentParser {
-   var arg_parser ArgumentParser
-   arg_parser.dict_all_reserved_words = make(map[string]string)
-   arg_parser.dict_bool_options = make(map[string]string)
-   arg_parser.dict_int_options = make(map[string]string)
-   arg_parser.dict_string_options = make(map[string]string)
-   arg_parser.dict_commands = make(map[string]string)
-   arg_parser.list_commands = []string{}
-   return &arg_parser
+   var argParser ArgumentParser
+   argParser.dictAllReservedWords = make(map[string]string)
+   argParser.dictBoolOptions = make(map[string]string)
+   argParser.dictIntOptions = make(map[string]string)
+   argParser.dictStringOptions = make(map[string]string)
+   argParser.dictCommands = make(map[string]string)
+   argParser.listCommands = []string{}
+   return &argParser
 }
 
 func (ap *ArgumentParser) addOption(o string,
-                                    option_type string,
+                                    optionType string,
                                     help string) {
-    ap.dict_all_reserved_words[o] = option_type
+    ap.dictAllReservedWords[o] = optionType
 
-    if (option_type == TYPE_BOOL) {
-        ap.dict_bool_options[o] = help
-    } else if (option_type == TYPE_INT) {
-        ap.dict_int_options[o] = help
-    } else if (option_type == TYPE_STRING) {
-        ap.dict_string_options[o] = help
+    if (optionType == TYPE_BOOL) {
+        ap.dictBoolOptions[o] = help
+    } else if (optionType == TYPE_INT) {
+        ap.dictIntOptions[o] = help
+    } else if (optionType == TYPE_STRING) {
+        ap.dictStringOptions[o] = help
     }
 }
 
@@ -59,20 +59,20 @@ func (ap *ArgumentParser) AddOptionalStringArgument(arg string, help string) {
 }
 
 func (ap *ArgumentParser) AddRequiredArgument(arg string, help string) {
-    ap.dict_commands[arg] = help
-    ap.list_commands = append(ap.list_commands, arg)
+    ap.dictCommands[arg] = help
+    ap.listCommands = append(ap.listCommands, arg)
 }
 
 func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 
-    dict_args := make(map[string]interface{})
+    dictArgs := make(map[string]interface{})
 
-    num_args := len(args)
+    numArgs := len(args)
     working := true
     i := 0
-    commands_found := 0
+    commandsFound := 0
 
-    if num_args == 0 {
+    if numArgs == 0 {
         working = false
     }
 
@@ -83,32 +83,32 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 
         arg := args[i]
 
-        dict_value, ok := ap.dict_all_reserved_words[arg]
+        dictValue, ok := ap.dictAllReservedWords[arg]
 
         if ok {
-            arg_type := dict_value
+            argType := dictValue
             arg = arg[2:]
-            if arg_type == TYPE_BOOL {
+            if argType == TYPE_BOOL {
                 fmt.Printf("adding key=%s value=true\n", arg)
-                dict_args[arg] = true
-            } else if arg_type == TYPE_INT {
+                dictArgs[arg] = true
+            } else if argType == TYPE_INT {
                 i++
-                if i < num_args {
-                    next_arg := args[i]
-                    int_value, int_err := strconv.Atoi(next_arg)
-                    if int_err == nil {
-                        fmt.Printf("adding key=%s value=%d\n", arg, int_value)
-                        dict_args[arg] = int_value
+                if i < numArgs {
+                    nextArg := args[i]
+                    intValue, intErr := strconv.Atoi(nextArg)
+                    if intErr == nil {
+                        fmt.Printf("adding key=%s value=%d\n", arg, intValue)
+                        dictArgs[arg] = intValue
                     }
                 } else {
                     // missing int value
                 }
-            } else if arg_type == TYPE_STRING {
+            } else if argType == TYPE_STRING {
                 i++
-                if i < num_args {
-                    next_arg := args[i]
-                    fmt.Printf("adding key=%s value=%s\n", arg, next_arg)
-                    dict_args[arg] = next_arg
+                if i < numArgs {
+                    nextArg := args[i]
+                    fmt.Printf("adding key=%s value=%s\n", arg, nextArg)
+                    dictArgs[arg] = nextArg
                 } else {
                     // missing string value
                 }
@@ -119,11 +119,11 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
             if strings.HasPrefix(arg, "--") {
                 // unrecognized option
             } else {
-                if commands_found < len(ap.list_commands) {
-                    command_name := ap.list_commands[commands_found]
-                    fmt.Printf("adding key=%s value=%s\n", command_name, arg)
-                    dict_args[command_name] = arg
-                    commands_found++
+                if commandsFound < len(ap.listCommands) {
+                    commandName := ap.listCommands[commandsFound]
+                    fmt.Printf("adding key=%s value=%s\n", commandName, arg)
+                    dictArgs[commandName] = arg
+                    commandsFound++
                 } else {
                     // unrecognized command
                 }
@@ -131,11 +131,11 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
         }
 
         i++
-        if i >= num_args {
+        if i >= numArgs {
             working = false
         }
     }
 
-    return dict_args
+    return dictArgs
 }
 

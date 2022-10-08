@@ -10,91 +10,91 @@ import (
 // https://pkg.go.dev/database/sql
 
 type JukeboxDB struct {
-   debug_print bool
-   use_encryption bool
-   use_compression bool
-   db_connection *sql.DB
-   metadata_db_file_path string
+   debugPrint bool
+   useEncryption bool
+   useCompression bool
+   dbConnection *sql.DB
+   metadataDbFilePath string
 }
 
 
-func NewJukeboxDB(metadata_db_file_path string,
-                  use_encryption bool,
-		  use_compression bool,
-                  debug_print bool) *JukeboxDB {
+func NewJukeboxDB(metadataDbFilePath string,
+                  useEncryption bool,
+		  useCompression bool,
+                  debugPrint bool) *JukeboxDB {
    var jukeboxDB JukeboxDB
-   jukeboxDB.debug_print = true //debug_print
-   jukeboxDB.use_encryption = use_encryption
-   jukeboxDB.use_compression = use_compression
-   jukeboxDB.db_connection = nil
-   if len(metadata_db_file_path) > 0 {
-      jukeboxDB.metadata_db_file_path = metadata_db_file_path
+   jukeboxDB.debugPrint = true //debugPrint
+   jukeboxDB.useEncryption = useEncryption
+   jukeboxDB.useCompression = useCompression
+   jukeboxDB.dbConnection = nil
+   if len(metadataDbFilePath) > 0 {
+      jukeboxDB.metadataDbFilePath = metadataDbFilePath
    } else {
-      jukeboxDB.metadata_db_file_path = "jukebox_db.sqlite3"
+      jukeboxDB.metadataDbFilePath = "jukebox_db.sqlite3"
    }
    return &jukeboxDB
 }
 
 func (jukeboxDB *JukeboxDB) isOpen() bool {
-   return jukeboxDB.db_connection != nil
+   return jukeboxDB.dbConnection != nil
 }
 
 func (jukeboxDB *JukeboxDB) open() bool {
    jukeboxDB.close()
-   open_success := false
-   db, err := sql.Open("sqlite3", jukeboxDB.metadata_db_file_path)
+   openSuccess := false
+   db, err := sql.Open("sqlite3", jukeboxDB.metadataDbFilePath)
    if err != nil {
       fmt.Printf("error: unable to open SQLite db: %v\n", err)
    } else {
-      jukeboxDB.db_connection = db
+      jukeboxDB.dbConnection = db
       if !jukeboxDB.haveTables() {
-         open_success = jukeboxDB.createTables()
-         if !open_success {
+         openSuccess = jukeboxDB.createTables()
+         if !openSuccess {
             fmt.Println("error: unable to create all tables")
          }
       } else {
-         open_success = true
+         openSuccess = true
       }
    }
-   return open_success
+   return openSuccess
 }
 
 func (jukeboxDB *JukeboxDB) close() bool {
-   did_close := false
-   if jukeboxDB.db_connection != nil {
-      jukeboxDB.db_connection.Close()
-      jukeboxDB.db_connection = nil
-      did_close = true
+   didClose := false
+   if jukeboxDB.dbConnection != nil {
+      jukeboxDB.dbConnection.Close()
+      jukeboxDB.dbConnection = nil
+      didClose = true
    }
-   return did_close
+   return didClose
 }
 
 func (jukeboxDB *JukeboxDB) enter() bool {
     // look for stored metadata in the storage system
     if jukeboxDB.open() {
-        if jukeboxDB.db_connection != nil {
-            if jukeboxDB.debug_print {
+        if jukeboxDB.dbConnection != nil {
+            if jukeboxDB.debugPrint {
                 fmt.Println("have db connection")
             }
         }
     } else {
         fmt.Println("unable to connect to database")
-	jukeboxDB.db_connection = nil
+	jukeboxDB.dbConnection = nil
     }
 
-    return jukeboxDB.db_connection != nil
+    return jukeboxDB.dbConnection != nil
 }
 
 func (jukeboxDB *JukeboxDB) exit() {
-    if jukeboxDB.db_connection != nil {
-        jukeboxDB.db_connection.Close()
-        jukeboxDB.db_connection = nil
+    if jukeboxDB.dbConnection != nil {
+        jukeboxDB.dbConnection.Close()
+        jukeboxDB.dbConnection = nil
     }
 }
 
 func (jukeboxDB *JukeboxDB) createTable(sqlStatement string) bool {
-    if jukeboxDB.db_connection != nil {
-        stmt, err := jukeboxDB.db_connection.Prepare(sqlStatement)
+    if jukeboxDB.dbConnection != nil {
+        stmt, err := jukeboxDB.dbConnection.Prepare(sqlStatement)
 	if err != nil {
             fmt.Printf("prepare of statement failed: %s\n", sqlStatement)
 	    fmt.Printf("error: %v\n", err)
@@ -102,10 +102,11 @@ func (jukeboxDB *JukeboxDB) createTable(sqlStatement string) bool {
 	}
 	defer stmt.Close()
 
-        _, err_stmt_exec := stmt.Exec()
-        if err_stmt_exec != nil {
-            fmt.Println("creation of table failed")
+        _, errStmtExec := stmt.Exec()
+        if errStmtExec != nil {
+            fmt.Println("error: creation of table failed")
             fmt.Print(sqlStatement)
+            fmt.Printf("error: %v\n", errStmtExec)
             return false
         } else {
             return true
@@ -116,72 +117,72 @@ func (jukeboxDB *JukeboxDB) createTable(sqlStatement string) bool {
 }
 
 func (jukeboxDB *JukeboxDB) createTables() bool {
-    if jukeboxDB.db_connection != nil {
-        if jukeboxDB.debug_print {
+    if jukeboxDB.dbConnection != nil {
+        if jukeboxDB.debugPrint {
             fmt.Println("creating tables")
         }
 
-	create_genre_table := "CREATE TABLE genre (" +
-                              "genre_uid TEXT UNIQUE NOT NULL, " +
-                              "genre_name TEXT UNIQUE NOT NULL, " +
-                              "genre_description TEXT);"
+	createGenreTable := "CREATE TABLE genre (" +
+                            "genre_uid TEXT UNIQUE NOT NULL, " +
+                            "genre_name TEXT UNIQUE NOT NULL, " +
+                            "genre_description TEXT);"
 
-        create_artist_table := "CREATE TABLE artist (" +
-                              "artist_uid TEXT UNIQUE NOT NULL," +
-                              "artist_name TEXT UNIQUE NOT NULL," +
-                              "artist_description TEXT)"
+        createArtistTable := "CREATE TABLE artist (" +
+                             "artist_uid TEXT UNIQUE NOT NULL," +
+                             "artist_name TEXT UNIQUE NOT NULL," +
+                             "artist_description TEXT)"
 
-        create_album_table := "CREATE TABLE album (" +
-                             "album_uid TEXT UNIQUE NOT NULL," +
-                             "album_name TEXT UNIQUE NOT NULL," +
-                             "album_description TEXT," +
-                             "artist_uid TEXT NOT NULL REFERENCES artist(artist_uid)," +
-                             "genre_uid TEXT REFERENCES genre(genre_uid))"
+        createAlbumTable := "CREATE TABLE album (" +
+                            "album_uid TEXT UNIQUE NOT NULL," +
+                            "album_name TEXT UNIQUE NOT NULL," +
+                            "album_description TEXT," +
+                            "artist_uid TEXT NOT NULL REFERENCES artist(artist_uid)," +
+                            "genre_uid TEXT REFERENCES genre(genre_uid))"
 
-        create_song_table := "CREATE TABLE song (" +
-                            "song_uid TEXT UNIQUE NOT NULL," +
-                            "file_time TEXT," +
-                            "origin_file_size INTEGER," +
-                            "stored_file_size INTEGER," +
-                            "pad_char_count INTEGER," +
-                            "artist_name TEXT," +
-                            "artist_uid TEXT REFERENCES artist(artist_uid)," +
-                            "song_name TEXT NOT NULL," +
-                            "md5_hash TEXT NOT NULL," +
-                            "compressed INTEGER," +
-                            "encrypted INTEGER," +
-                            "container_name TEXT NOT NULL," +
-                            "object_name TEXT NOT NULL," +
-                            "album_uid TEXT REFERENCES album(album_uid))"
+        createSongTable := "CREATE TABLE song (" +
+                           "song_uid TEXT UNIQUE NOT NULL," +
+                           "file_time TEXT," +
+                           "origin_file_size INTEGER," +
+                           "stored_file_size INTEGER," +
+                           "pad_char_count INTEGER," +
+                           "artist_name TEXT," +
+                           "artist_uid TEXT REFERENCES artist(artist_uid)," +
+                           "song_name TEXT NOT NULL," +
+                           "md5_hash TEXT NOT NULL," +
+                           "compressed INTEGER," +
+                           "encrypted INTEGER," +
+                           "container_name TEXT NOT NULL," +
+                           "object_name TEXT NOT NULL," +
+                           "album_uid TEXT REFERENCES album(album_uid))"
 
-        create_playlist_table := "CREATE TABLE playlist (" +
-                                "playlist_uid TEXT UNIQUE NOT NULL," +
-                                "playlist_name TEXT UNIQUE NOT NULL," +
-                                "playlist_description TEXT)"
+        createPlaylistTable := "CREATE TABLE playlist (" +
+                               "playlist_uid TEXT UNIQUE NOT NULL," +
+                               "playlist_name TEXT UNIQUE NOT NULL," +
+                               "playlist_description TEXT)"
 
-        create_playlist_song_table := "CREATE TABLE playlist_song (" +
-                                     "playlist_song_uid TEXT UNIQUE NOT NULL," +
-                                     "playlist_uid TEXT NOT NULL REFERENCES playlist(playlist_uid)," +
-                                     "song_uid TEXT NOT NULL REFERENCES song(song_uid))"
+        createPlaylistSongTable := "CREATE TABLE playlist_song (" +
+                                   "playlist_song_uid TEXT UNIQUE NOT NULL," +
+                                   "playlist_uid TEXT NOT NULL REFERENCES playlist(playlist_uid)," +
+                                   "song_uid TEXT NOT NULL REFERENCES song(song_uid))"
 
-        return jukeboxDB.createTable(create_genre_table) &&
-               jukeboxDB.createTable(create_artist_table) &&
-               jukeboxDB.createTable(create_album_table) &&
-               jukeboxDB.createTable(create_song_table) &&
-               jukeboxDB.createTable(create_playlist_table) &&
-               jukeboxDB.createTable(create_playlist_song_table)
+        return jukeboxDB.createTable(createGenreTable) &&
+               jukeboxDB.createTable(createArtistTable) &&
+               jukeboxDB.createTable(createAlbumTable) &&
+               jukeboxDB.createTable(createSongTable) &&
+               jukeboxDB.createTable(createPlaylistTable) &&
+               jukeboxDB.createTable(createPlaylistSongTable)
     }
 
     return false
 }
 
 func (jukeboxDB *JukeboxDB) haveTables() bool {
-   have_tables_in_db := false
-   if jukeboxDB.db_connection != nil {
+   haveTablesInDb := false
+   if jukeboxDB.dbConnection != nil {
       sqlQuery := "SELECT name " +
                   "FROM sqlite_master " +
                   "WHERE type='table' AND name='song'"
-      stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+      stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare sql: %s\n", sqlQuery)
 	 fmt.Printf("error: %v\n", err)
@@ -192,84 +193,86 @@ func (jukeboxDB *JukeboxDB) haveTables() bool {
       var name string
       err = stmt.QueryRow().Scan(&name)
       if err == nil {
-         have_tables_in_db = true
+         haveTablesInDb = true
       }
    }
 
-   return have_tables_in_db
+   return haveTablesInDb
 }
 
-func (jukeboxDB *JukeboxDB) getPlaylist(playlist_name string) *string {
-    var pl_object string
-    if len(playlist_name) > 0 {
+func (jukeboxDB *JukeboxDB) getPlaylist(playlistName string) *string {
+    var plObject string
+    if len(playlistName) > 0 {
         sqlQuery := "SELECT playlist_uid FROM playlist WHERE playlist_name = ?"
-        stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+        stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
         if err != nil {
+           //TODO: handle error
         }
         defer stmt.Close()
 
-        err = stmt.QueryRow(playlist_name).Scan(&pl_object)
+        err = stmt.QueryRow(playlistName).Scan(&plObject)
         if err != nil {
+           //TODO: handle error
         }
     }
-    return &pl_object
+    return &plObject
 }
 
 func (jukeboxDB *JukeboxDB) songsForQueryResults(rows *sql.Rows) []*SongMetadata {
-    result_songs := []*SongMetadata{}
+    resultSongs := []*SongMetadata{}
 
     for rows.Next() {
-        var file_uid string
-        var file_time string
-        var o_file_size int64
-        var s_file_size int64
-        var pad_count int
-        var artist_name string
-        var artist_uid string
-        var song_name string
-        var md5_hash string
+        var fileUid string
+        var fileTime string
+        var oFileSize int64
+        var sFileSize int64
+        var padCount int
+        var artistName string
+        var artistUid string
+        var songName string
+        var md5Hash string
         var compressed int
         var encrypted int
-        var container_name string
-        var object_name string
-        var album_uid string
+        var containerName string
+        var objectName string
+        var albumUid string
 
-        err := rows.Scan(&file_uid, &file_time, &o_file_size, &s_file_size,
-                         &pad_count, &artist_name, &artist_uid, &song_name,
-                         &md5_hash, &compressed, &encrypted, &container_name,
-                         &object_name, &album_uid)
+        err := rows.Scan(&fileUid, &fileTime, &oFileSize, &sFileSize,
+                         &padCount, &artistName, &artistUid, &songName,
+                         &md5Hash, &compressed, &encrypted, &containerName,
+                         &objectName, &albumUid)
 
         if err != nil {
            fmt.Printf("error: scan of row values failed\n")
 	   fmt.Printf("error: %v\n", err)
-	   return result_songs
+	   return resultSongs
         }
 
         song := NewSongMetadata()
         song.Fm = NewFileMetadata()
-        song.Fm.File_uid = file_uid
-        song.Fm.File_time = file_time
-        song.Fm.Origin_file_size = o_file_size
-        song.Fm.Stored_file_size = s_file_size
-        song.Fm.Pad_char_count = pad_count
-        song.Artist_name = artist_name
-        song.Artist_uid = artist_uid
-        song.Song_name = song_name
-        song.Fm.Md5_hash = md5_hash
+        song.Fm.File_uid = fileUid
+        song.Fm.File_time = fileTime
+        song.Fm.Origin_file_size = oFileSize
+        song.Fm.Stored_file_size = sFileSize
+        song.Fm.Pad_char_count = padCount
+        song.Artist_name = artistName
+        song.Artist_uid = artistUid
+        song.Song_name = songName
+        song.Fm.Md5_hash = md5Hash
         song.Fm.Compressed = compressed == 1
         song.Fm.Encrypted = encrypted == 1
-        song.Fm.Container_name = container_name
-        song.Fm.Object_name = object_name
-        song.Album_uid = album_uid
+        song.Fm.Container_name = containerName
+        song.Fm.Object_name = objectName
+        song.Album_uid = albumUid
 
-        result_songs = append(result_songs, song)
+        resultSongs = append(resultSongs, song)
     }
 
-    return result_songs
+    return resultSongs
 }
 
-func (jukeboxDB *JukeboxDB) retrieveSong(file_name string) *SongMetadata {
-    if jukeboxDB.db_connection != nil {
+func (jukeboxDB *JukeboxDB) retrieveSong(fileName string) *SongMetadata {
+    if jukeboxDB.dbConnection != nil {
         sqlQuery := `
             SELECT song_uid,
             file_time,
@@ -287,7 +290,7 @@ func (jukeboxDB *JukeboxDB) retrieveSong(file_name string) *SongMetadata {
             album_uid
             FROM song WHERE song_uid = ?
         `
-        stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+        stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
         if err != nil {
             fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
 	    fmt.Printf("error: %v\n", err)
@@ -295,29 +298,29 @@ func (jukeboxDB *JukeboxDB) retrieveSong(file_name string) *SongMetadata {
         }
         defer stmt.Close()
 
-	rows, err_rows := stmt.Query(file_name)
-	if err_rows != nil {
+	rows, errRows := stmt.Query(fileName)
+	if errRows != nil {
             return nil
         }
-	song_results := jukeboxDB.songsForQueryResults(rows)
-        if song_results != nil && len(song_results) > 0 {
-            return song_results[0]
+	songResults := jukeboxDB.songsForQueryResults(rows)
+        if songResults != nil && len(songResults) > 0 {
+            return songResults[0]
         }
     }
     return nil
 }
 
-func (jukeboxDB *JukeboxDB) insertPlaylist(pl_uid string,
-                                           pl_name string,
-                                           pl_desc string) bool {
-    insert_success := false
+func (jukeboxDB *JukeboxDB) insertPlaylist(plUid string,
+                                           plName string,
+                                           plDesc string) bool {
+    insertSuccess := false
 
-    if jukeboxDB.db_connection != nil &&
-       len(pl_uid) > 0 &&
-       len(pl_name) > 0 {
+    if jukeboxDB.dbConnection != nil &&
+       len(plUid) > 0 &&
+       len(plName) > 0 {
 
-        tx, err_tx := jukeboxDB.db_connection.Begin()
-	if err_tx != nil {
+        tx, errTx := jukeboxDB.dbConnection.Begin()
+	if errTx != nil {
             return false
         }
 
@@ -330,23 +333,22 @@ func (jukeboxDB *JukeboxDB) insertPlaylist(pl_uid string,
         }
         defer stmt.Close()
 
-        stmt.Exec(pl_uid, pl_name, pl_desc)
+        stmt.Exec(plUid, plName, plDesc)
         tx.Commit()
-        insert_success = true
-        //fmt.Println("error inserting playlist: " + e.args[0])
+        insertSuccess = true
     }
 
-    return insert_success
+    return insertSuccess
 }
 
-func (jukeboxDB *JukeboxDB) deletePlaylist(pl_name string) bool {
-    delete_success := false
+func (jukeboxDB *JukeboxDB) deletePlaylist(plName string) bool {
+    deleteSuccess := false
 
-    if jukeboxDB.db_connection != nil && len(pl_name) > 0 {
+    if jukeboxDB.dbConnection != nil && len(plName) > 0 {
         sqlQuery := "DELETE FROM playlist " +
                     "WHERE playlist_name = ? "
-        tx, err_tx := jukeboxDB.db_connection.Begin()
-	if err_tx != nil {
+        tx, errTx := jukeboxDB.dbConnection.Begin()
+	if errTx != nil {
             return false
         }
         stmt, err := tx.Prepare(sqlQuery)
@@ -356,22 +358,21 @@ func (jukeboxDB *JukeboxDB) deletePlaylist(pl_name string) bool {
             return false
         }
         defer stmt.Close()
-        stmt.Exec(pl_name)
+        stmt.Exec(plName)
         tx.Commit()
-        delete_success = true
-        //fmt.Println("error deleting playlist: " + e.args[0])
+        deleteSuccess = true
     }
 
-    return delete_success
+    return deleteSuccess
 }
 
 func (jukeboxDB *JukeboxDB) insertSong(song *SongMetadata) bool {
-    insert_success := false
+    insertSuccess := false
 
-    if jukeboxDB.db_connection != nil && song != nil {
+    if jukeboxDB.dbConnection != nil && song != nil {
         sqlQuery := "INSERT INTO song VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-	tx, err_tx := jukeboxDB.db_connection.Begin()
-	if err_tx != nil {
+	tx, errTx := jukeboxDB.dbConnection.Begin()
+	if errTx != nil {
             return false
         }
         stmt, err := tx.Prepare(sqlQuery)
@@ -397,18 +398,17 @@ func (jukeboxDB *JukeboxDB) insertSong(song *SongMetadata) bool {
                   song.Fm.Object_name,
                   song.Album_uid)
         tx.Commit()
-        insert_success = true
-        //fmt.Println("error inserting song: " + e.args[0])
+        insertSuccess = true
     }
 
-    return insert_success
+    return insertSuccess
 }
 
 func (jukeboxDB *JukeboxDB) updateSong(song *SongMetadata) bool {
-        update_success := false
+    updateSuccess := false
 
-        if jukeboxDB.db_connection != nil && song != nil && len(song.Fm.File_uid) > 0 {
-            sqlQuery := `
+    if jukeboxDB.dbConnection != nil && song != nil && len(song.Fm.File_uid) > 0 {
+        sqlQuery := `
                 UPDATE song SET file_time=?,
                    origin_file_size=?,
                    stored_file_size=?,
@@ -423,48 +423,47 @@ func (jukeboxDB *JukeboxDB) updateSong(song *SongMetadata) bool {
                    object_name=?,
                    album_uid=? WHERE song_uid = ?
             `
-	    tx, err_tx := jukeboxDB.db_connection.Begin()
-	    if err_tx != nil {
-                return false
-            }
-            stmt, err := tx.Prepare(sqlQuery)
-            if err != nil {
-                fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
-                fmt.Printf("error: %v\n", err)
-                return false
-            }
-
-            defer stmt.Close()
-
-            stmt.Exec(song.Fm.File_time,
-                      song.Fm.Origin_file_size,
-                      song.Fm.Stored_file_size,
-                      song.Fm.Pad_char_count,
-                      song.Artist_name,
-                      "",
-                      song.Song_name,
-                      song.Fm.Md5_hash,
-                      song.Fm.Compressed,
-                      song.Fm.Encrypted,
-                      song.Fm.Container_name,
-                      song.Fm.Object_name,
-                      song.Album_uid,
-                      song.Fm.File_uid)
-            tx.Commit()
-            update_success = true
-            //fmt.Println("error updating song: " + e.args[0])
+	tx, errTx := jukeboxDB.dbConnection.Begin()
+	if errTx != nil {
+            return false
+        }
+        stmt, err := tx.Prepare(sqlQuery)
+        if err != nil {
+            fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
+            fmt.Printf("error: %v\n", err)
+            return false
         }
 
-        return update_success
+        defer stmt.Close()
+
+        stmt.Exec(song.Fm.File_time,
+                  song.Fm.Origin_file_size,
+                  song.Fm.Stored_file_size,
+                  song.Fm.Pad_char_count,
+                  song.Artist_name,
+                  "",
+                  song.Song_name,
+                  song.Fm.Md5_hash,
+                  song.Fm.Compressed,
+                  song.Fm.Encrypted,
+                  song.Fm.Container_name,
+                  song.Fm.Object_name,
+                  song.Album_uid,
+                  song.Fm.File_uid)
+        tx.Commit()
+        updateSuccess = true
+    }
+
+    return updateSuccess
 }
 
 func (jukeboxDB *JukeboxDB) storeSongMetadata(song *SongMetadata) bool {
     if song == nil {
        return false
     }
-    db_song := jukeboxDB.retrieveSong(song.Fm.File_uid)
-    if db_song != nil {
-        if ! song.Equals(db_song) {
+    dbSong := jukeboxDB.retrieveSong(song.Fm.File_uid)
+    if dbSong != nil {
+        if ! song.Equals(dbSong) {
             return jukeboxDB.updateSong(song)
         } else {
             return true  // no insert or update needed (already up-to-date)
@@ -477,33 +476,33 @@ func (jukeboxDB *JukeboxDB) storeSongMetadata(song *SongMetadata) bool {
 
 func (jukeboxDB *JukeboxDB) sqlWhereClause() string {
    var encryption int
-   if jukeboxDB.use_encryption {
+   if jukeboxDB.useEncryption {
       encryption = 1
    } else {
       encryption = 0
    }
 
    var compression int
-   if jukeboxDB.use_compression {
+   if jukeboxDB.useCompression {
       compression = 1
    } else {
       compression = 0
    }
 
-   where_clause := ""
-   where_clause += " WHERE "
-   where_clause += "encrypted = "
-   where_clause += fmt.Sprintf("%d", encryption)
-   where_clause += " AND "
-   where_clause += "compressed = "
-   where_clause += fmt.Sprintf("%d", compression)
-   return where_clause
+   whereClause := ""
+   whereClause += " WHERE "
+   whereClause += "encrypted = "
+   whereClause += fmt.Sprintf("%d", encryption)
+   whereClause += " AND "
+   whereClause += "compressed = "
+   whereClause += fmt.Sprintf("%d", compression)
+   return whereClause
 }
 
 func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
                                           album string) []*SongMetadata {
     var songs []*SongMetadata
-    if jukeboxDB.db_connection != nil {
+    if jukeboxDB.dbConnection != nil {
         sqlQuery := `
             SELECT song_uid,
             file_time,
@@ -525,19 +524,19 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
         //if len(artist) > 0:
         //    sqlQuery += " AND artist_name='%s'" % artist
         if len(album) > 0 {
-            encoded_artist := EncodeValue(artist)
-            encoded_album := EncodeValue(album)
-            added_clause := fmt.Sprintf(" AND object_name LIKE '%s--%s%%'",
-                                        encoded_artist,
-                                        encoded_album)
-            sqlQuery += added_clause
+            encodedArtist := EncodeValue(artist)
+            encodedAlbum := EncodeValue(album)
+            addedClause := fmt.Sprintf(" AND object_name LIKE '%s--%s%%'",
+                                       encodedArtist,
+                                       encodedAlbum)
+            sqlQuery += addedClause
         }
 
 	//fmt.Printf("executing query: %s\n", sqlQuery)
-	stmt, err_stmt := jukeboxDB.db_connection.Prepare(sqlQuery)
-	if err_stmt != nil {
+	stmt, errStmt := jukeboxDB.dbConnection.Prepare(sqlQuery)
+	if errStmt != nil {
             fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
-            fmt.Printf("error: %v\n", err_stmt)
+            fmt.Printf("error: %v\n", errStmt)
             return nil
         }
 	defer stmt.Close()
@@ -556,7 +555,7 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
 
 func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
     songs := []*SongMetadata{}
-    if jukeboxDB.db_connection != nil {
+    if jukeboxDB.dbConnection != nil {
         sqlQuery := `
             SELECT song_uid,
             file_time,
@@ -575,7 +574,7 @@ func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
         `
         sqlQuery += jukeboxDB.sqlWhereClause()
         sqlQuery += " AND artist = ?"
-        stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+        stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
         if err != nil {
            fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
            fmt.Printf("error: %v\n", err)
@@ -585,6 +584,8 @@ func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
 
         rows, err := stmt.Query(artist_name)
         if err != nil {
+           fmt.Printf("error: query by artist name failed\n")
+           fmt.Printf("error: %v\n", err)
            return nil
         }
         songs = jukeboxDB.songsForQueryResults(rows)
@@ -593,11 +594,11 @@ func (jukeboxDB* JukeboxDB) songsForArtist(artist_name string) []*SongMetadata {
 }
 
 func (jukeboxDB *JukeboxDB) showListings() {
-   if jukeboxDB.db_connection != nil {
+   if jukeboxDB.dbConnection != nil {
       sqlQuery := "SELECT artist_name, song_name " +
                   "FROM song " +
                   "ORDER BY artist_name, song_name"
-      stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+      stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
           fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
 	  fmt.Printf("error: %v\n", err)
@@ -615,6 +616,9 @@ func (jukeboxDB *JukeboxDB) showListings() {
          var song string
          err := rows.Scan(&artist, &song)
          if err != nil {
+            fmt.Printf("error: unable to scan values (artist, song)\n")
+            fmt.Printf("error: %v\n", err)
+            return
          } else {
             fmt.Printf("%s, %s\n", artist, song)
          }
@@ -623,11 +627,11 @@ func (jukeboxDB *JukeboxDB) showListings() {
 }
 
 func (jukeboxDB *JukeboxDB) showArtists() {
-   if jukeboxDB.db_connection != nil {
+   if jukeboxDB.dbConnection != nil {
       sqlQuery := "SELECT DISTINCT artist_name " +
                   "FROM song " +
                   "ORDER BY artist_name"
-      stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+      stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
          fmt.Printf("error: %v\n", err)
@@ -642,6 +646,9 @@ func (jukeboxDB *JukeboxDB) showArtists() {
          var artist string
          err = rows.Scan(&artist)
          if err != nil {
+            fmt.Printf("error: unable to scan row value (artist)\n")
+	    fmt.Printf("error: %v\n", err)
+	    return
          } else {
             fmt.Printf("%s\n", artist)
          }
@@ -650,11 +657,11 @@ func (jukeboxDB *JukeboxDB) showArtists() {
 }
 
 func (jukeboxDB *JukeboxDB) showGenres() {
-   if jukeboxDB.db_connection != nil {
+   if jukeboxDB.dbConnection != nil {
       sqlQuery := "SELECT genre_name " +
                   "FROM genre " +
                   "ORDER BY genre_name"
-      stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+      stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
          fmt.Printf("error: %v\n", err)
@@ -665,23 +672,26 @@ func (jukeboxDB *JukeboxDB) showGenres() {
          return
       }
       for rows.Next() {
-         var genre_name string
-         err = rows.Scan(&genre_name)
+         var genreName string
+         err = rows.Scan(&genreName)
          if err != nil {
+            fmt.Printf("error: unable to Scan row value (genreName)\n")
+	    fmt.Printf("error: %v\n", err)
+	    return
          } else {
-            fmt.Printf("%s\n", genre_name)
+            fmt.Printf("%s\n", genreName)
          }
       }
    }
 }
 
 func (jukeboxDB *JukeboxDB) showAlbums() {
-   if jukeboxDB.db_connection != nil {
+   if jukeboxDB.dbConnection != nil {
       sqlQuery := "SELECT album.album_name, artist.artist_name " +
                   "FROM album, artist " +
                   "WHERE album.artist_uid = artist.artist_uid " +
                   "ORDER BY album.album_name"
-      stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+      stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
          fmt.Printf("error: %v\n", err)
@@ -693,23 +703,23 @@ func (jukeboxDB *JukeboxDB) showAlbums() {
       }
 
       for rows.Next() {
-         var album_name string
-         var artist_name string
-         err = rows.Scan(&album_name, artist_name)
+         var albumName string
+         var artistName string
+         err = rows.Scan(&albumName, artistName)
          if err != nil {
          } else {
-            fmt.Printf("%s (%s)\n", album_name, artist_name)
+            fmt.Printf("%s (%s)\n", albumName, artistName)
          }
       }
    }
 }
 
 func (jukeboxDB *JukeboxDB) showPlaylists() {
-   if jukeboxDB.db_connection != nil {
+   if jukeboxDB.dbConnection != nil {
       sqlQuery := "SELECT playlist_uid, playlist_name " +
                   "FROM playlist " +
                   "ORDER BY playlist_uid"
-      stmt, err := jukeboxDB.db_connection.Prepare(sqlQuery)
+      stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
          fmt.Printf("error: %v\n", err)
@@ -720,45 +730,48 @@ func (jukeboxDB *JukeboxDB) showPlaylists() {
          return
       }
       for rows.Next() {
-         var pl_uid string
-         var pl_name string
-         err = rows.Scan(&pl_uid, &pl_name)
+         var plUid string
+         var plName string
+         err = rows.Scan(&plUid, &plName)
          if err != nil {
          } else {
-            fmt.Printf("%s - %s\n", pl_uid, pl_name)
+            fmt.Printf("%s - %s\n", plUid, plName)
          }
       }
    }
 }
 
-func (jukeboxDB *JukeboxDB) deleteSong(song_uid string) bool {
-   was_deleted := false
-   if jukeboxDB.db_connection != nil {
-      if len(song_uid) > 0 {
+func (jukeboxDB *JukeboxDB) deleteSong(songUid string) bool {
+   wasDeleted := false
+   if jukeboxDB.dbConnection != nil {
+      if len(songUid) > 0 {
          sqlStatement := "DELETE FROM song WHERE song_uid = ?"
-	 tx, err_tx := jukeboxDB.db_connection.Begin()
-	 if err_tx != nil {
+	 tx, errTx := jukeboxDB.dbConnection.Begin()
+	 if errTx != nil {
+             fmt.Printf("error: begin transaction failed\n")
+	     fmt.Printf("error: %v\n", errTx)
              return false
          }
-         stmt, err := tx.Prepare(sqlStatement)
+	 stmt, err := tx.Prepare(sqlStatement)
          if err != nil {
+             tx.Rollback()
              fmt.Printf("error: unable to prepare statement '%s'\n", sqlStatement)
              fmt.Printf("error: %v\n", err)
              return false
          }
          defer stmt.Close()
 
-         _, err = stmt.Exec(song_uid)
+         _, err = stmt.Exec(songUid)
          if err != nil {
              tx.Rollback()
-             fmt.Printf("error: unable to delete song '%s'\n", song_uid)
+             fmt.Printf("error: unable to delete song '%s'\n", songUid)
 	     fmt.Printf("error: %v\n", err)
              return false
          }
 	 tx.Commit()
-         was_deleted = true
+         wasDeleted = true
       }
    }
 
-   return was_deleted
+   return wasDeleted
 }

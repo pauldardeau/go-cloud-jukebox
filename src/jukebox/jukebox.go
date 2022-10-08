@@ -57,32 +57,32 @@ import (
 
 
 type Jukebox struct {
-   jukebox_options *JukeboxOptions
-   storage_system *FSStorageSystem
-   debug_print bool
-   jukebox_db *JukeboxDB
-   current_dir string
-   song_import_dir string
-   playlist_import_dir string
-   song_play_dir string
-   album_art_import_dir string
-   download_extension string
-   metadata_db_file string
-   metadata_container string
-   playlist_container string
-   album_art_container string
-   song_list []*SongMetadata
-   number_songs int
-   song_index int
-   audio_player_exe_file_name string
-   audio_player_command_args string
-   audio_player_process *os.Process
-   song_play_length_seconds int
-   cumulative_download_bytes int64
-   cumulative_download_time int 
-   exit_requested bool 
-   is_paused bool
-   song_seconds_offset int 
+   jukeboxOptions *JukeboxOptions
+   storageSystem *FSStorageSystem
+   debugPrint bool
+   jukeboxDb *JukeboxDB
+   currentDir string
+   songImportDir string
+   playlistImportDir string
+   songPlayDir string
+   albumArtImportDir string
+   downloadExtension string
+   metadataDbFile string
+   metadataContainer string
+   playlistContainer string
+   albumArtContainer string
+   songList []*SongMetadata
+   numberSongs int
+   songIndex int
+   audioPlayerExeFileName string
+   audioPlayerCommandArgs string
+   audioPlayerProcess *os.Process
+   songPlayLengthSeconds int
+   cumulativeDownloadBytes int64
+   cumulativeDownloadTime int 
+   exitRequested bool 
+   isPaused bool
+   songSecondsOffset int 
 }
 
 
@@ -109,63 +109,63 @@ func (jukebox *Jukebox) installSignalHandlers() {
    go signalHandler(signalChannel, jukebox)
 }
 
-func NewJukebox(jb_options *JukeboxOptions,
-                storage_sys *FSStorageSystem,
-                debug_print bool) *Jukebox {
+func NewJukebox(jbOptions *JukeboxOptions,
+                storageSys *FSStorageSystem,
+                debugPrint bool) *Jukebox {
    var jukebox Jukebox
-   jukebox.jukebox_options = jb_options
-   jukebox.storage_system = storage_sys
-   jukebox.debug_print = debug_print
-   jukebox.jukebox_db = nil
+   jukebox.jukeboxOptions = jbOptions
+   jukebox.storageSystem = storageSys
+   jukebox.debugPrint = debugPrint
+   jukebox.jukeboxDb = nil
    cwd, err := os.Getwd()
    if err == nil {
-       jukebox.current_dir = cwd
+       jukebox.currentDir = cwd
    }
-   jukebox.song_import_dir = PathJoin(jukebox.current_dir, "song-import")
-   jukebox.playlist_import_dir = PathJoin(jukebox.current_dir, "playlist-import")
-   jukebox.song_play_dir = PathJoin(jukebox.current_dir, "song-play")
-   jukebox.album_art_import_dir = PathJoin(jukebox.current_dir, "album-art-import")
-   jukebox.download_extension = ".download"
-   jukebox.metadata_db_file = "jukebox_db.sqlite3"
-   jukebox.metadata_container = "music-metadata"
-   jukebox.playlist_container = "playlists"
-   jukebox.album_art_container = "album-art"
-   jukebox.song_list = []*SongMetadata{}
-   jukebox.number_songs = 0
-   jukebox.song_index = -1
-   jukebox.audio_player_exe_file_name = ""
-   jukebox.audio_player_command_args = ""
-   jukebox.audio_player_process = nil
-   jukebox.song_play_length_seconds = 20
-   jukebox.cumulative_download_bytes = 0
-   jukebox.cumulative_download_time = 0
-   jukebox.exit_requested = false
-   jukebox.is_paused = false
-   jukebox.song_seconds_offset = 0
+   jukebox.songImportDir = PathJoin(jukebox.currentDir, "song-import")
+   jukebox.playlistImportDir = PathJoin(jukebox.currentDir, "playlist-import")
+   jukebox.songPlayDir = PathJoin(jukebox.currentDir, "song-play")
+   jukebox.albumArtImportDir = PathJoin(jukebox.currentDir, "album-art-import")
+   jukebox.downloadExtension = ".download"
+   jukebox.metadataDbFile = "jukebox_db.sqlite3"
+   jukebox.metadataContainer = "music-metadata"
+   jukebox.playlistContainer = "playlists"
+   jukebox.albumArtContainer = "album-art"
+   jukebox.songList = []*SongMetadata{}
+   jukebox.numberSongs = 0
+   jukebox.songIndex = -1
+   jukebox.audioPlayerExeFileName = ""
+   jukebox.audioPlayerCommandArgs = ""
+   jukebox.audioPlayerProcess = nil
+   jukebox.songPlayLengthSeconds = 20
+   jukebox.cumulativeDownloadBytes = 0
+   jukebox.cumulativeDownloadTime = 0
+   jukebox.exitRequested = false
+   jukebox.isPaused = false
+   jukebox.songSecondsOffset = 0
 
-   if jukebox.jukebox_options != nil && jukebox.jukebox_options.Debug_mode {
-      jukebox.debug_print = true
+   if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.DebugMode {
+      jukebox.debugPrint = true
    }
-   if jukebox.debug_print {
-      fmt.Printf("current_dir = '%s'\n", jukebox.current_dir)
-      fmt.Printf("song_import_dir = '%s'\n", jukebox.song_import_dir)
-      fmt.Printf("song_play_dir = '%s'\n", jukebox.song_play_dir)
+   if jukebox.debugPrint {
+      fmt.Printf("currentDir = '%s'\n", jukebox.currentDir)
+      fmt.Printf("songImportDir = '%s'\n", jukebox.songImportDir)
+      fmt.Printf("songPlayDir = '%s'\n", jukebox.songPlayDir)
    }
    return &jukebox
 }
 
 func (jukebox *Jukebox) Enter() bool {
    // look for stored metadata in the storage system
-   if jukebox.storage_system != nil &&
-      jukebox.storage_system.HasContainer(jukebox.metadata_container) &&
-      !jukebox.jukebox_options.Suppress_metadata_download {
+   if jukebox.storageSystem != nil &&
+      jukebox.storageSystem.HasContainer(jukebox.metadataContainer) &&
+      !jukebox.jukeboxOptions.SuppressMetadataDownload {
 
       // metadata container exists, retrieve container listing
       metadataFileInContainer := false
-      containerContents, err := jukebox.storage_system.ListContainerContents(jukebox.metadata_container)
+      containerContents, err := jukebox.storageSystem.ListContainerContents(jukebox.metadataContainer)
       if err == nil && len(containerContents) > 0 {
          for _, container := range containerContents {
-            if container == jukebox.metadata_db_file {
+            if container == jukebox.metadataDbFile {
                metadataFileInContainer = true
 	       break
             }
@@ -175,65 +175,65 @@ func (jukebox *Jukebox) Enter() bool {
       // does our metadata DB file exist in the metadata container?
       if containerContents != nil && metadataFileInContainer {
           // download it
-	  metadata_db_file_path := jukebox.GetMetadataDbFilePath()
-	  download_file := metadata_db_file_path + ".download"
-          if jukebox.storage_system.GetObject(jukebox.metadata_container, jukebox.metadata_db_file, download_file) > 0 {
+	  metadataDbFilePath := jukebox.GetMetadataDbFilePath()
+	  downloadFile := metadataDbFilePath + ".download"
+          if jukebox.storageSystem.GetObject(jukebox.metadataContainer, jukebox.metadataDbFile, downloadFile) > 0 {
               // have an existing metadata DB file?
-              if FileExists(metadata_db_file_path) {
-                  if jukebox.debug_print {
+              if FileExists(metadataDbFilePath) {
+                  if jukebox.debugPrint {
                       fmt.Println("deleting existing metadata DB file")
                   }
-                  DeleteFile(metadata_db_file_path)
+                  DeleteFile(metadataDbFilePath)
                   // rename downloaded file
-                  if jukebox.debug_print {
-                      fmt.Printf("renaming '%s' to '%s'\n", download_file, metadata_db_file_path)
+                  if jukebox.debugPrint {
+                      fmt.Printf("renaming '%s' to '%s'\n", downloadFile, metadataDbFilePath)
                   }
-                  os.Rename(download_file, metadata_db_file_path)
+                  os.Rename(downloadFile, metadataDbFilePath)
                 } else {
-                    if jukebox.debug_print {
+                    if jukebox.debugPrint {
                         fmt.Println("error: unable to retrieve metadata DB file")
                     }
                 }
             } else {
-                if jukebox.debug_print {
+                if jukebox.debugPrint {
                     fmt.Println("no metadata DB file in metadata container")
                 }
             }
         } else {
-            if jukebox.debug_print {
+            if jukebox.debugPrint {
                 fmt.Println("no metadata container in storage system")
             }
         }
 
-	debug_print := true
-        jukebox.jukebox_db = NewJukeboxDB(jukebox.GetMetadataDbFilePath(),
-                                          jukebox.jukebox_options.Use_encryption,
-                                          jukebox.jukebox_options.Use_compression,
-                                          debug_print)
-        jukebox_db_success := jukebox.jukebox_db.enter()
-        if !jukebox_db_success {
+	debugPrint := true
+        jukebox.jukeboxDb = NewJukeboxDB(jukebox.GetMetadataDbFilePath(),
+                                         jukebox.jukeboxOptions.UseEncryption,
+                                         jukebox.jukeboxOptions.UseCompression,
+                                         debugPrint)
+        jukeboxDbSuccess := jukebox.jukeboxDb.enter()
+        if !jukeboxDbSuccess {
             fmt.Println("unable to connect to database")
         }
-        return jukebox_db_success
+        return jukeboxDbSuccess
     }
 
     return false
 }
 
 func (jukebox *Jukebox) Exit() {
-   if jukebox.jukebox_db != nil {
-       jukebox.jukebox_db.exit()
-       jukebox.jukebox_db = nil
+   if jukebox.jukeboxDb != nil {
+       jukebox.jukeboxDb.exit()
+       jukebox.jukeboxDb = nil
    }
 }
 
 func (jukebox *Jukebox) TogglePausePlay() {
-   jukebox.is_paused = ! jukebox.is_paused
-   if jukebox.is_paused {
+   jukebox.isPaused = ! jukebox.isPaused
+   if jukebox.isPaused {
       fmt.Println("paused")
-      if jukebox.audio_player_process != nil {
+      if jukebox.audioPlayerProcess != nil {
          // capture current song position (seconds into song)
-         jukebox.audio_player_process.Kill()
+         jukebox.audioPlayerProcess.Kill()
       }
    } else {
       fmt.Println("resuming play")
@@ -242,8 +242,8 @@ func (jukebox *Jukebox) TogglePausePlay() {
 
 func (jukebox *Jukebox) AdvanceToNextSong() {
    fmt.Println("advancing to next song")
-   if jukebox.audio_player_process != nil {
-      jukebox.audio_player_process.Kill()
+   if jukebox.audioPlayerProcess != nil {
+      jukebox.audioPlayerProcess.Kill()
    }
 }
 
@@ -251,24 +251,24 @@ func (jukebox *Jukebox) PrepareForTermination() {
    fmt.Println("Ctrl-C detected, shutting down")
 
    // indicate that it's time to shutdown
-   jukebox.exit_requested = true
+   jukebox.exitRequested = true
 
    // terminate audio player if it's running
-   if jukebox.audio_player_process != nil {
-      jukebox.audio_player_process.Kill()
+   if jukebox.audioPlayerProcess != nil {
+      jukebox.audioPlayerProcess.Kill()
    }
 }
 
 func (jukebox *Jukebox) DisplayInfo() {
-   if len(jukebox.song_list) > 0 {
-      max_index := len(jukebox.song_list) - 1
-      if jukebox.song_index + 3 <= max_index {
+   if len(jukebox.songList) > 0 {
+      maxIndex := len(jukebox.songList) - 1
+      if jukebox.songIndex + 3 <= maxIndex {
          fmt.Printf("----- songs on deck -----\n")
-	 first_song := jukebox.song_list[jukebox.song_index+1]
+	 first_song := jukebox.songList[jukebox.songIndex+1]
          fmt.Printf("%s\n", first_song.Fm.File_uid)
-	 second_song := jukebox.song_list[jukebox.song_index+2]
+	 second_song := jukebox.songList[jukebox.songIndex+2]
          fmt.Printf("%s\n", second_song.Fm.File_uid)
-	 third_song := jukebox.song_list[jukebox.song_index+3]
+	 third_song := jukebox.songList[jukebox.songIndex+3]
          fmt.Printf("%s\n", third_song.Fm.File_uid)
          fmt.Printf("-------------------------\n")
       }
@@ -276,21 +276,21 @@ func (jukebox *Jukebox) DisplayInfo() {
 }
 
 func (jukebox *Jukebox) GetMetadataDbFilePath() (string) {
-   return PathJoin(jukebox.current_dir, jukebox.metadata_db_file)
+   return PathJoin(jukebox.currentDir, jukebox.metadataDbFile)
 }
 
-func componentsFromFileName(file_name string) (string,string,string) {
-   if len(file_name) == 0 {
+func componentsFromFileName(fileName string) (string,string,string) {
+   if len(fileName) == 0 {
       return "", "", ""
    }
-   pos_extension := strings.Index(file_name, ".")
-   var base_file_name string
-   if pos_extension > -1 {
-      base_file_name = file_name[0:pos_extension]
+   posExtension := strings.Index(fileName, ".")
+   var baseFileName string
+   if posExtension > -1 {
+      baseFileName = fileName[0:posExtension]
    } else {
-      base_file_name = file_name
+      baseFileName = fileName
    }
-   components := strings.Split(base_file_name, "--")
+   components := strings.Split(baseFileName, "--")
    if len(components) == 3 {
       return UnencodeValue(components[0]),
              UnencodeValue(components[1]),
@@ -330,29 +330,29 @@ func (jb *Jukebox) songFromFileName(fileName string) string {
    return ""
 }
 
-func (jukebox *Jukebox) storeSongMetadata(fs_song *SongMetadata) (bool) {
-   db_song := jukebox.jukebox_db.retrieveSong(fs_song.Fm.File_uid)
-   if db_song != nil {
-      if ! fs_song.Equals(db_song) {
-         return jukebox.jukebox_db.updateSong(fs_song)
+func (jukebox *Jukebox) storeSongMetadata(fsSong *SongMetadata) (bool) {
+   dbSong := jukebox.jukeboxDb.retrieveSong(fsSong.Fm.File_uid)
+   if dbSong != nil {
+      if ! fsSong.Equals(dbSong) {
+         return jukebox.jukeboxDb.updateSong(fsSong)
       } else {
          return true  // no insert or update needed (already up-to-date)
       }
    } else {
       // song is not in the database, insert it
-      return jukebox.jukebox_db.insertSong(fs_song)
+      return jukebox.jukeboxDb.insertSong(fsSong)
    }
 }
 
-func (jukebox *Jukebox) storeSongPlaylist(file_name string, file_contents []byte) bool {
+func (jukebox *Jukebox) storeSongPlaylist(fileName string, fileContents []byte) bool {
    var result map[string]interface{}
-   err := json.Unmarshal(file_contents, &result)
+   err := json.Unmarshal(fileContents, &result)
    if err == nil {
-      any_pl_name, exists := result["name"]
+      anyPlName, exists := result["name"]
       if exists {
-	 pl_uid := file_name
-	 pl_name := fmt.Sprintf("%v", any_pl_name)
-         return jukebox.jukebox_db.insertPlaylist(pl_uid, pl_name, "")
+	 plUid := fileName
+	 plName := fmt.Sprintf("%v", anyPlName)
+         return jukebox.jukeboxDb.insertPlaylist(plUid, plName, "")
       } else {
          return false
       }
@@ -367,19 +367,19 @@ func (jukebox *Jukebox) get_encryptor() {
     // key_block_size = 24  // AES-192
     key_block_size = 32  // AES-256
     return AESBlockEncryption(key_block_size,
-                              jukebox.jukebox_options.encryption_key,
-                              jukebox.jukebox_options.encryption_iv)
+                              jukebox.jukeboxOptions.encryption_key,
+                              jukebox.jukeboxOptions.encryption_iv)
 }
 */
 
 func (jukebox *Jukebox) containerSuffix() (string) {
    suffix := ""
-   if jukebox.jukebox_options.Use_encryption &&
-      jukebox.jukebox_options.Use_compression {
+   if jukebox.jukeboxOptions.UseEncryption &&
+      jukebox.jukeboxOptions.UseCompression {
       suffix += "-ez"
-   } else if jukebox.jukebox_options.Use_encryption {
+   } else if jukebox.jukeboxOptions.UseEncryption {
       suffix += "-e"
-   } else if jukebox.jukebox_options.Use_compression {
+   } else if jukebox.jukeboxOptions.UseCompression {
       suffix += "-z"
    }
    return suffix
@@ -387,125 +387,125 @@ func (jukebox *Jukebox) containerSuffix() (string) {
 
 func (jukebox *Jukebox) objectFileSuffix() (string) {
    suffix := ""
-   if jukebox.jukebox_options.Use_encryption &&
-      jukebox.jukebox_options.Use_compression {
+   if jukebox.jukeboxOptions.UseEncryption &&
+      jukebox.jukeboxOptions.UseCompression {
       suffix = ".egz"
-   } else if jukebox.jukebox_options.Use_encryption {
+   } else if jukebox.jukeboxOptions.UseEncryption {
       suffix = ".e"
-   } else if jukebox.jukebox_options.Use_compression {
+   } else if jukebox.jukeboxOptions.UseCompression {
       suffix = ".gz"
    }
    return suffix
 }
 
-func (jukebox *Jukebox) containerForSong(song_uid string) string {
-   if len(song_uid) == 0 {
+func (jukebox *Jukebox) containerForSong(songUid string) string {
+   if len(songUid) == 0 {
       return ""
    }
-   container_suffix := "-artist-songs" + jukebox.containerSuffix()
+   containerSuffix := "-artist-songs" + jukebox.containerSuffix()
 
-   artist := jukebox.artistFromFileName(song_uid)
+   artist := jukebox.artistFromFileName(songUid)
    if len(artist) == 0 {
       return ""
    }
 
-   var artist_letter string
-   artist_value := artist
+   var artistLetter string
+   artistValue := artist
 
-   if strings.HasPrefix(artist_value, "A ") {
-      artist_letter = artist_value[2:3]
-   } else if strings.HasPrefix(artist_value, "The ") {
-      artist_letter = artist_value[4:5]
+   if strings.HasPrefix(artistValue, "A ") {
+      artistLetter = artistValue[2:3]
+   } else if strings.HasPrefix(artistValue, "The ") {
+      artistLetter = artistValue[4:5]
    } else {
-      artist_letter = artist_value[0:1]
+      artistLetter = artistValue[0:1]
    }
 
-   container_name := strings.ToLower(artist_letter) + container_suffix
-   return container_name
+   containerName := strings.ToLower(artistLetter) + containerSuffix
+   return containerName
 }
 
 func (jukebox *Jukebox) ImportSongs() {
-   if jukebox.jukebox_db != nil && jukebox.jukebox_db.isOpen() {
-      dir_listing, err := ListFilesInDirectory(jukebox.song_import_dir)
+   if jukebox.jukeboxDb != nil && jukebox.jukeboxDb.isOpen() {
+      dirListing, err := ListFilesInDirectory(jukebox.songImportDir)
       if err != nil {
          return
       }
-      num_entries := float32(len(dir_listing))
-      progressbar_chars := 0.0
-      progressbar_width := 40
-      progress_chars_per_iteration := float32(progressbar_width) / num_entries
-      progressbar_char := "#"
-      bar_chars := 0
+      numEntries := float32(len(dirListing))
+      progressbarChars := 0.0
+      progressbarWidth := 40
+      progressCharsPerIteration := float32(progressbarWidth) / numEntries
+      progressbarChar := "#"
+      barChars := 0
 
-      if ! jukebox.debug_print {
+      if ! jukebox.debugPrint {
          // setup progressbar
-         fmt.Printf("[%s]", strings.Repeat(" ", progressbar_width))
+         fmt.Printf("[%s]", strings.Repeat(" ", progressbarWidth))
          //sys.stdout.flush()
-         fmt.Printf(strings.Repeat("\b", progressbar_width + 1)) // return to start of line, after '['
+         fmt.Printf(strings.Repeat("\b", progressbarWidth + 1)) // return to start of line, after '['
       }
 
-      //if jukebox.jukebox_options != nil && jukebox.jukebox_options.use_encryption {
+      //if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.useEncryption {
       //   encryption = jukebox.get_encryptor()
       //} else {
       //   encryption = nil
       //}
 
-      cumulative_upload_time := 0
-      cumulative_upload_bytes := 0
-      file_import_count := 0
+      cumulativeUploadTime := 0
+      cumulativeUploadBytes := 0
+      fileImportCount := 0
 
-      for _, listing_entry := range dir_listing {
-         full_path := PathJoin(jukebox.song_import_dir, listing_entry)
+      for _, listingEntry := range dirListing {
+         fullPath := PathJoin(jukebox.songImportDir, listingEntry)
          // ignore it if it's not a file
-         if FileExists(full_path) {
-            file_name := listing_entry
-	    _, extension := PathSplitExt(full_path)
+         if FileExists(fullPath) {
+            fileName := listingEntry
+	    _, extension := PathSplitExt(fullPath)
             if len(extension) > 0 {
-               file_size := GetFileSize(full_path)
-	       artist := jukebox.artistFromFileName(file_name)
-	       album := jukebox.albumFromFileName(file_name)
-	       song := jukebox.songFromFileName(file_name)
-               if file_size > 0 && len(artist) > 0 && len(album) > 0 && len(song) > 0 {
-                  object_name := file_name + jukebox.objectFileSuffix()
-		  fs_song := NewSongMetadata()
-                  fs_song.Fm = NewFileMetadata()
-                  fs_song.Fm.File_uid = object_name
-                  fs_song.Album_uid = ""
-                  fs_song.Fm.Origin_file_size = file_size
-		  mtime, errTime := PathGetMtime(full_path)
+               fileSize := GetFileSize(fullPath)
+	       artist := jukebox.artistFromFileName(fileName)
+	       album := jukebox.albumFromFileName(fileName)
+	       song := jukebox.songFromFileName(fileName)
+               if fileSize > 0 && len(artist) > 0 && len(album) > 0 && len(song) > 0 {
+                  objectName := fileName + jukebox.objectFileSuffix()
+		  fsSong := NewSongMetadata()
+                  fsSong.Fm = NewFileMetadata()
+                  fsSong.Fm.File_uid = objectName
+                  fsSong.Album_uid = ""
+                  fsSong.Fm.Origin_file_size = fileSize
+		  mtime, errTime := PathGetMtime(fullPath)
 		  if errTime == nil {
-                     fs_song.Fm.File_time = mtime.Format(time.RFC3339) 
+                     fsSong.Fm.File_time = mtime.Format(time.RFC3339) 
 	          }
-                  fs_song.Artist_name = artist
-                  fs_song.Song_name = song
-		  md5Hash, errHash := Md5ForFile(full_path)
+                  fsSong.Artist_name = artist
+                  fsSong.Song_name = song
+		  md5Hash, errHash := Md5ForFile(fullPath)
 		  if errHash == nil {
-                     fs_song.Fm.Md5_hash = md5Hash
+                     fsSong.Fm.Md5_hash = md5Hash
                   }
-                  fs_song.Fm.Compressed = jukebox.jukebox_options.Use_compression
-                  fs_song.Fm.Encrypted = jukebox.jukebox_options.Use_encryption
-                  fs_song.Fm.Object_name = object_name
-                  fs_song.Fm.Pad_char_count = 0
+                  fsSong.Fm.Compressed = jukebox.jukeboxOptions.UseCompression
+                  fsSong.Fm.Encrypted = jukebox.jukeboxOptions.UseEncryption
+                  fsSong.Fm.Object_name = objectName
+                  fsSong.Fm.Pad_char_count = 0
 
-                  fs_song.Fm.Container_name = jukebox.containerForSong(file_name)
+                  fsSong.Fm.Container_name = jukebox.containerForSong(fileName)
 
                   // read file contents
-		  file_read := false
+		  fileRead := false
 
-		  file_contents, errFile := FileReadAllBytes(full_path)
+		  fileContents, errFile := FileReadAllBytes(fullPath)
 		  if errFile == nil {
-                     file_read = true
+                     fileRead = true
                   } else {
-                     fmt.Printf("error: unable to read file %s\n", full_path)
+                     fmt.Printf("error: unable to read file %s\n", fullPath)
                   }
 
-                  if file_read && file_contents != nil {
-                     if len(file_contents) > 0 {
+                  if fileRead && fileContents != nil {
+                     if len(fileContents) > 0 {
                         // for general purposes, it might be useful or helpful to have
                         // a minimum size for compressing
 			//TODO: add support for compression and encryption
-                        if jukebox.jukebox_options.Use_compression {
-                           if jukebox.debug_print {
+                        if jukebox.jukeboxOptions.UseCompression {
+                           if jukebox.debugPrint {
                               fmt.Println("compressing file")
                            }
 
@@ -514,8 +514,8 @@ func (jukebox *Jukebox) ImportSongs() {
                            //file_contents = zlib.compress(file_bytes, 9)
                         }
 
-                        if jukebox.jukebox_options.Use_encryption {
-                           if jukebox.debug_print {
+                        if jukebox.jukeboxOptions.UseEncryption {
+                           if jukebox.debugPrint {
                               fmt.Println("encrypting file")
                            }
 
@@ -524,7 +524,7 @@ func (jukebox *Jukebox) ImportSongs() {
                            // the length of the data to encrypt must be a multiple of 16
                            //num_extra_chars = len(file_contents) % 16
                            //if num_extra_chars > 0 {
-                           //   if jukebox.debug_print {
+                           //   if jukebox.debugPrint {
                            //      fmt.Println("padding file for encryption")
                            //   }
                            //   num_pad_chars = 16 - num_extra_chars
@@ -539,190 +539,190 @@ func (jukebox *Jukebox) ImportSongs() {
 
                      // now that we have the data that will be stored, set the file size for
                      // what's being stored
-                     fs_song.Fm.Stored_file_size = int64(len(file_contents))
+                     fsSong.Fm.Stored_file_size = int64(len(fileContents))
 		     //start_upload_time := time.Now()
 
                      // store song file to storage system
-                     if jukebox.storage_system.PutObject(fs_song.Fm.Container_name,
-                                                         fs_song.Fm.Object_name,
-                                                         file_contents,
-						         nil) {
+                     if jukebox.storageSystem.PutObject(fsSong.Fm.Container_name,
+                                                        fsSong.Fm.Object_name,
+                                                        fileContents,
+                                                        nil) {
                         //end_upload_time := time.Now()
 			// end_upload_time - start_upload_time
 			//upload_elapsed_time := end_upload_time.Add(-start_upload_time)
-                        //cumulative_upload_time.Add(upload_elapsed_time)
-                        cumulative_upload_bytes += len(file_contents)
+                        //cumulativeUploadTime.Add(upload_elapsed_time)
+                        cumulativeUploadBytes += len(fileContents)
 
                         // store song metadata in local database
-                        if ! jukebox.storeSongMetadata(fs_song) {
+                        if ! jukebox.storeSongMetadata(fsSong) {
                            // we stored the song to the storage system, but were unable to store
                            // the metadata in the local database. we need to delete the song
                            // from the storage system since we won't have any way to access it
                            // since we can't store the song metadata locally.
-                           fmt.Printf("unable to store metadata, deleting obj '%s'", fs_song.Fm.Object_name)
-                           jukebox.storage_system.DeleteObject(fs_song.Fm.Container_name,
-                                                               fs_song.Fm.Object_name)
+                           fmt.Printf("unable to store metadata, deleting obj '%s'", fsSong.Fm.Object_name)
+                           jukebox.storageSystem.DeleteObject(fsSong.Fm.Container_name,
+                                                              fsSong.Fm.Object_name)
                         } else {
-                           file_import_count += 1
+                           fileImportCount += 1
                         }
                      } else {
                         fmt.Printf("error: unable to upload '%s' to '%s'\n",
-                                   fs_song.Fm.Object_name,
-                                   fs_song.Fm.Container_name)
+                                   fsSong.Fm.Object_name,
+                                   fsSong.Fm.Container_name)
                      }
                   }
                }
             }
 
-            if ! jukebox.debug_print {
-               progressbar_chars += float64(progress_chars_per_iteration)
-               if int(progressbar_chars) > bar_chars {
-                  num_new_chars := int(progressbar_chars) - bar_chars
-                  if num_new_chars > 0 {
+            if ! jukebox.debugPrint {
+               progressbarChars += float64(progressCharsPerIteration)
+               if int(progressbarChars) > barChars {
+                  numNewChars := int(progressbarChars) - barChars
+                  if numNewChars > 0 {
                      // update progress bar
-		     for j:=0; j < num_new_chars; j++ {
-                         fmt.Print(progressbar_char)
+		     for j:=0; j < numNewChars; j++ {
+                         fmt.Print(progressbarChar)
                      }
                      //sys.stdout.flush()
-                     bar_chars += num_new_chars
+                     barChars += numNewChars
                   }
                }
             }
          }
       }
 
-      if ! jukebox.debug_print {
+      if ! jukebox.debugPrint {
          // if we haven't filled up the progress bar, fill it now
-         if bar_chars < progressbar_width {
-            num_new_chars := progressbar_width - bar_chars
-	    for j:=0; j < num_new_chars; j++ {
-                fmt.Print(progressbar_char)
+         if barChars < progressbarWidth {
+            numNewChars := progressbarWidth - barChars
+	    for j:=0; j < numNewChars; j++ {
+                fmt.Print(progressbarChar)
             }
             //sys.stdout.flush()
          }
          fmt.Printf("\n")
       }
 
-      if file_import_count > 0 {
+      if fileImportCount > 0 {
          jukebox.UploadMetadataDb()
       }
 
-      fmt.Printf("%d song files imported\n", file_import_count)
+      fmt.Printf("%d song files imported\n", fileImportCount)
 
-      if cumulative_upload_time > 0 {
-         cumulative_upload_kb := cumulative_upload_bytes / 1000.0
+      if cumulativeUploadTime > 0 {
+         cumulativeUploadKb := cumulativeUploadBytes / 1000.0
          fmt.Printf("average upload throughput = %d KB/sec\n",
-                    cumulative_upload_kb / cumulative_upload_time)
+                    cumulativeUploadKb / cumulativeUploadTime)
       }
    }
 }
 
 func (jukebox *Jukebox) songPathInPlaylist(song *SongMetadata) string {
-    return PathJoin(jukebox.song_play_dir, song.Fm.File_uid)
+    return PathJoin(jukebox.songPlayDir, song.Fm.File_uid)
 }
 
 func (jukebox *Jukebox) checkFileIntegrity(song *SongMetadata) bool {
-    file_integrity_passed := true
+    fileIntegrityPassed := true
 
-    if jukebox.jukebox_options != nil && jukebox.jukebox_options.Check_data_integrity {
-	file_path := jukebox.songPathInPlaylist(song)
-        if FileExists(file_path) {
-            if jukebox.debug_print {
+    if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.CheckDataIntegrity {
+	filePath := jukebox.songPathInPlaylist(song)
+        if FileExists(filePath) {
+            if jukebox.debugPrint {
                 fmt.Printf("checking integrity for %s\n", song.Fm.File_uid)
             }
 
             if song.Fm != nil {
-		playlist_md5, err := Md5ForFile(file_path)
+		playlistMd5, err := Md5ForFile(filePath)
 		if err != nil {
-                    fmt.Printf("error: unable to calculate MD5 hash for file '%s'\n", file_path)
+                    fmt.Printf("error: unable to calculate MD5 hash for file '%s'\n", filePath)
                     fmt.Printf("error: %v\n", err)
-		    file_integrity_passed = false
+		    fileIntegrityPassed = false
 		} else {
-                    if playlist_md5 == song.Fm.Md5_hash {
-                        if jukebox.debug_print {
+                    if playlistMd5 == song.Fm.Md5_hash {
+                        if jukebox.debugPrint {
                             fmt.Println("integrity check SUCCESS")
                         }
-                        file_integrity_passed = true
+                        fileIntegrityPassed = true
                     } else {
                         fmt.Printf("file integrity check failed: %s\n", song.Fm.File_uid)
-                        file_integrity_passed = false
+                        fileIntegrityPassed = false
                     }
                 }
             }
         } else {
             // file doesn't exist
             fmt.Println("file doesn't exist")
-            file_integrity_passed = false
+            fileIntegrityPassed = false
         }
     } else {
-        if jukebox.debug_print {
+        if jukebox.debugPrint {
             fmt.Println("file integrity bypassed, no jukebox options or check integrity not turned on")
         }
     }
 
-    return file_integrity_passed
+    return fileIntegrityPassed
 }
 
 func (jukebox *Jukebox) batchDownloadStart() {
-   jukebox.cumulative_download_bytes = 0
-   jukebox.cumulative_download_time = 0
+   jukebox.cumulativeDownloadBytes = 0
+   jukebox.cumulativeDownloadTime = 0
 }
 
 func (jukebox *Jukebox) batchDownloadComplete() {
-   if ! jukebox.exit_requested {
-      if jukebox.cumulative_download_time > 0 {
-         cumulative_download_kb := jukebox.cumulative_download_bytes / 1000.0
+   if ! jukebox.exitRequested {
+      if jukebox.cumulativeDownloadTime > 0 {
+         cumulativeDownloadKb := jukebox.cumulativeDownloadBytes / 1000.0
          fmt.Printf("average download throughput = %d KB/sec\n",
-                    cumulative_download_kb / int64(jukebox.cumulative_download_time))
+                    cumulativeDownloadKb / int64(jukebox.cumulativeDownloadTime))
       }
-      jukebox.cumulative_download_bytes = 0
-      jukebox.cumulative_download_time = 0
+      jukebox.cumulativeDownloadBytes = 0
+      jukebox.cumulativeDownloadTime = 0
    }
 }
 
 func (jukebox *Jukebox) retrieveFile(fm *FileMetadata, dirPath string) int64 {
    var bytesRetrieved int64
 
-   if jukebox.storage_system != nil && fm != nil && len(dirPath) > 0 {
+   if jukebox.storageSystem != nil && fm != nil && len(dirPath) > 0 {
       localFilePath := PathJoin(dirPath, fm.File_uid)
-      bytesRetrieved = jukebox.storage_system.GetObject(fm.Container_name, fm.Object_name, localFilePath)
+      bytesRetrieved = jukebox.storageSystem.GetObject(fm.Container_name, fm.Object_name, localFilePath)
    }
 
    return bytesRetrieved
 }
 
 func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
-   if jukebox.exit_requested {
+   if jukebox.exitRequested {
       return false
    }
 
    if song != nil {
-      file_path := jukebox.songPathInPlaylist(song)
+      filePath := jukebox.songPathInPlaylist(song)
       //download_start_time := time.time()
-      song_bytes_retrieved := jukebox.retrieveFile(song.Fm, jukebox.song_play_dir)
-      if jukebox.exit_requested {
+      songBytesRetrieved := jukebox.retrieveFile(song.Fm, jukebox.songPlayDir)
+      if jukebox.exitRequested {
          return false
       }
 
-      if jukebox.debug_print {
-         fmt.Printf("bytes retrieved: %d\n", song_bytes_retrieved)
+      if jukebox.debugPrint {
+         fmt.Printf("bytes retrieved: %d\n", songBytesRetrieved)
       }
 
-      if song_bytes_retrieved > 0 {
+      if songBytesRetrieved > 0 {
          //download_end_time := time.time()
 	 //download_elapsed_time := download_end_time - download_start_time
-         //jukebox.cumulative_download_time += download_elapsed_time
-         jukebox.cumulative_download_bytes += song_bytes_retrieved
+         //jukebox.cumulativeDownloadTime += download_elapsed_time
+         jukebox.cumulativeDownloadBytes += songBytesRetrieved
 
          // are we checking data integrity?
          // if so, verify that the storage system retrieved the same length that has been stored
-         if jukebox.jukebox_options != nil && jukebox.jukebox_options.Check_data_integrity {
-            if jukebox.debug_print {
+         if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.CheckDataIntegrity {
+            if jukebox.debugPrint {
                fmt.Println("verifying data integrity")
             }
 
-            if song_bytes_retrieved != song.Fm.Stored_file_size {
-               fmt.Printf("error: data integrity check failed for '%s'\n", file_path)
+            if songBytesRetrieved != song.Fm.Stored_file_size {
+               fmt.Printf("error: file size check failed for '%s'\n", filePath)
                return false
             }
          }
@@ -768,8 +768,8 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
 	 } else {
             // we retrieved the file, but it failed our integrity check
             // if file exists, remove it
-            if FileExists(file_path) {
-               DeleteFile(file_path)
+            if FileExists(filePath) {
+               DeleteFile(filePath)
             }
          }
       }
@@ -779,43 +779,43 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
 }
 
 func (jukebox *Jukebox) playSong(song *SongMetadata) {
-   song_file_path := jukebox.songPathInPlaylist(song)
+   songFilePath := jukebox.songPathInPlaylist(song)
 
-   if FileExists(song_file_path) {
+   if FileExists(songFilePath) {
       fmt.Printf("playing %s\n", song.Fm.File_uid)
-      if len(jukebox.audio_player_exe_file_name) > 0 {
+      if len(jukebox.audioPlayerExeFileName) > 0 {
          var args []string
-         if len(jukebox.audio_player_command_args) > 0 {
-            vec_addl_args := strings.Split(jukebox.audio_player_command_args, " ")
-	    for _, addl_arg := range vec_addl_args {
-               args = append(args, addl_arg)
+         if len(jukebox.audioPlayerCommandArgs) > 0 {
+            vecAddlArgs := strings.Split(jukebox.audioPlayerCommandArgs, " ")
+	    for _, addlArg := range vecAddlArgs {
+               args = append(args, addlArg)
             }
          }
-         args = append(args, song_file_path)
+         args = append(args, songFilePath)
 
-	 exit_code := -1
-	 started_audio_player := false
+	 exitCode := -1
+	 startedAudioPlayer := false
 	 var cmd *exec.Cmd
-	 player_exe := jukebox.audio_player_exe_file_name
+	 playerExe := jukebox.audioPlayerExeFileName
 
 	 numArgs := len(args)
 	 if numArgs == 1 {
-            cmd = exec.Command(player_exe, args[0])
+            cmd = exec.Command(playerExe, args[0])
          } else if numArgs == 2 {
-            cmd = exec.Command(player_exe, args[0], args[1])
+            cmd = exec.Command(playerExe, args[0], args[1])
          } else if numArgs == 3 {
-            cmd = exec.Command(player_exe, args[0], args[1], args[2])
+            cmd = exec.Command(playerExe, args[0], args[1], args[2])
          } else if numArgs == 4 {
-            cmd = exec.Command(player_exe, args[0], args[1], args[2], args[3])
+            cmd = exec.Command(playerExe, args[0], args[1], args[2], args[3])
          } else if numArgs == 5 {
-            cmd = exec.Command(player_exe,
+            cmd = exec.Command(playerExe,
                                args[0],
                                args[1],
                                args[2],
                                args[3],
                                args[4])
          } else if numArgs == 6 {
-            cmd = exec.Command(player_exe,
+            cmd = exec.Command(playerExe,
                                args[0],
                                args[1],
                                args[2],
@@ -823,7 +823,7 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
                                args[4],
                                args[5])
          } else if numArgs == 7 {
-            cmd = exec.Command(player_exe,
+            cmd = exec.Command(playerExe,
                                args[0],
                                args[1],
                                args[2],
@@ -832,7 +832,7 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
                                args[5],
                                args[6])
          } else if numArgs == 8 {
-            cmd = exec.Command(player_exe,
+            cmd = exec.Command(playerExe,
                                args[0],
                                args[1],
                                args[2],
@@ -848,40 +848,40 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
 
 	 err := cmd.Start()  // will not wait for process to run and exit
 	 if err == nil {
-            started_audio_player = true
-	    jukebox.audio_player_process = cmd.Process
+            startedAudioPlayer = true
+	    jukebox.audioPlayerProcess = cmd.Process
 	    errWait := cmd.Wait()
 	    if errWait != nil {
-               if jukebox.debug_print {
+               if jukebox.debugPrint {
                   fmt.Printf("error: unable to wait for audio player process\n")
 	          fmt.Printf("error: %v\n", errWait)
                }
             }
-            jukebox.audio_player_process = nil
+            jukebox.audioPlayerProcess = nil
          } else {
             fmt.Printf("error: unable to start audio player\n")
 	    fmt.Printf("error: %v\n", err)
-	    jukebox.audio_player_exe_file_name = ""
-	    jukebox.audio_player_command_args = ""
+	    jukebox.audioPlayerExeFileName = ""
+	    jukebox.audioPlayerCommandArgs = ""
 	 }
 
          // if the audio player failed or is not present, just sleep
          // for the length of time that audio would be played
-         if ! started_audio_player && exit_code != 0 {
-            TimeSleepSeconds(jukebox.song_play_length_seconds)
+         if ! startedAudioPlayer && exitCode != 0 {
+            TimeSleepSeconds(jukebox.songPlayLengthSeconds)
          }
       } else {
          // we don't know about an audio player, so simulate a
          // song being played by sleeping
-         TimeSleepSeconds(jukebox.song_play_length_seconds)
+         TimeSleepSeconds(jukebox.songPlayLengthSeconds)
       }
 
-      if ! jukebox.is_paused {
+      if ! jukebox.isPaused {
          // delete the song file from the play list directory
-         DeleteFile(song_file_path)
+         DeleteFile(songFilePath)
       }
    } else {
-      fmt.Printf("song file doesn't exist: '%s'\n", song_file_path)
+      fmt.Printf("song file doesn't exist: '%s'\n", songFilePath)
 
       f, err := os.OpenFile("404.txt",
                             os.O_APPEND|os.O_CREATE|os.O_WRONLY,
@@ -892,7 +892,7 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
 	  return
       }
       defer f.Close()
-      if _, err := f.WriteString(song_file_path + "\n"); err != nil {
+      if _, err := f.WriteString(songFilePath + "\n"); err != nil {
           fmt.Println("error: unable to write to 404.txt")
           fmt.Println(err)
       }
@@ -901,108 +901,108 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
 
 func (jukebox *Jukebox) downloadSongs() {
    // scan the play list directory to see if we need to download more songs
-   dir_listing, err := os.ReadDir(jukebox.song_play_dir)
+   dirListing, err := os.ReadDir(jukebox.songPlayDir)
    if err != nil {
       // log error
       return
    }
 
-   var dl_songs []*SongMetadata
+   var dlSongs []*SongMetadata
 
-   song_file_count := 0
-   for _, listing_entry := range dir_listing {
-      if listing_entry.IsDir() {
+   songFileCount := 0
+   for _, listingEntry := range dirListing {
+      if listingEntry.IsDir() {
           continue
       }
-      full_path := PathJoin(jukebox.song_play_dir, listing_entry.Name())
-      extension := filepath.Ext(full_path)
-      if len(extension) > 0 && extension != jukebox.download_extension {
-          song_file_count += 1
+      fullPath := PathJoin(jukebox.songPlayDir, listingEntry.Name())
+      extension := filepath.Ext(fullPath)
+      if len(extension) > 0 && extension != jukebox.downloadExtension {
+          songFileCount += 1
       }
    }
 
-   file_cache_count := jukebox.jukebox_options.File_cache_count
+   fileCacheCount := jukebox.jukeboxOptions.FileCacheCount
 
-   if song_file_count < file_cache_count {
+   if songFileCount < fileCacheCount {
       // start looking at the next song in the list
-      check_index := jukebox.song_index + 1
-      for j:=0; j<jukebox.number_songs; j++ {
-         if check_index >= jukebox.number_songs {
-            check_index = 0
+      checkIndex := jukebox.songIndex + 1
+      for j:=0; j<jukebox.numberSongs; j++ {
+         if checkIndex >= jukebox.numberSongs {
+            checkIndex = 0
          }
-         if check_index != jukebox.song_index {
-            si := jukebox.song_list[check_index]
-	    file_path := jukebox.songPathInPlaylist(si)
-            if ! FileExists(file_path) {
-               dl_songs = append(dl_songs, si)
-               if len(dl_songs) >= file_cache_count {
+         if checkIndex != jukebox.songIndex {
+            si := jukebox.songList[checkIndex]
+	    filePath := jukebox.songPathInPlaylist(si)
+            if ! FileExists(filePath) {
+               dlSongs = append(dlSongs, si)
+               if len(dlSongs) >= fileCacheCount {
                   break
                }
             }
          }
-         check_index += 1
+         checkIndex += 1
       }
    }
 
-   if len(dl_songs) > 0 {
-      go downloadSongs(jukebox, dl_songs)
+   if len(dlSongs) > 0 {
+      go downloadSongs(jukebox, dlSongs)
    }
 }
 
-func downloadSongs(jukebox *Jukebox, dl_songs []*SongMetadata) {
-   downloader := NewSongDownloader(jukebox, dl_songs)
+func downloadSongs(jukebox *Jukebox, dlSongs []*SongMetadata) {
+   downloader := NewSongDownloader(jukebox, dlSongs)
    downloader.run()
 }
 
 func (jukebox *Jukebox) PlaySongs(shuffle bool, artist string, album string) {
-    song_list := jukebox.jukebox_db.retrieveSongs(artist, album)
-    jukebox.playSongList(song_list, shuffle)
+    songList := jukebox.jukeboxDb.retrieveSongs(artist, album)
+    jukebox.playSongList(songList, shuffle)
 }
 
-func (jukebox *Jukebox) playSongList(song_list []*SongMetadata, shuffle bool) {
-    jukebox.song_list = song_list
-    if jukebox.song_list != nil {
-        jukebox.number_songs = len(jukebox.song_list)
+func (jukebox *Jukebox) playSongList(songList []*SongMetadata, shuffle bool) {
+    jukebox.songList = songList
+    if jukebox.songList != nil {
+        jukebox.numberSongs = len(jukebox.songList)
 
-        if jukebox.number_songs == 0 {
+        if jukebox.numberSongs == 0 {
             fmt.Println("no songs in jukebox")
             return
         }
 
         // does play list directory exist?
-        if ! FileExists(jukebox.song_play_dir) {
-            if jukebox.debug_print {
+        if ! FileExists(jukebox.songPlayDir) {
+            if jukebox.debugPrint {
                 fmt.Println("song-play directory does not exist, creating it")
             }
-            os.Mkdir(jukebox.song_play_dir, os.ModePerm)
+            os.Mkdir(jukebox.songPlayDir, os.ModePerm)
         } else {
             // play list directory exists, delete any files in it
-            if jukebox.debug_print {
+            if jukebox.debugPrint {
                 fmt.Println("deleting existing files in song-play directory")
             }
-	    DeleteFilesInDirectory(jukebox.song_play_dir)
+	    DeleteFilesInDirectory(jukebox.songPlayDir)
         }
 
-        jukebox.song_index = 0
+        jukebox.songIndex = 0
         jukebox.installSignalHandlers()
 
         osId := runtime.GOOS
         if strings.HasPrefix(osId, "darwin") {
-            jukebox.audio_player_exe_file_name = "afplay"
-	    jukebox.audio_player_command_args = ""
+            jukebox.audioPlayerExeFileName = "afplay"
+	    jukebox.audioPlayerCommandArgs = ""
         } else if strings.HasPrefix(osId, "linux") ||
                   strings.HasPrefix(osId, "freebsd") ||
                   strings.HasPrefix(osId, "netbsd") ||
                   strings.HasPrefix(osId, "openbsd") {
 
-            jukebox.audio_player_exe_file_name = "/usr/bin/mplayer"
-	    jukebox.audio_player_command_args = "-novideo -nolirc -really-quiet"
+            jukebox.audioPlayerExeFileName = "/usr/bin/mplayer"
+	    jukebox.audioPlayerCommandArgs = "-novideo -nolirc -really-quiet"
         } else if strings.HasPrefix(osId, "windows") {
             // we really need command-line support for /play and /close arguments. unfortunately,
             // this support used to be available in the built-in Windows Media Player, but is
             // no longer present.
-	    jukebox.audio_player_exe_file_name = "C:\\Program Files\\MPC-HC\\mpc-hc64.exe"
-	    jukebox.audio_player_command_args = "/play /close /minimized"
+	    jukebox.audioPlayerExeFileName = "C:\\Program Files\\MPC-HC\\mpc-hc64.exe"
+	    jukebox.audioPlayerCommandArgs = "/play /close /minimized"
         } else {
             fmt.Printf("error: %s is not a supported OS\n", osId)
 	    os.Exit(1)
@@ -1012,25 +1012,25 @@ func (jukebox *Jukebox) playSongList(song_list []*SongMetadata, shuffle bool) {
 
         if shuffle {
             //TODO: add shuffling of song list
-            //jukebox.song_list = random.sample(jukebox.song_list, len(jukebox.song_list))
+            //jukebox.songList = random.sample(jukebox.songList, len(jukebox.songList))
         }
 
-        if jukebox.downloadSong(jukebox.song_list[0]) {
+        if jukebox.downloadSong(jukebox.songList[0]) {
             fmt.Println("first song downloaded. starting playing now.")
 
 	    pidAsText := fmt.Sprintf("%d\n", os.Getpid())
 	    FileWriteAllText("jukebox.pid", pidAsText)
 
             for true {
-                if ! jukebox.exit_requested {
-                    if ! jukebox.is_paused {
+                if ! jukebox.exitRequested {
+                    if ! jukebox.isPaused {
                         jukebox.downloadSongs()
-                        jukebox.playSong(jukebox.song_list[jukebox.song_index])
+                        jukebox.playSong(jukebox.songList[jukebox.songIndex])
                     }
-                    if ! jukebox.is_paused {
-                        jukebox.song_index += 1
-                        if jukebox.song_index >= jukebox.number_songs {
-                            jukebox.song_index = 0
+                    if ! jukebox.isPaused {
+                        jukebox.songIndex += 1
+                        if jukebox.songIndex >= jukebox.numberSongs {
+                            jukebox.songIndex = 0
                         }
                     } else {
                         time.Sleep(1 * time.Second)
@@ -1048,8 +1048,8 @@ func (jukebox *Jukebox) playSongList(song_list []*SongMetadata, shuffle bool) {
 }
 
 func (jukebox *Jukebox) ShowListContainers() {
-   if jukebox.storage_system != nil {
-      listContainers, err := jukebox.storage_system.GetContainerNames()
+   if jukebox.storageSystem != nil {
+      listContainers, err := jukebox.storageSystem.GetContainerNames()
       if err == nil {
          for _, containerName := range listContainers {
             fmt.Println(containerName)
@@ -1061,51 +1061,51 @@ func (jukebox *Jukebox) ShowListContainers() {
 }
 
 func (jukebox *Jukebox) ShowListings() {
-   if jukebox.jukebox_db != nil {
-      jukebox.jukebox_db.showListings()
+   if jukebox.jukeboxDb != nil {
+      jukebox.jukeboxDb.showListings()
    }
 }
 
 func (jukebox *Jukebox) ShowArtists() {
-   if jukebox.jukebox_db != nil {
-      jukebox.jukebox_db.showArtists()
+   if jukebox.jukeboxDb != nil {
+      jukebox.jukeboxDb.showArtists()
    }
 }
 
 func (jukebox *Jukebox) ShowGenres() {
-   if jukebox.jukebox_db != nil {
-      jukebox.jukebox_db.showGenres()
+   if jukebox.jukeboxDb != nil {
+      jukebox.jukeboxDb.showGenres()
    }
 }
 
 func (jukebox *Jukebox) ShowAlbums() {
-   if jukebox.jukebox_db != nil {
-      jukebox.jukebox_db.showAlbums()
+   if jukebox.jukeboxDb != nil {
+      jukebox.jukeboxDb.showAlbums()
    }
 }
 
-func (jukebox *Jukebox) readFileContents(file_path string,
-                                         allow_encryption bool) (bool, []byte, int) {
-    file_read := false
-    pad_chars := 0
+func (jukebox *Jukebox) readFileContents(filePath string,
+                                         allowEncryption bool) (bool, []byte, int) {
+    fileRead := false
+    padChars := 0
 
-    file_contents, err_file := FileReadAllBytes(file_path)
-    if err_file != nil {
-       fmt.Printf("error: unable to read file '%s'\n", file_path)
-       fmt.Printf("error: %v\n", err_file)
+    fileContents, errFile := FileReadAllBytes(filePath)
+    if errFile != nil {
+       fmt.Printf("error: unable to read file '%s'\n", filePath)
+       fmt.Printf("error: %v\n", errFile)
        return false, nil, 0
     } else {
-       file_read = true
+       fileRead = true
     }
 
-    if file_read && file_contents != nil {
-        if len(file_contents) > 0 {
+    if fileRead && fileContents != nil {
+        if len(fileContents) > 0 {
             // for general purposes, it might be useful or helpful to have
             // a minimum size for compressing
 	    //TODO: add support for compression
 	    /*
-            if jukebox.jukebox_options.use_compression {
-                if jukebox.debug_print {
+            if jukebox.jukeboxOptions.useCompression {
+                if jukebox.debugPrint {
                     fmt.Println("compressing file")
                 }
 
@@ -1116,15 +1116,15 @@ func (jukebox *Jukebox) readFileContents(file_path string,
 
 	    //TODO: add support for encryption
 	    /*
-            if allow_encryption && jukebox.jukebox_options.use_encryption {
-                if jukebox.debug_print {
+            if allow_encryption && jukebox.jukeboxOptions.useEncryption {
+                if jukebox.debugPrint {
                     fmt.Println("encrypting file")
                 }
 
                 // the length of the data to encrypt must be a multiple of 16
                 num_extra_chars = len(file_contents) % 16
                 if num_extra_chars > 0 {
-                    if jukebox.debug_print {
+                    if jukebox.debugPrint {
                         fmt.Println("padding file for encryption")
                     }
                     pad_chars = 16 - num_extra_chars
@@ -1137,41 +1137,41 @@ func (jukebox *Jukebox) readFileContents(file_path string,
         }
     }
 
-    return file_read, file_contents, pad_chars
+    return fileRead, fileContents, padChars
 }
 
 func (jukebox *Jukebox) UploadMetadataDb() bool {
-    metadata_db_upload := false
-    have_metadata_container := false
-    if ! jukebox.storage_system.HasContainer(jukebox.metadata_container) {
-        have_metadata_container = jukebox.storage_system.CreateContainer(jukebox.metadata_container)
+    metadataDbUpload := false
+    haveMetadataContainer := false
+    if ! jukebox.storageSystem.HasContainer(jukebox.metadataContainer) {
+        haveMetadataContainer = jukebox.storageSystem.CreateContainer(jukebox.metadataContainer)
     } else {
-        have_metadata_container = true
+        haveMetadataContainer = true
     }
 
-    if have_metadata_container {
-        if jukebox.debug_print {
+    if haveMetadataContainer {
+        if jukebox.debugPrint {
             fmt.Println("uploading metadata db file to storage system")
         }
 
-        jukebox.jukebox_db.close()
-        jukebox.jukebox_db = nil
+        jukebox.jukeboxDb.close()
+        jukebox.jukeboxDb = nil
 
-	metadata_db_upload := false
+	metadataDbUpload := false
 	dbFilePath := jukebox.GetMetadataDbFilePath()
-	db_file_contents, errFile := FileReadAllBytes(dbFilePath)
+	dbFileContents, errFile := FileReadAllBytes(dbFilePath)
 	if errFile == nil {
-           metadata_db_upload = jukebox.storage_system.PutObject(jukebox.metadata_container,
-                                                                 jukebox.metadata_db_file,
-                                                                 db_file_contents,
-                                                                 nil)
+           metadataDbUpload = jukebox.storageSystem.PutObject(jukebox.metadataContainer,
+                                                              jukebox.metadataDbFile,
+                                                              dbFileContents,
+                                                              nil)
         } else {
            fmt.Printf("error: unable to read metadata db file\n")
 	   fmt.Printf("error: %v\n", errFile)
         }
 
-        if jukebox.debug_print {
-            if metadata_db_upload {
+        if jukebox.debugPrint {
+            if metadataDbUpload {
                 fmt.Println("metadata db file uploaded")
             } else {
                 fmt.Println("unable to upload metadata db file")
@@ -1179,62 +1179,62 @@ func (jukebox *Jukebox) UploadMetadataDb() bool {
         }
     }
 
-    return metadata_db_upload
+    return metadataDbUpload
 }
 
 func (jukebox *Jukebox) ImportPlaylists() {
-   if jukebox.jukebox_db != nil && jukebox.jukebox_db.isOpen() {
-      file_import_count := 0
-      dir_listing, err := os.ReadDir(jukebox.playlist_import_dir)
+   if jukebox.jukeboxDb != nil && jukebox.jukeboxDb.isOpen() {
+      fileImportCount := 0
+      dirListing, err := os.ReadDir(jukebox.playlistImportDir)
       if err != nil {
          return
       }
-      if len(dir_listing) == 0 {
+      if len(dirListing) == 0 {
          fmt.Println("no playlists found")
          return
       }
 
-      have_container := false
-      if ! jukebox.storage_system.HasContainer(jukebox.playlist_container) {
-         have_container = jukebox.storage_system.CreateContainer(jukebox.playlist_container)
+      haveContainer := false
+      if ! jukebox.storageSystem.HasContainer(jukebox.playlistContainer) {
+         haveContainer = jukebox.storageSystem.CreateContainer(jukebox.playlistContainer)
       } else {
-         have_container = true
+         haveContainer = true
       }
 
-      if ! have_container {
+      if ! haveContainer {
          fmt.Println("error: unable to create container for playlists. unable to import")
          return
       }
 
-      for _, listing_entry := range dir_listing {
-         if listing_entry.IsDir() {
+      for _, listingEntry := range dirListing {
+         if listingEntry.IsDir() {
             continue
          }
 
-	 full_path := PathJoin(jukebox.playlist_import_dir, listing_entry.Name())
+	 fullPath := PathJoin(jukebox.playlistImportDir, listingEntry.Name())
          // ignore it if it's not a file
-	 object_name := listing_entry.Name()
-	 file_read, file_contents, _ := jukebox.readFileContents(full_path, false)
-         if file_read && file_contents != nil {
-            if jukebox.storage_system.PutObject(jukebox.playlist_container,
-                                                object_name,
-                                                file_contents,
-                                                nil) {
+	 objectName := listingEntry.Name()
+	 fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
+         if fileRead && fileContents != nil {
+            if jukebox.storageSystem.PutObject(jukebox.playlistContainer,
+                                               objectName,
+                                               fileContents,
+                                               nil) {
                fmt.Println("put of playlist succeeded")
-               if ! jukebox.storeSongPlaylist(object_name, file_contents) {
+               if ! jukebox.storeSongPlaylist(objectName, fileContents) {
                   fmt.Println("storing of playlist to db failed")
-                  jukebox.storage_system.DeleteObject(jukebox.playlist_container,
-                                                      object_name)
+                  jukebox.storageSystem.DeleteObject(jukebox.playlistContainer,
+                                                     objectName)
                } else {
                   fmt.Println("storing of playlist succeeded")
-                  file_import_count += 1
+                  fileImportCount += 1
                }
             }
          }
       }
 
-      if file_import_count > 0 {
-         fmt.Printf("%d playlists imported\n", file_import_count)
+      if fileImportCount > 0 {
+         fmt.Printf("%d playlists imported\n", fileImportCount)
          // upload metadata DB file
          jukebox.UploadMetadataDb()
       } else {
@@ -1244,8 +1244,8 @@ func (jukebox *Jukebox) ImportPlaylists() {
 }
 
 func (jukebox *Jukebox) ShowPlaylists() {
-   if jukebox.jukebox_db != nil {
-      jukebox.jukebox_db.showPlaylists()
+   if jukebox.jukeboxDb != nil {
+      jukebox.jukeboxDb.showPlaylists()
    }
 }
 
@@ -1254,12 +1254,12 @@ func (jukebox *Jukebox) ShowAlbum(album string) {
 }
 
 func (jukebox *Jukebox) ShowPlaylist(playlist string) {
-   bucket_name := "cj-playlists"
-   object_name := fmt.Sprintf("%s.json", EncodeValue(playlist))
-   download_file := object_name
-   if jukebox.storage_system.GetObject(bucket_name,
-                                        object_name,
-                                        download_file) > 0 {
+   bucketName := "cj-playlists"
+   objectName := fmt.Sprintf("%s.json", EncodeValue(playlist))
+   downloadFile := objectName
+   if jukebox.storageSystem.GetObject(bucketName,
+                                      objectName,
+                                      downloadFile) > 0 {
       //file_read := false
       //try {
       //TODO: read playlist file
@@ -1303,18 +1303,18 @@ func (jukebox *Jukebox) ShowPlaylist(playlist string) {
       }
       */
    } else {
-      fmt.Printf("error: unable to retrieve %s\n", object_name)
+      fmt.Printf("error: unable to retrieve %s\n", objectName)
    }
 }
 
 func (jukebox *Jukebox) PlayPlaylist(playlist string) {
-   bucket_name := "cj-playlists"
-   object_name := fmt.Sprintf("%s.json", EncodeValue(playlist))
-   download_file := object_name
+   bucketName := "cj-playlists"
+   objectName := fmt.Sprintf("%s.json", EncodeValue(playlist))
+   downloadFile := objectName
 
-   if jukebox.storage_system.GetObject(bucket_name,
-                                       object_name,
-                                       download_file) > 0 {
+   if jukebox.storageSystem.GetObject(bucketName,
+                                      objectName,
+                                      downloadFile) > 0 {
       //TODO: implement play_playlist
       /*
       with open(download_file, 'rb') as content_file:
@@ -1349,7 +1349,7 @@ func (jukebox *Jukebox) PlayPlaylist(playlist string) {
                       ext_list = [".flac", ".m4a", ".mp3"]
                       for ext in ext_list {
                           object_name = base_object_name + ext
-                          db_song = jukebox.jukebox_db.retrieve_song(object_name)
+                          db_song = jukebox.jukeboxDb.retrieve_song(object_name)
                           if db_song != nil {
                               song_list.append(db_song)
                               break
@@ -1364,17 +1364,17 @@ func (jukebox *Jukebox) PlayPlaylist(playlist string) {
        }
        */
    } else {
-      fmt.Printf("error: unable to retrieve %s\n", object_name)
+      fmt.Printf("error: unable to retrieve %s\n", objectName)
    }
 }
 
 func (jukebox *Jukebox) PlayAlbum(artist string, album string) {
-   bucket_name := "cj-albums"
-   object_name := fmt.Sprintf("%s--%s.json", EncodeValue(artist), EncodeValue(album))
-   download_file := object_name
-   if jukebox.storage_system.GetObject(bucket_name,
-                                       object_name,
-                                       download_file) > 0 {
+   bucketName := "cj-albums"
+   objectName := fmt.Sprintf("%s--%s.json", EncodeValue(artist), EncodeValue(album))
+   downloadFile := objectName
+   if jukebox.storageSystem.GetObject(bucketName,
+                                      objectName,
+                                      downloadFile) > 0 {
       //TODO: implement play_album
       /*
       //try:
@@ -1400,7 +1400,7 @@ func (jukebox *Jukebox) PlayAlbum(artist string, album string) {
                             ext_list = [".flac", ".m4a", ".mp3"]
                             for ext in ext_list:
                                 object_name = base_object_name + ext
-                                db_song = jukebox.jukebox_db.retrieve_song(object_name)
+                                db_song = jukebox.jukeboxDb.retrieve_song(object_name)
                                 if db_song != nil {
                                     song_list.append(db_song)
                                     break
@@ -1411,80 +1411,80 @@ func (jukebox *Jukebox) PlayAlbum(artist string, album string) {
                         jukebox.play_song_list(song_list, false)
       */
    } else {
-      fmt.Printf("error: unable to retrieve %s\n", object_name)
+      fmt.Printf("error: unable to retrieve %s\n", objectName)
    }
 }
 
-func (jukebox *Jukebox) DeleteSong(song_uid string, upload_metadata bool) bool {
-   is_deleted := false
-   if len(song_uid) > 0 {
-      db_deleted := jukebox.jukebox_db.deleteSong(song_uid)
-      container := jukebox.containerForSong(song_uid)
+func (jukebox *Jukebox) DeleteSong(songUid string, uploadMetadata bool) bool {
+   isDeleted := false
+   if len(songUid) > 0 {
+      dbDeleted := jukebox.jukeboxDb.deleteSong(songUid)
+      container := jukebox.containerForSong(songUid)
       if len(container) > 0 {
-	 ss_deleted := jukebox.storage_system.DeleteObject(container, song_uid)
-         if db_deleted && upload_metadata {
+	 ssDeleted := jukebox.storageSystem.DeleteObject(container, songUid)
+         if dbDeleted && uploadMetadata {
             jukebox.UploadMetadataDb()
          }
-         is_deleted = db_deleted || ss_deleted
+         isDeleted = dbDeleted || ssDeleted
       }
    }
 
-   return is_deleted
+   return isDeleted
 }
 
 func (jukebox *Jukebox) DeleteArtist(artist string) bool {
-   is_deleted := false
+   isDeleted := false
    if len(artist) > 0 {
-      song_list := jukebox.jukebox_db.retrieveSongs(artist, "")
-      if song_list != nil {
-         if len(song_list) == 0 {
-            fmt.Println("no songs in jukebox")
+      songList := jukebox.jukeboxDb.retrieveSongs(artist, "")
+      if songList != nil {
+         if len(songList) == 0 {
+            fmt.Println("no artist songs in jukebox")
          } else {
-            for _, song := range song_list {
+            for _, song := range songList {
                if ! jukebox.DeleteSong(song.Fm.Object_name, false) {
                   fmt.Printf("error deleting song '%s'\n", song.Fm.Object_name)
                   return false
                }
             }
             jukebox.UploadMetadataDb()
-            is_deleted = true
+            isDeleted = true
          }
       } else {
          fmt.Println("no songs in jukebox")
       }
    }
 
-   return is_deleted
+   return isDeleted
 }
 
 func (jukebox *Jukebox) DeleteAlbum(album string) bool {
-   pos_double_dash := strings.Index(album, "--")
-   if pos_double_dash > -1 {
-      artist := album[0:pos_double_dash]
-      album_name := album[pos_double_dash+2:]
-      list_album_songs := jukebox.jukebox_db.retrieveSongs(artist, album_name)
-      if list_album_songs != nil && len(list_album_songs) > 0 {
-	 num_songs_deleted := 0
-	 for _, song := range list_album_songs {
+   posDoubleDash := strings.Index(album, "--")
+   if posDoubleDash > -1 {
+      artist := album[0:posDoubleDash]
+      albumName := album[posDoubleDash+2:]
+      listAlbumSongs := jukebox.jukeboxDb.retrieveSongs(artist, albumName)
+      if listAlbumSongs != nil && len(listAlbumSongs) > 0 {
+	 numSongsDeleted := 0
+	 for _, song := range listAlbumSongs {
             fmt.Printf("%s %s\n", song.Fm.Container_name, song.Fm.Object_name)
             // delete each song audio file
-            if jukebox.storage_system.DeleteObject(song.Fm.Container_name,
-                                                    song.Fm.Object_name) {
-               num_songs_deleted += 1
+            if jukebox.storageSystem.DeleteObject(song.Fm.Container_name,
+                                                  song.Fm.Object_name) {
+               numSongsDeleted += 1
                // delete song metadata
-               jukebox.jukebox_db.deleteSong(song.Fm.Object_name)
+               jukebox.jukeboxDb.deleteSong(song.Fm.Object_name)
             } else {
                fmt.Printf("error: unable to delete song %s\n", song.Fm.Object_name)
             }
          }
          //TODO: delete song metadata if we got 404
-         if num_songs_deleted > 0 {
+         if numSongsDeleted > 0 {
             // upload metadata db
             jukebox.UploadMetadataDb()
             return true
          }
       } else {
-         fmt.Printf("no songs found for artist='%s' album name='%s'\n", artist, album_name)
+         fmt.Printf("no songs found for artist='%s' album name='%s'\n", artist, albumName)
       }
    } else {
       fmt.Println("specify album with 'the-artist--the-song-name' format")
@@ -1493,22 +1493,22 @@ func (jukebox *Jukebox) DeleteAlbum(album string) bool {
    return false
 }
 
-func (jukebox *Jukebox) DeletePlaylist(playlist_name string) (bool) {
-   is_deleted := false
-   object_name := jukebox.jukebox_db.getPlaylist(playlist_name)
-   if object_name != nil && len(*object_name) > 0 {
-      object_name_value := *object_name
-      db_deleted := jukebox.jukebox_db.deletePlaylist(playlist_name)
-      if db_deleted {
-         fmt.Printf("container='%s', object='%s'\n", jukebox.playlist_container, object_name_value)
-         if jukebox.storage_system.DeleteObject(jukebox.playlist_container, object_name_value) {
-            is_deleted = true
+func (jukebox *Jukebox) DeletePlaylist(playlistName string) (bool) {
+   isDeleted := false
+   objectName := jukebox.jukeboxDb.getPlaylist(playlistName)
+   if objectName != nil && len(*objectName) > 0 {
+      objectNameValue := *objectName
+      dbDeleted := jukebox.jukeboxDb.deletePlaylist(playlistName)
+      if dbDeleted {
+         fmt.Printf("container='%s', object='%s'\n", jukebox.playlistContainer, objectNameValue)
+         if jukebox.storageSystem.DeleteObject(jukebox.playlistContainer, objectNameValue) {
+            isDeleted = true
          } else {
             fmt.Println("error: object delete failed")
          }
       } else {
          fmt.Println("error: database delete failed")
-         if is_deleted {
+         if isDeleted {
             jukebox.UploadMetadataDb()
          } else {
             fmt.Println("delete of playlist failed")
@@ -1518,69 +1518,69 @@ func (jukebox *Jukebox) DeletePlaylist(playlist_name string) (bool) {
       fmt.Println("invalid playlist name")
    }
 
-   return is_deleted
+   return isDeleted
 }
 
 func (jukebox *Jukebox) ImportAlbumArt() {
-   if jukebox.jukebox_db != nil && jukebox.jukebox_db.isOpen() {
-      file_import_count := 0
-      dir_listing, err := os.ReadDir(jukebox.album_art_import_dir)
+   if jukebox.jukeboxDb != nil && jukebox.jukeboxDb.isOpen() {
+      fileImportCount := 0
+      dirListing, err := os.ReadDir(jukebox.albumArtImportDir)
       if err != nil {
          return
       } else {
-         if len(dir_listing) == 0 {
+         if len(dirListing) == 0 {
             fmt.Println("no album art found")
             return
          }
       }
 
-      have_container := false
+      haveContainer := false
 
-      if ! jukebox.storage_system.HasContainer(jukebox.album_art_container) {
-         have_container = jukebox.storage_system.CreateContainer(jukebox.album_art_container)
+      if ! jukebox.storageSystem.HasContainer(jukebox.albumArtContainer) {
+         haveContainer = jukebox.storageSystem.CreateContainer(jukebox.albumArtContainer)
       } else {
-         have_container = true
+         haveContainer = true
       }
 
-      if ! have_container {
+      if ! haveContainer {
          fmt.Println("error: unable to create container for album art. unable to import")
          return
       }
 
-      for _, listing_entry := range dir_listing {
-         if listing_entry.IsDir() {
+      for _, listingEntry := range dirListing {
+         if listingEntry.IsDir() {
             continue
          }
 
-         full_path := PathJoin(jukebox.album_art_import_dir, listing_entry.Name())
-	 object_name := listing_entry.Name()
-	 file_read, file_contents, _ := jukebox.readFileContents(full_path, false)
-         if file_read && file_contents != nil {
-            if jukebox.storage_system.PutObject(jukebox.album_art_container,
-                                                object_name,
-                                                file_contents,
-                                                nil) {
-               file_import_count += 1
+         fullPath := PathJoin(jukebox.albumArtImportDir, listingEntry.Name())
+	 objectName := listingEntry.Name()
+	 fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
+         if fileRead && fileContents != nil {
+            if jukebox.storageSystem.PutObject(jukebox.albumArtContainer,
+                                               objectName,
+                                               fileContents,
+                                               nil) {
+               fileImportCount += 1
             }
          }
       }
 
-      if file_import_count > 0 {
-         fmt.Printf("%d album art files imported\n", file_import_count)
+      if fileImportCount > 0 {
+         fmt.Printf("%d album art files imported\n", fileImportCount)
       } else {
          fmt.Println("no files imported")
       }
    }
 }
 
-func InitializeStorageSystem(storage_sys *FSStorageSystem) bool {
+func InitializeStorageSystem(storageSys *FSStorageSystem) bool {
    // create the containers that will hold songs
    artistSongChars := "0123456789abcdefghijklmnopqrstuvwxyz"
    containerSuffix := "-artist-songs"
 
    for _, ch := range artistSongChars {
       containerName := fmt.Sprintf("%c%s", ch, containerSuffix)
-      if !storage_sys.CreateContainer(containerName) {
+      if !storageSys.CreateContainer(containerName) {
          fmt.Printf("error: unable to create container '%s'\n", containerName)
          return false
       }
@@ -1594,19 +1594,19 @@ func InitializeStorageSystem(storage_sys *FSStorageSystem) bool {
    containerNames = append(containerNames, "playlists")
 
    for _, containerName := range containerNames {
-      if !storage_sys.CreateContainer(containerName) {
+      if !storageSys.CreateContainer(containerName) {
          fmt.Printf("error: unable to create container '%s'\n", containerName)
          return false
       }
    }
 
    // delete metadata DB file if present
-   metadata_db_file := "jukebox_db.sqlite3"
-   if FileExists(metadata_db_file) {
-      //if (debug_print) {
-      //   printf("deleting existing metadata DB file\n");
+   metadataDbFile := "jukebox_db.sqlite3"
+   if FileExists(metadataDbFile) {
+      //if (debugPrint) {
+      //   fmt.Printf("deleting existing metadata DB file\n");
       //}
-      DeleteFile(metadata_db_file)
+      DeleteFile(metadataDbFile)
    }
 
    return true

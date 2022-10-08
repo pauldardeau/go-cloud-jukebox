@@ -208,11 +208,11 @@ func (ps *PropertySet) Count() int {
 func (ps *PropertySet) ToString() string {
    firstProp := true
    var propsString string
-   const COMMA_SPACE string = ", "
+   const commaSpace string = ", "
 
    for key, _ := range ps.mapProps {
       if !firstProp {
-         propsString += COMMA_SPACE
+         propsString += commaSpace
       }
 
       propsString += key

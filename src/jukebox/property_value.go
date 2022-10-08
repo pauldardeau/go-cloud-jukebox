@@ -39,7 +39,7 @@ func NewStringPropertyValue(stringValue string) *PropertyValue {
 }
 
 //bool operator==(const PropertyValue& other) const {
-//    return data_type == other.data_type;
+//    return dataType == other.dataType;
 //}
 
 func (pv *PropertyValue) GetIntValue() int {

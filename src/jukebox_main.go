@@ -9,27 +9,27 @@ import (
 )
 
 
-func connect_storage_system(system_name string,
-                            credentials map[string]string,
-                            prefix string,
-                            in_debug_mode bool,
-                            is_update bool) *jukebox.FSStorageSystem {
-   if system_name == "swift" {
-      //return connect_swift_system(credentials, prefix, in_debug_mode, is_update)
-   } else if system_name == "s3" {
-      //return connect_s3_system(credentials, prefix, in_debug_mode, is_update)
-   } else if system_name == "azure" {
-      //return connect_azure_system(credentials, prefix, in_debug_mode, is_update)
-   } else if system_name == "fs" {
+func connectStorageSystem(systemName string,
+                          credentials map[string]string,
+                          prefix string,
+                          inDebugMode bool,
+                          isUpdate bool) *jukebox.FSStorageSystem {
+   if systemName == "swift" {
+      //return connectSwiftSystem(credentials, prefix, inDebugMode, isUpdate)
+   } else if systemName == "s3" {
+      //return connectS3System(credentials, prefix, inDebugMode, isUpdate)
+   } else if systemName == "azure" {
+      //return connectAzureSystem(credentials, prefix, inDebugMode, isUpdate)
+   } else if systemName == "fs" {
       rootDir, exists := credentials["root_dir"]
       if exists && len(rootDir) > 0 {
-         return jukebox.NewFSStorageSystem(rootDir, in_debug_mode)  
+         return jukebox.NewFSStorageSystem(rootDir, inDebugMode)
       }
    }
    return nil
 }
 
-func show_usage() {
+func showUsage() {
    fmt.Println("Supported Commands:")
    fmt.Println("\tdelete-artist      - delete specified artist")
    fmt.Println("\tdelete-album       - delete specified album")
@@ -58,9 +58,9 @@ func show_usage() {
    fmt.Println("")
 }
 
-func initStorageSystem(storage_sys *jukebox.FSStorageSystem) bool {
+func initStorageSystem(storageSys *jukebox.FSStorageSystem) bool {
    var success bool
-   if jukebox.InitializeStorageSystem(storage_sys) {
+   if jukebox.InitializeStorageSystem(storageSys) {
       fmt.Println("storage system successfully initialized")
       success = true
    } else {
@@ -72,32 +72,32 @@ func initStorageSystem(storage_sys *jukebox.FSStorageSystem) bool {
 
 func main() {
    exitCode := 0
-   debug_mode := false
-   storage_type := "swift"
+   debugMode := false
+   storageType := "swift"
    artist := ""
    //shuffle := false
    playlist := ""
    song := ""
    album := ""
 
-   opt_parser := jukebox.NewArgumentParser()
-   opt_parser.AddOptionalBoolFlag("--debug", "run in debug mode")
-   opt_parser.AddOptionalIntArgument("--file-cache-count", "number of songs to buffer in cache")
-   opt_parser.AddOptionalBoolFlag("--integrity-checks", "check file integrity after download")
-   opt_parser.AddOptionalBoolFlag("--compress", "use gzip compression")
-   opt_parser.AddOptionalBoolFlag("--encrypt", "encrypt file contents")
-   opt_parser.AddOptionalStringArgument("--key", "encryption key")
-   opt_parser.AddOptionalStringArgument("--keyfile", "path to file containing encryption key")
-   opt_parser.AddOptionalStringArgument("--storage", "storage system type (s3, swift, azure)")
-   opt_parser.AddOptionalStringArgument("--artist", "limit operations to specified artist")
-   opt_parser.AddOptionalStringArgument("--playlist", "limit operations to specified playlist")
-   opt_parser.AddOptionalStringArgument("--song", "limit operations to specified song")
-   opt_parser.AddOptionalStringArgument("--album", "limit operations to specified album")
-   opt_parser.AddRequiredArgument("command", "command for jukebox")
+   optParser := jukebox.NewArgumentParser()
+   optParser.AddOptionalBoolFlag("--debug", "run in debug mode")
+   optParser.AddOptionalIntArgument("--file-cache-count", "number of songs to buffer in cache")
+   optParser.AddOptionalBoolFlag("--integrity-checks", "check file integrity after download")
+   optParser.AddOptionalBoolFlag("--compress", "use gzip compression")
+   optParser.AddOptionalBoolFlag("--encrypt", "encrypt file contents")
+   optParser.AddOptionalStringArgument("--key", "encryption key")
+   optParser.AddOptionalStringArgument("--keyfile", "path to file containing encryption key")
+   optParser.AddOptionalStringArgument("--storage", "storage system type (s3, swift, azure)")
+   optParser.AddOptionalStringArgument("--artist", "limit operations to specified artist")
+   optParser.AddOptionalStringArgument("--playlist", "limit operations to specified playlist")
+   optParser.AddOptionalStringArgument("--song", "limit operations to specified song")
+   optParser.AddOptionalStringArgument("--album", "limit operations to specified album")
+   optParser.AddRequiredArgument("command", "command for jukebox")
 
-   console_args := os.Args[1:]
+   consoleArgs := os.Args[1:]
 
-   args := opt_parser.ParseArgs(console_args)
+   args := optParser.ParseArgs(consoleArgs)
 
    //args := make(map[string]string);
 
@@ -111,60 +111,60 @@ func main() {
    //fmt.Println("initial values for options:")
    //options.Show()
 
-   _, debug_exists := args["debug"] 
-   if debug_exists {
-      debug_mode = true
-      options.Debug_mode = true
+   _, debugExists := args["debug"] 
+   if debugExists {
+      debugMode = true
+      options.DebugMode = true
    }
 
-   _, file_cache_count_exists := args["file_cache_count"]
-   if file_cache_count_exists {
+   _, fileCacheCountExists := args["file_cache_count"]
+   if fileCacheCountExists {
       //value := args["file_cache_count"]
       //if args.file_cache_count != nil && args.file_cache_count > 0 {
       //   if debug_mode {
       //      fmt.Printf("setting file cache count=%d", args.file_cache_count)
       //   }
-      //   options.File_cache_count = args.file_cache_count
+      //   options.FileCacheCount = args.file_cache_count
       //}
    }
 
-   _, integrity_checks_exists := args["integrity_checks"]
-   if integrity_checks_exists {
-      if debug_mode {
+   _, integrityChecksExists := args["integrity_checks"]
+   if integrityChecksExists {
+      if debugMode {
          fmt.Println("setting integrity checks on")
       }
-      options.Check_data_integrity = true
+      options.CheckDataIntegrity = true
    }
 
-   _, compress_exists := args["compress"]
-   if compress_exists {
-      if debug_mode {
+   _, compressExists := args["compress"]
+   if compressExists {
+      if debugMode {
          fmt.Println("setting compression on")
       }
-      options.Use_compression = true
+      options.UseCompression = true
    }
 
-   _, encrypt_exists := args["encrypt"]
-   if encrypt_exists {
-      if debug_mode {
+   _, encryptExists := args["encrypt"]
+   if encryptExists {
+      if debugMode {
          fmt.Println("setting encryption on")
       }
-      //options.Use_encryption = true
+      options.UseEncryption = true
    }
 
-   key_value, key_exists := args["key"]
-   if key_exists {
-      if debug_mode {
-         fmt.Printf("setting encryption key='%s'\n", key_value)
+   keyValue, keyExists := args["key"]
+   if keyExists {
+      if debugMode {
+         fmt.Printf("setting encryption key='%s'\n", keyValue)
       }
-      options.Encryption_key = fmt.Sprintf("%v", key_value)
+      options.EncryptionKey = fmt.Sprintf("%v", keyValue)
    }
 
-   _, keyfile_exists := args["keyfile"]
-   if keyfile_exists {
+   _, keyfileExists := args["keyfile"]
+   if keyfileExists {
 	   /*
         keyFile := pvKeyFile.GetStringValue()
-        if debug_mode {
+        if debugMode {
             fmt.Printf("reading encryption key file='%s'\n", keyFile)
         }
 
@@ -173,79 +173,79 @@ func main() {
             fmt.Printf("error: unable to read key file '%s'\n", keyFile)
             os.Exit(1)
         }
-        options.Encryption_key = strings.TrimSpace(encryptKey)
+        options.EncryptionKey = strings.TrimSpace(encryptKey)
 
-        if len(options.Encryption_key) == 0 {
+        if len(options.EncryptionKey) == 0 {
             fmt.Printf("error: no key found in file '%s'\n", keyFile)
             os.Exit(1)
         }
 	*/
    }
 
-   storage_value, storage_exists := args["storage"]
-   if storage_exists {
-      supported_systems := []string{"swift", "s3", "azure", "fs"}
-      selected_system_supported := false
-      for _, supported_system := range supported_systems {
-         if supported_system == storage_value {
-            selected_system_supported = true
+   storageValue, storageExists := args["storage"]
+   if storageExists {
+      supportedSystems := []string{"swift", "s3", "azure", "fs"}
+      selectedSystemSupported := false
+      for _, supportedSystem := range supportedSystems {
+         if supportedSystem == storageValue {
+            selectedSystemSupported = true
             break
          }
       }
 
-      if ! selected_system_supported {
-         fmt.Printf("error: invalid storage type '%s'\n", storage_value)
-         //print("supported systems are: %s" % str(supported_systems))
+      if ! selectedSystemSupported {
+         fmt.Printf("error: invalid storage type '%s'\n", storageValue)
+         //print("supported systems are: %s" % str(supportedSystems))
          os.Exit(1)
       } else {
-         if debug_mode {
-            fmt.Printf("setting storage system to '%s'\n", storage_value)
+         if debugMode {
+            fmt.Printf("setting storage system to '%s'\n", storageValue)
          }
-         storage_type = fmt.Sprintf("%v", storage_value)
+         storageType = fmt.Sprintf("%v", storageValue)
       }
    }
 
-   artist_value, artist_exists := args["artist"]
-   if artist_exists {
-      artist = fmt.Sprintf("%v", artist_value)
+   artistValue, artistExists := args["artist"]
+   if artistExists {
+      artist = fmt.Sprintf("%v", artistValue)
    }
 
-   playlist_value, playlist_exists := args["playlist"]
-   if playlist_exists {
-      playlist = fmt.Sprintf("%v", playlist_value)
+   playlistValue, playlistExists := args["playlist"]
+   if playlistExists {
+      playlist = fmt.Sprintf("%v", playlistValue)
    }
 
-   song_value, song_exists := args["song"]
-   if song_exists {
-      song = fmt.Sprintf("%v", song_value)
+   songValue, songExists := args["song"]
+   if songExists {
+      song = fmt.Sprintf("%v", songValue)
    }
 
-   album_value, album_exists := args["album"]
-   if album_exists {
-      album = fmt.Sprintf("%v", album_value)
+   albumValue, albumExists := args["album"]
+   if albumExists {
+      album = fmt.Sprintf("%v", albumValue)
    }
 
-   command_value, command_exists := args["command"]
-   if command_exists {
-      if debug_mode {
-         fmt.Printf("using storage system type '%s'\n", storage_type)
+   commandValue, commandExists := args["command"]
+   if commandExists {
+      if debugMode {
+         fmt.Printf("using storage system type '%s'\n", storageType)
       }
 
-      container_prefix := "com.swampbits.jukebox."
-      creds_file := storage_type + "_creds.txt"
+      containerPrefix := "com.swampbits.jukebox."
+      credsFile := storageType + "_creds.txt"
       var creds = make(map[string]string)
-      creds_file_path := ""
-      wd, err_wd := os.Getwd()
-      if err_wd == nil {
-         creds_file_path = jukebox.PathJoin(wd, creds_file)
+      credsFilePath := ""
+      wd, errWd := os.Getwd()
+      if errWd == nil {
+         credsFilePath = jukebox.PathJoin(wd, credsFile)
       }
 
-      if jukebox.FileExists(creds_file_path) {
-         if debug_mode {
-            fmt.Printf("reading creds file '%s'\n", creds_file_path)
+      if jukebox.FileExists(credsFilePath) {
+         if debugMode {
+            fmt.Printf("reading creds file '%s'\n", credsFilePath)
          }
 
-         readFile, err := os.Open(creds_file_path)
+         readFile, err := os.Open(credsFilePath)
          if err != nil {
             fmt.Println(err)
             os.Exit(1)
@@ -256,109 +256,109 @@ func main() {
          fileScanner.Split(bufio.ScanLines)
 
          for fileScanner.Scan() {
-            file_line := strings.Trim(fileScanner.Text(), "\t \n")
-            if len(file_line) > 0 {
-               line_tokens := strings.Split(file_line, "=")
-               if len(line_tokens) == 2 {
-                  key := strings.Trim(line_tokens[0], " ")
-                  value := strings.Trim(line_tokens[1], " ")
+            fileLine := strings.Trim(fileScanner.Text(), "\t \n")
+            if len(fileLine) > 0 {
+               lineTokens := strings.Split(fileLine, "=")
+               if len(lineTokens) == 2 {
+                  key := strings.Trim(lineTokens[0], " ")
+                  value := strings.Trim(lineTokens[1], " ")
                   creds[key] = value
                }
             }
          }
       } else {
-         fmt.Printf("no creds file (%s)\n", creds_file_path)
+         fmt.Printf("no creds file (%s)\n", credsFilePath)
       }
 
-      options.Encryption_iv = "sw4mpb1ts.juk3b0x"
+      options.EncryptionIv = "sw4mpb1ts.juk3b0x"
 
-      command := fmt.Sprintf("%v", command_value)
+      command := fmt.Sprintf("%v", commandValue)
 
-      help_cmds := []string{"help", "usage"}
-      non_help_cmds := []string{"import-songs", "play", "shuffle-play", "list-songs",
+      helpCmds := []string{"help", "usage"}
+      nonHelpCmds := []string{"import-songs", "play", "shuffle-play", "list-songs",
                                 "list-artists", "list-containers", "list-genres",
                                 "list-albums", "retrieve-catalog", "import-playlists",
                                 "list-playlists", "show-playlist", "play-playlist",
                                 "delete-song", "delete-album", "delete-playlist",
                                 "delete-artist", "upload-metadata-db",
                                 "import-album-art", "play-album", "show-album"}
-      update_cmds := []string{"import-songs", "import-playlists", "delete-song",
+      updateCmds := []string{"import-songs", "import-playlists", "delete-song",
                               "delete-album", "delete-playlist", "delete-artist",
                               "upload-metadata-db", "import-album-art", "init-storage"}
-      all_cmds := []string{}
-      for _, cmd := range help_cmds {
-         all_cmds = append(all_cmds, cmd)
+      allCmds := []string{}
+      for _, cmd := range helpCmds {
+         allCmds = append(allCmds, cmd)
       }
 
-      for _, cmd := range non_help_cmds {
-         all_cmds = append(all_cmds, cmd)
+      for _, cmd := range nonHelpCmds {
+         allCmds = append(allCmds, cmd)
       } 
 
-      for _, cmd := range update_cmds {
-         all_cmds = append(all_cmds, cmd)
+      for _, cmd := range updateCmds {
+         allCmds = append(allCmds, cmd)
       }
 
-      command_in_all_cmds := false
-      command_in_help_cmds := false
-      command_in_update_cmds := false
+      commandInAllCmds := false
+      commandInHelpCmds := false
+      commandInUpdateCmds := false
 
-      for _, cmd := range all_cmds {
+      for _, cmd := range allCmds {
          if cmd == command {
-            command_in_all_cmds = true
+            commandInAllCmds = true
             break
          }
       }
 
-      for _, cmd := range help_cmds {
+      for _, cmd := range helpCmds {
          if cmd == command {
-            command_in_help_cmds = true
+            commandInHelpCmds = true
             break
          }
       }
 
-      for _, cmd := range update_cmds {
+      for _, cmd := range updateCmds {
          if cmd == command {
-            command_in_update_cmds = true
+            commandInUpdateCmds = true
             break
          }
       }
 
-      if ! command_in_all_cmds {
+      if ! commandInAllCmds {
           fmt.Printf("Unrecognized command '%s'\n", command)
           fmt.Println("")
-          show_usage()
+          showUsage()
       } else {
-          if command_in_help_cmds {
-              show_usage()
+          if commandInHelpCmds {
+              showUsage()
           } else {
               if ! options.ValidateOptions() {
                   os.Exit(1)
               }
 
               if command == "upload-metadata-db" {
-                  options.Suppress_metadata_download = true
+                  options.SuppressMetadataDownload = true
               } else {
-                  options.Suppress_metadata_download = false
+                  options.SuppressMetadataDownload = false
               }
 
-              is_update := false
+              isUpdate := false
 
-              if command_in_update_cmds {
-                  is_update = true
+              if commandInUpdateCmds {
+                  isUpdate = true
               }
 
-              storage_system := connect_storage_system(storage_type,
-                                                       creds,
-                                                       container_prefix,
-                                                       debug_mode,
-                                                       is_update)
-              if storage_system != nil {
-                  if storage_system.Enter() {
-                      defer storage_system.Exit()
+              storageSystem := connectStorageSystem(storageType,
+                                                    creds,
+                                                    containerPrefix,
+                                                    debugMode,
+                                                    isUpdate)
+              if storageSystem != nil {
+                  if storageSystem.Enter() {
+                      defer storageSystem.Exit()
                       fmt.Println("storage system entered")
 
 		      if command == "init-storage" {
-                          if initStorageSystem(storage_system) {
+                          if initStorageSystem(storageSystem) {
 			     os.Exit(0)
                           } else {
                              os.Exit(1)
@@ -368,7 +368,7 @@ func main() {
 		      //fmt.Println("options given to jukebox:")
 		      //options.Show()
 
-                      jukebox := jukebox.NewJukebox(options, storage_system, debug_mode)
+                      jukebox := jukebox.NewJukebox(options, storageSystem, debugMode)
                       if jukebox.Enter() {
                           defer jukebox.Exit()
                           fmt.Println("jukebox entered")
@@ -496,7 +496,7 @@ func main() {
          }
    } else {
       fmt.Println("Error: no command given")
-      show_usage()
+      showUsage()
    }
 
    os.Exit(exitCode)
