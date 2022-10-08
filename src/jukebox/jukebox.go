@@ -181,7 +181,7 @@ func (jukebox *Jukebox) Enter() bool {
       if containerContents != nil && metadataFileInContainer {
           // download it
           metadataDbFilePath := jukebox.GetMetadataDbFilePath()
-          downloadFile := metadataDbFilePath + ".download"
+          downloadFile := metadataDbFilePath + downloadExtension
           if jukebox.storageSystem.GetObject(metadataContainer, jukebox.metadataDbFile, downloadFile) > 0 {
               // have an existing metadata DB file?
               if FileExists(metadataDbFilePath) {
