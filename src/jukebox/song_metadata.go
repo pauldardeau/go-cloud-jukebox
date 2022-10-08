@@ -5,10 +5,10 @@ import (
 
 type SongMetadata struct {
    Fm *FileMetadata
-   Artist_uid string
-   Artist_name string
-   Album_uid string
-   Song_name string
+   ArtistUid string
+   ArtistName string
+   AlbumUid string
+   SongName string
 }
 
 func (sm *SongMetadata) Equals(other *SongMetadata) bool {
@@ -21,19 +21,19 @@ func (sm *SongMetadata) Equals(other *SongMetadata) bool {
          return false
       }
    }
-   return sm.Artist_uid == other.Artist_uid &&
-          sm.Artist_name == other.Artist_name &&
-          sm.Album_uid == other.Album_uid &&
-          sm.Song_name == other.Song_name
+   return sm.ArtistUid == other.ArtistUid &&
+          sm.ArtistName == other.ArtistName &&
+          sm.AlbumUid == other.AlbumUid &&
+          sm.SongName == other.SongName
 }
 
 func NewSongMetadata() *SongMetadata {
    var sm SongMetadata
    sm.Fm = nil
-   sm.Artist_uid = ""
-   sm.Artist_name = ""  // keep temporarily until artist_uid is hooked up to artist table
-   sm.Album_uid = ""
-   sm.Song_name = ""
+   sm.ArtistUid = ""
+   sm.ArtistName = ""  // keep temporarily until artist_uid is hooked up to artist table
+   sm.AlbumUid = ""
+   sm.SongName = ""
    return &sm
 }
 
@@ -46,20 +46,20 @@ func (sm *SongMetadata) FromDictionaryWithPrefix(dictionary map[string]string,
    sm.Fm = NewFileMetadata()
    sm.Fm.FromDictionaryWithPrefix(dictionary, prefix)
 
-   if value, isPresent := dictionary[prefix + "artist_uid"]; isPresent {
-      sm.Artist_uid = value
+   if value, isPresent := dictionary[prefix + "ArtistUid"]; isPresent {
+      sm.ArtistUid = value
    }
 
-   if value, isPresent := dictionary[prefix + "artist_name"]; isPresent {
-      sm.Artist_name = value
+   if value, isPresent := dictionary[prefix + "ArtistName"]; isPresent {
+      sm.ArtistName = value
    }
 
-   if value, isPresent := dictionary[prefix + "album_uid"]; isPresent {
-      sm.Album_uid = value
+   if value, isPresent := dictionary[prefix + "AlbumUid"]; isPresent {
+      sm.AlbumUid = value
    }
 
-   if value, isPresent := dictionary[prefix + "song_name"]; isPresent {
-      sm.Song_name = value
+   if value, isPresent := dictionary[prefix + "SongName"]; isPresent {
+      sm.SongName = value
    }
 }
 
@@ -72,10 +72,10 @@ func (sm *SongMetadata) ToDictionaryWithPrefix(prefix string) map[string]string 
    sm.Fm.ToDictionaryWithPrefix(prefix)
 
    sm_dict := map[string]string {
-           prefix + "artist_uid": sm.Artist_uid,
-           prefix + "artist_name": sm.Artist_name,
-           prefix + "album_uid": sm.Album_uid,
-           prefix + "song_name": sm.Song_name}
+           prefix + "ArtistUid": sm.ArtistUid,
+           prefix + "ArtistName": sm.ArtistName,
+           prefix + "AlbumUid": sm.AlbumUid,
+           prefix + "SongName": sm.SongName}
 
    for key, value := range fm_dict {
       sm_dict[prefix + key] = value

@@ -250,20 +250,20 @@ func (jukeboxDB *JukeboxDB) songsForQueryResults(rows *sql.Rows) []*SongMetadata
 
         song := NewSongMetadata()
         song.Fm = NewFileMetadata()
-        song.Fm.File_uid = fileUid
-        song.Fm.File_time = fileTime
-        song.Fm.Origin_file_size = oFileSize
-        song.Fm.Stored_file_size = sFileSize
-        song.Fm.Pad_char_count = padCount
-        song.Artist_name = artistName
-        song.Artist_uid = artistUid
-        song.Song_name = songName
-        song.Fm.Md5_hash = md5Hash
+        song.Fm.FileUid = fileUid
+        song.Fm.FileTime = fileTime
+        song.Fm.OriginFileSize = oFileSize
+        song.Fm.StoredFileSize = sFileSize
+        song.Fm.PadCharCount = padCount
+        song.ArtistName = artistName
+        song.ArtistUid = artistUid
+        song.SongName = songName
+        song.Fm.Md5Hash = md5Hash
         song.Fm.Compressed = compressed == 1
         song.Fm.Encrypted = encrypted == 1
-        song.Fm.Container_name = containerName
-        song.Fm.Object_name = objectName
-        song.Album_uid = albumUid
+        song.Fm.ContainerName = containerName
+        song.Fm.ObjectName = objectName
+        song.AlbumUid = albumUid
 
         resultSongs = append(resultSongs, song)
     }
@@ -383,20 +383,20 @@ func (jukeboxDB *JukeboxDB) insertSong(song *SongMetadata) bool {
         }
         defer stmt.Close()
 
-        stmt.Exec(song.Fm.File_uid,
-                  song.Fm.File_time,
-                  song.Fm.Origin_file_size,
-                  song.Fm.Stored_file_size,
-                  song.Fm.Pad_char_count,
-                  song.Artist_name,
+        stmt.Exec(song.Fm.FileUid,
+                  song.Fm.FileTime,
+                  song.Fm.OriginFileSize,
+                  song.Fm.StoredFileSize,
+                  song.Fm.PadCharCount,
+                  song.ArtistName,
                   "",
-                  song.Song_name,
-                  song.Fm.Md5_hash,
+                  song.SongName,
+                  song.Fm.Md5Hash,
                   song.Fm.Compressed,
                   song.Fm.Encrypted,
-                  song.Fm.Container_name,
-                  song.Fm.Object_name,
-                  song.Album_uid)
+                  song.Fm.ContainerName,
+                  song.Fm.ObjectName,
+                  song.AlbumUid)
         tx.Commit()
         insertSuccess = true
     }
@@ -407,7 +407,7 @@ func (jukeboxDB *JukeboxDB) insertSong(song *SongMetadata) bool {
 func (jukeboxDB *JukeboxDB) updateSong(song *SongMetadata) bool {
     updateSuccess := false
 
-    if jukeboxDB.dbConnection != nil && song != nil && len(song.Fm.File_uid) > 0 {
+    if jukeboxDB.dbConnection != nil && song != nil && len(song.Fm.FileUid) > 0 {
         sqlQuery := `
                 UPDATE song SET file_time=?,
                    origin_file_size=?,
@@ -436,20 +436,20 @@ func (jukeboxDB *JukeboxDB) updateSong(song *SongMetadata) bool {
 
         defer stmt.Close()
 
-        stmt.Exec(song.Fm.File_time,
-                  song.Fm.Origin_file_size,
-                  song.Fm.Stored_file_size,
-                  song.Fm.Pad_char_count,
-                  song.Artist_name,
+        stmt.Exec(song.Fm.FileTime,
+                  song.Fm.OriginFileSize,
+                  song.Fm.StoredFileSize,
+                  song.Fm.PadCharCount,
+                  song.ArtistName,
                   "",
-                  song.Song_name,
-                  song.Fm.Md5_hash,
+                  song.SongName,
+                  song.Fm.Md5Hash,
                   song.Fm.Compressed,
                   song.Fm.Encrypted,
-                  song.Fm.Container_name,
-                  song.Fm.Object_name,
-                  song.Album_uid,
-                  song.Fm.File_uid)
+                  song.Fm.ContainerName,
+                  song.Fm.ObjectName,
+                  song.AlbumUid,
+                  song.Fm.FileUid)
         tx.Commit()
         updateSuccess = true
     }
@@ -461,7 +461,7 @@ func (jukeboxDB *JukeboxDB) storeSongMetadata(song *SongMetadata) bool {
     if song == nil {
        return false
     }
-    dbSong := jukeboxDB.retrieveSong(song.Fm.File_uid)
+    dbSong := jukeboxDB.retrieveSong(song.Fm.FileUid)
     if dbSong != nil {
         if ! song.Equals(dbSong) {
             return jukeboxDB.updateSong(song)

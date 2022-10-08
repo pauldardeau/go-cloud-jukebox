@@ -6,49 +6,49 @@ import (
 )
 
 type FileMetadata struct {
-   File_uid string
-   File_name string
-   Origin_file_size int64
-   Stored_file_size int64
-   Pad_char_count int
-   File_time string
-   Md5_hash string
+   FileUid string
+   FileName string
+   OriginFileSize int64
+   StoredFileSize int64
+   PadCharCount int
+   FileTime string
+   Md5Hash string
    Compressed bool
    Encrypted bool
-   Container_name string
-   Object_name string
+   ContainerName string
+   ObjectName string
 }
 
 func (fm *FileMetadata) Equals(other *FileMetadata) bool {
    if other == nil {
       return false
    }
-   return fm.File_uid == other.File_uid &&
-          fm.File_name == other.File_name &&
-          fm.Origin_file_size == other.Origin_file_size &&
-          fm.Stored_file_size == other.Stored_file_size &&
-          fm.Pad_char_count == other.Pad_char_count &&
-          fm.File_time == other.File_time &&
-          fm.Md5_hash == other.Md5_hash &&
+   return fm.FileUid == other.FileUid &&
+          fm.FileName == other.FileName &&
+          fm.OriginFileSize == other.OriginFileSize &&
+          fm.StoredFileSize == other.StoredFileSize &&
+          fm.PadCharCount == other.PadCharCount &&
+          fm.FileTime == other.FileTime &&
+          fm.Md5Hash == other.Md5Hash &&
           fm.Compressed == other.Compressed &&
           fm.Encrypted == other.Encrypted &&
-          fm.Container_name == other.Container_name &&
-          fm.Object_name == other.Object_name
+          fm.ContainerName == other.ContainerName &&
+          fm.ObjectName == other.ObjectName
 }
 
 func NewFileMetadata() *FileMetadata {
    var fm FileMetadata
-   fm.File_uid = ""
-   fm.File_name = ""
-   fm.Origin_file_size = 0
-   fm.Stored_file_size = 0
-   fm.Pad_char_count = 0
-   fm.File_time = ""
-   fm.Md5_hash = ""
+   fm.FileUid = ""
+   fm.FileName = ""
+   fm.OriginFileSize = 0
+   fm.StoredFileSize = 0
+   fm.PadCharCount = 0
+   fm.FileTime = ""
+   fm.Md5Hash = ""
    fm.Compressed = false
    fm.Encrypted = false
-   fm.Container_name = ""
-   fm.Object_name = ""
+   fm.ContainerName = ""
+   fm.ObjectName = ""
    return &fm
 }
 
@@ -58,57 +58,57 @@ func (fm *FileMetadata) FromDictionary(dictionary map[string]string) {
 
 func (fm *FileMetadata) FromDictionaryWithPrefix(dictionary map[string]string, prefix string) {
    if dictionary != nil {
-      if value, isPresent := dictionary[prefix + "file_uid"]; isPresent {
-         fm.File_uid = value
+      if value, isPresent := dictionary[prefix + "FileUid"]; isPresent {
+         fm.FileUid = value
       }
 
-      if value, isPresent := dictionary[prefix + "file_name"]; isPresent {
-         fm.File_name = value
+      if value, isPresent := dictionary[prefix + "FileName"]; isPresent {
+         fm.FileName = value
       }
 
-      if value, isPresent := dictionary[prefix + "origin_file_size"]; isPresent {
-         int_value, err := strconv.ParseInt(value, 10, 64)
+      if value, isPresent := dictionary[prefix + "OriginFileSize"]; isPresent {
+         intValue, err := strconv.ParseInt(value, 10, 64)
          if err == nil {
-            fm.Origin_file_size = int_value
+            fm.OriginFileSize = intValue
          }
       }
 
-      if value, isPresent := dictionary[prefix + "stored_file_size"]; isPresent {
-         int_value, err := strconv.ParseInt(value, 10, 64)
+      if value, isPresent := dictionary[prefix + "StoredFileSize"]; isPresent {
+         intValue, err := strconv.ParseInt(value, 10, 64)
          if err == nil {
-            fm.Stored_file_size = int_value
+            fm.StoredFileSize = intValue
          }
       }
 
-      if value, isPresent := dictionary[prefix + "pad_char_count"]; isPresent {
-         int_value, err := strconv.Atoi(value)
+      if value, isPresent := dictionary[prefix + "PadCharCount"]; isPresent {
+         intValue, err := strconv.Atoi(value)
          if err == nil {
-            fm.Pad_char_count = int_value
+            fm.PadCharCount = intValue
          }
       }
 
-      if value, isPresent := dictionary[prefix + "file_time"]; isPresent {
-         fm.File_time = value
+      if value, isPresent := dictionary[prefix + "FileTime"]; isPresent {
+         fm.FileTime = value
       }
 
-      if value, isPresent := dictionary[prefix + "md5_hash"]; isPresent {
-         fm.Md5_hash = value
+      if value, isPresent := dictionary[prefix + "Md5Hash"]; isPresent {
+         fm.Md5Hash = value
       }
 
-      if value, isPresent := dictionary[prefix + "compressed"]; isPresent {
+      if value, isPresent := dictionary[prefix + "Compressed"]; isPresent {
          fm.Compressed = (value == "1")
       }
 
-      if value, isPresent := dictionary[prefix + "encrypted"]; isPresent {
+      if value, isPresent := dictionary[prefix + "Encrypted"]; isPresent {
          fm.Encrypted = (value == "1")
       }
 
-      if value, isPresent := dictionary[prefix + "container_name"]; isPresent {
-         fm.Container_name = value
+      if value, isPresent := dictionary[prefix + "ContainerName"]; isPresent {
+         fm.ContainerName = value
       }
 
-      if value, isPresent := dictionary[prefix + "object_name"]; isPresent {
-         fm.Object_name = value
+      if value, isPresent := dictionary[prefix + "ObjectName"]; isPresent {
+         fm.ObjectName = value
       }
    }
 }
@@ -118,25 +118,25 @@ func (fm *FileMetadata) ToDictionary() map[string]string {
 }
 
 func (fm *FileMetadata) ToDictionaryWithPrefix(prefix string) map[string]string {
-   compressed_value := "0"
-   encrypted_value := "0"
+   compressedValue := "0"
+   encryptedValue := "0"
    if fm.Compressed {
-      compressed_value = "1"
+      compressedValue = "1"
    }
    if fm.Encrypted {
-      encrypted_value = "1"
+      encryptedValue = "1"
    }
    return map[string]string{
-      prefix + "file_uid": fm.File_uid,
-      prefix + "file_name": fm.File_name,
-      prefix + "origin_file_size": fmt.Sprintf("%d", fm.Origin_file_size),
-      prefix + "stored_file_size": fmt.Sprintf("%d", fm.Stored_file_size),
-      prefix + "pad_char_count": fmt.Sprintf("%d", fm.Pad_char_count),
-      prefix + "file_time": fm.File_time,
-      prefix + "md5_hash": fm.Md5_hash,
-      prefix + "compressed": compressed_value,
-      prefix + "encrypted": encrypted_value,
-      prefix + "container_name": fm.Container_name,
-      prefix + "object_name": fm.Object_name,
+      prefix + "FileUid": fm.FileUid,
+      prefix + "File_name": fm.FileName,
+      prefix + "OriginFileSize": fmt.Sprintf("%d", fm.OriginFileSize),
+      prefix + "StoredFileSize": fmt.Sprintf("%d", fm.StoredFileSize),
+      prefix + "PadCharCount": fmt.Sprintf("%d", fm.PadCharCount),
+      prefix + "FileTime": fm.FileTime,
+      prefix + "Md5Hash": fm.Md5Hash,
+      prefix + "Compressed": compressedValue,
+      prefix + "Encrypted": encryptedValue,
+      prefix + "ContainerName": fm.ContainerName,
+      prefix + "ObjectName": fm.ObjectName,
    }
 }

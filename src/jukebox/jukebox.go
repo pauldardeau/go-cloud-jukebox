@@ -265,11 +265,11 @@ func (jukebox *Jukebox) DisplayInfo() {
       if jukebox.songIndex + 3 <= maxIndex {
          fmt.Printf("----- songs on deck -----\n")
 	 first_song := jukebox.songList[jukebox.songIndex+1]
-         fmt.Printf("%s\n", first_song.Fm.File_uid)
+         fmt.Printf("%s\n", first_song.Fm.FileUid)
 	 second_song := jukebox.songList[jukebox.songIndex+2]
-         fmt.Printf("%s\n", second_song.Fm.File_uid)
+         fmt.Printf("%s\n", second_song.Fm.FileUid)
 	 third_song := jukebox.songList[jukebox.songIndex+3]
-         fmt.Printf("%s\n", third_song.Fm.File_uid)
+         fmt.Printf("%s\n", third_song.Fm.FileUid)
          fmt.Printf("-------------------------\n")
       }
    }
@@ -331,7 +331,7 @@ func (jb *Jukebox) songFromFileName(fileName string) string {
 }
 
 func (jukebox *Jukebox) storeSongMetadata(fsSong *SongMetadata) (bool) {
-   dbSong := jukebox.jukeboxDb.retrieveSong(fsSong.Fm.File_uid)
+   dbSong := jukebox.jukeboxDb.retrieveSong(fsSong.Fm.FileUid)
    if dbSong != nil {
       if ! fsSong.Equals(dbSong) {
          return jukebox.jukeboxDb.updateSong(fsSong)
@@ -469,25 +469,25 @@ func (jukebox *Jukebox) ImportSongs() {
                   objectName := fileName + jukebox.objectFileSuffix()
 		  fsSong := NewSongMetadata()
                   fsSong.Fm = NewFileMetadata()
-                  fsSong.Fm.File_uid = objectName
-                  fsSong.Album_uid = ""
-                  fsSong.Fm.Origin_file_size = fileSize
+                  fsSong.Fm.FileUid = objectName
+                  fsSong.AlbumUid = ""
+                  fsSong.Fm.OriginFileSize = fileSize
 		  mtime, errTime := PathGetMtime(fullPath)
 		  if errTime == nil {
-                     fsSong.Fm.File_time = mtime.Format(time.RFC3339) 
+                     fsSong.Fm.FileTime = mtime.Format(time.RFC3339) 
 	          }
-                  fsSong.Artist_name = artist
-                  fsSong.Song_name = song
+                  fsSong.ArtistName = artist
+                  fsSong.SongName = song
 		  md5Hash, errHash := Md5ForFile(fullPath)
 		  if errHash == nil {
-                     fsSong.Fm.Md5_hash = md5Hash
+                     fsSong.Fm.Md5Hash = md5Hash
                   }
                   fsSong.Fm.Compressed = jukebox.jukeboxOptions.UseCompression
                   fsSong.Fm.Encrypted = jukebox.jukeboxOptions.UseEncryption
-                  fsSong.Fm.Object_name = objectName
-                  fsSong.Fm.Pad_char_count = 0
+                  fsSong.Fm.ObjectName = objectName
+                  fsSong.Fm.PadCharCount = 0
 
-                  fsSong.Fm.Container_name = jukebox.containerForSong(fileName)
+                  fsSong.Fm.ContainerName = jukebox.containerForSong(fileName)
 
                   // read file contents
 		  fileRead := false
@@ -539,12 +539,12 @@ func (jukebox *Jukebox) ImportSongs() {
 
                      // now that we have the data that will be stored, set the file size for
                      // what's being stored
-                     fsSong.Fm.Stored_file_size = int64(len(fileContents))
+                     fsSong.Fm.StoredFileSize = int64(len(fileContents))
 		     //start_upload_time := time.Now()
 
                      // store song file to storage system
-                     if jukebox.storageSystem.PutObject(fsSong.Fm.Container_name,
-                                                        fsSong.Fm.Object_name,
+                     if jukebox.storageSystem.PutObject(fsSong.Fm.ContainerName,
+                                                        fsSong.Fm.ObjectName,
                                                         fileContents,
                                                         nil) {
                         //end_upload_time := time.Now()
@@ -559,16 +559,16 @@ func (jukebox *Jukebox) ImportSongs() {
                            // the metadata in the local database. we need to delete the song
                            // from the storage system since we won't have any way to access it
                            // since we can't store the song metadata locally.
-                           fmt.Printf("unable to store metadata, deleting obj '%s'", fsSong.Fm.Object_name)
-                           jukebox.storageSystem.DeleteObject(fsSong.Fm.Container_name,
-                                                              fsSong.Fm.Object_name)
+                           fmt.Printf("unable to store metadata, deleting obj '%s'", fsSong.Fm.ObjectName)
+                           jukebox.storageSystem.DeleteObject(fsSong.Fm.ContainerName,
+                                                              fsSong.Fm.ObjectName)
                         } else {
                            fileImportCount += 1
                         }
                      } else {
                         fmt.Printf("error: unable to upload '%s' to '%s'\n",
-                                   fsSong.Fm.Object_name,
-                                   fsSong.Fm.Container_name)
+                                   fsSong.Fm.ObjectName,
+                                   fsSong.Fm.ContainerName)
                      }
                   }
                }
@@ -618,7 +618,7 @@ func (jukebox *Jukebox) ImportSongs() {
 }
 
 func (jukebox *Jukebox) songPathInPlaylist(song *SongMetadata) string {
-    return PathJoin(jukebox.songPlayDir, song.Fm.File_uid)
+    return PathJoin(jukebox.songPlayDir, song.Fm.FileUid)
 }
 
 func (jukebox *Jukebox) checkFileIntegrity(song *SongMetadata) bool {
@@ -628,7 +628,7 @@ func (jukebox *Jukebox) checkFileIntegrity(song *SongMetadata) bool {
 	filePath := jukebox.songPathInPlaylist(song)
         if FileExists(filePath) {
             if jukebox.debugPrint {
-                fmt.Printf("checking integrity for %s\n", song.Fm.File_uid)
+                fmt.Printf("checking integrity for %s\n", song.Fm.FileUid)
             }
 
             if song.Fm != nil {
@@ -638,13 +638,13 @@ func (jukebox *Jukebox) checkFileIntegrity(song *SongMetadata) bool {
                     fmt.Printf("error: %v\n", err)
 		    fileIntegrityPassed = false
 		} else {
-                    if playlistMd5 == song.Fm.Md5_hash {
+                    if playlistMd5 == song.Fm.Md5Hash {
                         if jukebox.debugPrint {
                             fmt.Println("integrity check SUCCESS")
                         }
                         fileIntegrityPassed = true
                     } else {
-                        fmt.Printf("file integrity check failed: %s\n", song.Fm.File_uid)
+                        fmt.Printf("file integrity check failed: %s\n", song.Fm.FileUid)
                         fileIntegrityPassed = false
                     }
                 }
@@ -684,8 +684,8 @@ func (jukebox *Jukebox) retrieveFile(fm *FileMetadata, dirPath string) int64 {
    var bytesRetrieved int64
 
    if jukebox.storageSystem != nil && fm != nil && len(dirPath) > 0 {
-      localFilePath := PathJoin(dirPath, fm.File_uid)
-      bytesRetrieved = jukebox.storageSystem.GetObject(fm.Container_name, fm.Object_name, localFilePath)
+      localFilePath := PathJoin(dirPath, fm.FileUid)
+      bytesRetrieved = jukebox.storageSystem.GetObject(fm.ContainerName, fm.ObjectName, localFilePath)
    }
 
    return bytesRetrieved
@@ -721,7 +721,7 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
                fmt.Println("verifying data integrity")
             }
 
-            if songBytesRetrieved != song.Fm.Stored_file_size {
+            if songBytesRetrieved != song.Fm.StoredFileSize {
                fmt.Printf("error: file size check failed for '%s'\n", filePath)
                return false
             }
@@ -782,7 +782,7 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
    songFilePath := jukebox.songPathInPlaylist(song)
 
    if FileExists(songFilePath) {
-      fmt.Printf("playing %s\n", song.Fm.File_uid)
+      fmt.Printf("playing %s\n", song.Fm.FileUid)
       if len(jukebox.audioPlayerExeFileName) > 0 {
          var args []string
          if len(jukebox.audioPlayerCommandArgs) > 0 {
@@ -1441,8 +1441,8 @@ func (jukebox *Jukebox) DeleteArtist(artist string) bool {
             fmt.Println("no artist songs in jukebox")
          } else {
             for _, song := range songList {
-               if ! jukebox.DeleteSong(song.Fm.Object_name, false) {
-                  fmt.Printf("error deleting song '%s'\n", song.Fm.Object_name)
+               if ! jukebox.DeleteSong(song.Fm.ObjectName, false) {
+                  fmt.Printf("error deleting song '%s'\n", song.Fm.ObjectName)
                   return false
                }
             }
@@ -1466,15 +1466,15 @@ func (jukebox *Jukebox) DeleteAlbum(album string) bool {
       if listAlbumSongs != nil && len(listAlbumSongs) > 0 {
 	 numSongsDeleted := 0
 	 for _, song := range listAlbumSongs {
-            fmt.Printf("%s %s\n", song.Fm.Container_name, song.Fm.Object_name)
+            fmt.Printf("%s %s\n", song.Fm.ContainerName, song.Fm.ObjectName)
             // delete each song audio file
-            if jukebox.storageSystem.DeleteObject(song.Fm.Container_name,
-                                                  song.Fm.Object_name) {
+            if jukebox.storageSystem.DeleteObject(song.Fm.ContainerName,
+                                                  song.Fm.ObjectName) {
                numSongsDeleted += 1
                // delete song metadata
-               jukebox.jukeboxDb.deleteSong(song.Fm.Object_name)
+               jukebox.jukeboxDb.deleteSong(song.Fm.ObjectName)
             } else {
-               fmt.Printf("error: unable to delete song %s\n", song.Fm.Object_name)
+               fmt.Printf("error: unable to delete song %s\n", song.Fm.ObjectName)
             }
          }
          //TODO: delete song metadata if we got 404
