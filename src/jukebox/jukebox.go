@@ -57,9 +57,10 @@ import (
 
 const (
    downloadExtension = ".download"
+   albumContainer    = "albums"
+   albumArtContainer = "album-art"
    metadataContainer = "music-metadata"
    playlistContainer = "playlists"
-   albumArtContainer = "album-art"
 )
 
 type Jukebox struct {
@@ -1573,10 +1574,10 @@ func InitializeStorageSystem(storageSys *FSStorageSystem) bool {
 
    // create the other (non-song) containers
    containerNames := make([]string, 0)
-   containerNames = append(containerNames, "music-metadata")
-   containerNames = append(containerNames, "album-art")
-   containerNames = append(containerNames, "albums")
-   containerNames = append(containerNames, "playlists")
+   containerNames = append(containerNames, metadataContainer)
+   containerNames = append(containerNames, albumArtContainer)
+   containerNames = append(containerNames, albumContainer)
+   containerNames = append(containerNames, playlistContainer)
 
    for _, containerName := range containerNames {
       if !storageSys.CreateContainer(containerName) {
