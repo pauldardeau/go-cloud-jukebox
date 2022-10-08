@@ -901,7 +901,7 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
 
 func (jukebox *Jukebox) downloadSongs() {
    // scan the play list directory to see if we need to download more songs
-   dirListing, err := os.ReadDir(jukebox.songPlayDir)
+   dirListing, err := ListFilesInDirectory(jukebox.songPlayDir)
    if err != nil {
       // log error
       return
@@ -910,12 +910,8 @@ func (jukebox *Jukebox) downloadSongs() {
    var dlSongs []*SongMetadata
 
    songFileCount := 0
-   for _, listingEntry := range dirListing {
-      if listingEntry.IsDir() {
-          continue
-      }
-      fullPath := PathJoin(jukebox.songPlayDir, listingEntry.Name())
-      extension := filepath.Ext(fullPath)
+   for _, fileName := range dirListing {
+      extension := filepath.Ext(fileName)
       if len(extension) > 0 && extension != jukebox.downloadExtension {
           songFileCount += 1
       }
@@ -1186,7 +1182,7 @@ func (jukebox *Jukebox) UploadMetadataDb() bool {
 func (jukebox *Jukebox) ImportPlaylists() {
    if jukebox.jukeboxDb != nil && jukebox.jukeboxDb.isOpen() {
       fileImportCount := 0
-      dirListing, err := os.ReadDir(jukebox.playlistImportDir)
+      dirListing, err := ListFilesInDirectory(jukebox.playlistImportDir)
       if err != nil {
          return
       }
@@ -1207,13 +1203,9 @@ func (jukebox *Jukebox) ImportPlaylists() {
          return
       }
 
-      for _, listingEntry := range dirListing {
-         if listingEntry.IsDir() {
-            continue
-         }
-
-         fullPath := PathJoin(jukebox.playlistImportDir, listingEntry.Name())
-         objectName := listingEntry.Name()
+      for _, fileName := range dirListing {
+         fullPath := PathJoin(jukebox.playlistImportDir, fileName)
+         objectName := fileName
          fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
          if fileRead && fileContents != nil {
             if jukebox.storageSystem.PutObject(jukebox.playlistContainer,
@@ -1523,7 +1515,7 @@ func (jukebox *Jukebox) DeletePlaylist(playlistName string) (bool) {
 func (jukebox *Jukebox) ImportAlbumArt() {
    if jukebox.jukeboxDb != nil && jukebox.jukeboxDb.isOpen() {
       fileImportCount := 0
-      dirListing, err := os.ReadDir(jukebox.albumArtImportDir)
+      dirListing, err := ListFilesInDirectory(jukebox.albumArtImportDir)
       if err != nil {
          return
       } else {
@@ -1546,13 +1538,9 @@ func (jukebox *Jukebox) ImportAlbumArt() {
          return
       }
 
-      for _, listingEntry := range dirListing {
-         if listingEntry.IsDir() {
-            continue
-         }
-
-         fullPath := PathJoin(jukebox.albumArtImportDir, listingEntry.Name())
-         objectName := listingEntry.Name()
+      for _, fileName := range dirListing {
+         fullPath := PathJoin(jukebox.albumArtImportDir, fileName)
+         objectName := fileName
          fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
          if fileRead && fileContents != nil {
             if jukebox.storageSystem.PutObject(jukebox.albumArtContainer,
