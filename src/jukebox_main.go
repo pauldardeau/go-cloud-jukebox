@@ -45,6 +45,7 @@ func show_usage() {
    fmt.Println("\tlist-albums        - show listing of all available albums")
    fmt.Println("\tlist-genres        - show listing of all available genres")
    fmt.Println("\tlist-playlists     - show listing of all available playlists")
+   fmt.Println("\tshow-album         - show songs in a specified album")
    fmt.Println("\tshow-playlist      - show songs in specified playlist")
    fmt.Println("\tplay               - start playing songs")
    fmt.Println("\tshuffle-play       - play songs randomly")
@@ -276,7 +277,7 @@ func main() {
                                 "list-playlists", "show-playlist", "play-playlist",
                                 "delete-song", "delete-album", "delete-playlist",
                                 "delete-artist", "upload-metadata-db",
-                                "import-album-art", "play-album"}
+                                "import-album-art", "play-album", "show-album"}
       update_cmds := []string{"import-songs", "import-playlists", "delete-song",
                               "delete-album", "delete-playlist", "delete-artist",
                               "upload-metadata-db", "import-album-art", "init-storage"}
@@ -387,6 +388,13 @@ func main() {
                               jukebox.ShowAlbums()
                           } else if command == "list-playlists" {
                               jukebox.ShowPlaylists()
+                          } else if command == "show-album" {
+                              if len(album) > 0 {
+                                  jukebox.ShowAlbum(album)
+                              } else {
+                                  fmt.Println("error: album must be specified using --album option")
+				  os.Exit(1)
+                              }
                           } else if command == "show-playlist" {
                               if len(playlist) > 0 {
                                   jukebox.ShowPlaylist(playlist)

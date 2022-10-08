@@ -1249,6 +1249,10 @@ func (jukebox *Jukebox) ShowPlaylists() {
    }
 }
 
+func (jukebox *Jukebox) ShowAlbum(album string) {
+   //TODO: implement ShowAlbum
+}
+
 func (jukebox *Jukebox) ShowPlaylist(playlist string) {
    bucket_name := "cj-playlists"
    object_name := fmt.Sprintf("%s.json", EncodeValue(playlist))
