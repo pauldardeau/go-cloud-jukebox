@@ -56,11 +56,17 @@ import (
 )
 
 const (
-   downloadExtension = ".download"
-   albumContainer    = "albums"
-   albumArtContainer = "album-art"
-   metadataContainer = "music-metadata"
-   playlistContainer = "playlists"
+   downloadExtension   = ".download"
+   albumContainer      = "albums"
+   albumArtContainer   = "album-art"
+   metadataContainer   = "music-metadata"
+   playlistContainer   = "playlists"
+   songContainerSuffix = "-artist-songs"
+   albumArtImportDir   = "album-art-import"
+   playlistImportDir   = "playlist-import"
+   songImportDir       = "song-import"
+   songPlayDir         = "song-play"
+   defaultDbFileName   = "jukebox_db.sqlite3"
 )
 
 type Jukebox struct {
@@ -124,11 +130,11 @@ func NewJukebox(jbOptions *JukeboxOptions,
    if err == nil {
        jukebox.currentDir = cwd
    }
-   jukebox.songImportDir = PathJoin(jukebox.currentDir, "song-import")
-   jukebox.playlistImportDir = PathJoin(jukebox.currentDir, "playlist-import")
-   jukebox.songPlayDir = PathJoin(jukebox.currentDir, "song-play")
-   jukebox.albumArtImportDir = PathJoin(jukebox.currentDir, "album-art-import")
-   jukebox.metadataDbFile = "jukebox_db.sqlite3"
+   jukebox.songImportDir = PathJoin(jukebox.currentDir, songImportDir)
+   jukebox.playlistImportDir = PathJoin(jukebox.currentDir, playlistImportDir)
+   jukebox.songPlayDir = PathJoin(jukebox.currentDir, songPlayDir)
+   jukebox.albumArtImportDir = PathJoin(jukebox.currentDir, albumArtImportDir)
+   jukebox.metadataDbFile = defaultDbFileName
    jukebox.songList = []*SongMetadata{}
    jukebox.numberSongs = 0
    jukebox.songIndex = -1
@@ -401,7 +407,7 @@ func (jukebox *Jukebox) containerForSong(songUid string) string {
    if len(songUid) == 0 {
       return ""
    }
-   containerSuffix := "-artist-songs" + jukebox.containerSuffix()
+   containerSuffix := songContainerSuffix + jukebox.containerSuffix()
 
    artist := jukebox.artistFromFileName(songUid)
    if len(artist) == 0 {
@@ -1562,10 +1568,9 @@ func (jukebox *Jukebox) ImportAlbumArt() {
 func InitializeStorageSystem(storageSys *FSStorageSystem) bool {
    // create the containers that will hold songs
    artistSongChars := "0123456789abcdefghijklmnopqrstuvwxyz"
-   containerSuffix := "-artist-songs"
 
    for _, ch := range artistSongChars {
-      containerName := fmt.Sprintf("%c%s", ch, containerSuffix)
+      containerName := fmt.Sprintf("%c%s", ch, songContainerSuffix)
       if !storageSys.CreateContainer(containerName) {
          fmt.Printf("error: unable to create container '%s'\n", containerName)
          return false
