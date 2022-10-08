@@ -58,16 +58,20 @@ func show_usage() {
    fmt.Println("")
 }
 
-func initStorageSystem(storage_sys *jukebox.FSStorageSystem) {
+func initStorageSystem(storage_sys *jukebox.FSStorageSystem) bool {
+   var success bool
    if jukebox.InitializeStorageSystem(storage_sys) {
       fmt.Println("storage system successfully initialized")
+      success = true
    } else {
       fmt.Println("error: unable to initialize storage system")
-      os.Exit(1)
+      success = false
    }
+   return success
 }
 
 func main() {
+   exitCode := 0
    debug_mode := false
    storage_type := "swift"
    artist := ""
@@ -354,8 +358,11 @@ func main() {
                       fmt.Println("storage system entered")
 
 		      if command == "init-storage" {
-                          initStorageSystem(storage_system)
-			  os.Exit(0)
+                          if initStorageSystem(storage_system) {
+			     os.Exit(0)
+                          } else {
+                             os.Exit(1)
+                          }
 		      }
 
 		      //fmt.Println("options given to jukebox:")
@@ -393,21 +400,21 @@ func main() {
                                   jukebox.ShowAlbum(album)
                               } else {
                                   fmt.Println("error: album must be specified using --album option")
-				  os.Exit(1)
+				  exitCode = 1
                               }
                           } else if command == "show-playlist" {
                               if len(playlist) > 0 {
                                   jukebox.ShowPlaylist(playlist)
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "play-playlist" {
                               if len(playlist) > 0 {
                                   jukebox.PlayPlaylist(playlist)
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "play-album" {
                               if len(album) > 0 && len(artist) > 0 {
@@ -423,11 +430,11 @@ func main() {
                                       fmt.Println("song deleted")
                                   } else {
                                       fmt.Println("error: unable to delete song")
-                                      os.Exit(1)
+                                      exitCode = 1
                                   }
                               } else {
                                   fmt.Println("error: song must be specified using --song option")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "delete-artist" {
                               if len(artist) > 0 {
@@ -435,11 +442,11 @@ func main() {
                                       fmt.Println("artist deleted")
                                   } else {
                                       fmt.Println("error: unable to delete artist")
-                                      os.Exit(1)
+                                      exitCode = 1
                                   }
                               } else {
                                   fmt.Println("error: artist must be specified using --artist option")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "delete-album" {
                               if len(album) > 0 {
@@ -447,11 +454,11 @@ func main() {
                                       fmt.Println("album deleted")
                                   } else {
                                       fmt.Println("error: unable to delete album")
-                                      os.Exit(1)
+                                      exitCode = 1
                                   }
                               } else {
                                   fmt.Println("error: album must be specified using --album option")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "delete-playlist" {
                               if len(playlist) > 0 {
@@ -459,18 +466,18 @@ func main() {
                                       fmt.Println("playlist deleted")
                                   } else {
                                       fmt.Println("error: unable to delete playlist")
-                                      os.Exit(1)
+                                      exitCode = 1
                                   }
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "upload-metadata-db" {
                               if jukebox.UploadMetadataDb() {
                                   fmt.Println("metadata db uploaded")
                               } else {
                                   fmt.Println("error: unable to upload metadata db")
-                                  os.Exit(1)
+                                  exitCode = 1
                               }
                           } else if command == "import-album-art" {
                               jukebox.ImportAlbumArt()
@@ -491,5 +498,7 @@ func main() {
       fmt.Println("Error: no command given")
       show_usage()
    }
+
+   os.Exit(exitCode)
 }
 
