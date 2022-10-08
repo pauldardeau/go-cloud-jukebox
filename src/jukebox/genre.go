@@ -8,7 +8,7 @@ type Genre struct {
 
 func NewGenre(genreUid string,
               genreName string,
-	      genreDescription string) (*Genre) {
+              genreDescription string) *Genre {
    var genre Genre
    genre.GenreUid = genreUid
    genre.GenreName = genreName

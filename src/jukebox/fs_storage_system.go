@@ -12,8 +12,8 @@ type FSStorageSystem struct {
 
 func NewFSStorageSystem(rootDir string, debugMode bool) *FSStorageSystem {
     return &FSStorageSystem{
-	    rootDir: rootDir,
-	    debugMode: debugMode,
+        rootDir: rootDir,
+        debugMode: debugMode,
     }
 }
 
@@ -87,7 +87,7 @@ func (fs *FSStorageSystem) GetObjectMetadata(containerName string,
       containerDir := PathJoin(fs.rootDir, containerName)
       if DirectoryExists(containerDir) {
          objectPath := PathJoin(containerDir, objectName)
-	 metaPath := objectPath + ".meta"
+         metaPath := objectPath + ".meta"
          if FileExists(metaPath) {
             return dictProps.ReadFromFile(metaPath)
          }
@@ -105,7 +105,7 @@ func (fs *FSStorageSystem) PutObject(containerName string,
       containerDir := PathJoin(fs.rootDir, containerName)
       if DirectoryExists(containerDir) {
          objectPath := PathJoin(containerDir, objectName)
-	 objectAdded = FileWriteAllBytes(objectPath, fileContents)
+         objectAdded = FileWriteAllBytes(objectPath, fileContents)
          if objectAdded {
             if fs.debugMode {
                fmt.Printf("object added: %s/%s\n", containerName, objectName)
@@ -154,7 +154,7 @@ func (fs *FSStorageSystem) DeleteObject(containerName string,
             if fs.debugMode {
                fmt.Printf("object deleted: %s/%s\n", containerName, objectName)
             }
-	    metaPath := objectPath + ".meta"
+            metaPath := objectPath + ".meta"
             if FileExists(metaPath) {
                DeleteFile(metaPath)
             }
@@ -187,8 +187,8 @@ func (fs *FSStorageSystem) GetObject(containerName string,
       containerDir := PathJoin(fs.rootDir, containerName)
       objectPath := PathJoin(containerDir, objectName)
       if FileExists(objectPath) {
-	 objFileContents, err := FileReadAllBytes(objectPath)
-	 if err == nil {
+         objFileContents, err := FileReadAllBytes(objectPath)
+         if err == nil {
             if fs.debugMode {
                fmt.Printf("attempting to write object to '%s'\n", localFilePath)
             }

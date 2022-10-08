@@ -117,7 +117,7 @@ func (ps *PropertySet) WriteToFile(filePath string) bool {
    }
 
    defer f.Close()
-	
+
    for key, pv := range ps.mapProps {
       if pv.IsBool() {
          var value string
@@ -147,14 +147,14 @@ func (ps *PropertySet) ReadFromFile(filePath string) bool {
    if err == nil {
       if len(fileContents) > 0 {
          fileLines := strings.Split(fileContents, "\n")
-	 for _, fileLine := range fileLines {
+         for _, fileLine := range fileLines {
             strippedLine := strings.TrimSpace(fileLine)
             if len(strippedLine) > 0 {
                fields := strings.Split(strippedLine, "|")
                if len(fields) == 3 {
-		  dataType := fields[0]
-		  propName := fields[1]
-		  propValue := fields[2]
+                  dataType := fields[0]
+                  propName := fields[1]
+                  propValue := fields[2]
 
                   if len(dataType) > 0 &&
                      len(propName) > 0 &&
@@ -172,22 +172,22 @@ func (ps *PropertySet) ReadFromFile(filePath string) bool {
                         ps.Add(propName, NewStringPropertyValue(propValue))
                      } else if dataType == psTypeInt {
                         intValue, errConv := strconv.Atoi(propValue)
-			if errConv == nil {
+                        if errConv == nil {
                            ps.Add(propName, NewIntPropertyValue(intValue))
-		        } else {
-		        }
+                        } else {
+                        }
                      } else if dataType == psTypeLong {
                         longValue, errConv := strconv.ParseInt(propValue, 10, 64)
-			if errConv == nil {
+                        if errConv == nil {
                            ps.Add(propName, NewLongPropertyValue(longValue))
-		        } else {
-		        }
+                        } else {
+                        }
                      } else if dataType == psTypeUlong {
                         ulongValue, errConv := strconv.ParseUint(propValue, 10, 64)
-			if errConv == nil {
+                        if errConv == nil {
                            ps.Add(propName, NewUlongPropertyValue(ulongValue))
-		        } else {
-		        }
+                        } else {
+                        }
                      } else {
                         fmt.Printf("error: unrecognized data type '%s', skipping\n", dataType)
                      }

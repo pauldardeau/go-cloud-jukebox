@@ -134,8 +134,8 @@ func PathSplitExt(path string) (string, string) {
             } else {
                // splitext("foo.bar.exe") -> ("foo.bar", ".exe")
                // splitext("/foo/bar.exe") -> ("/foo/bar", ".exe")
-	       root = path[0:posLastDot]
-	       ext = path[posLastDot:]
+               root = path[0:posLastDot]
+               ext = path[posLastDot:]
             }
          }
       }

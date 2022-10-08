@@ -111,7 +111,7 @@ func main() {
    //fmt.Println("initial values for options:")
    //options.Show()
 
-   _, debugExists := args["debug"] 
+   _, debugExists := args["debug"]
    if debugExists {
       debugMode = true
       options.DebugMode = true
@@ -162,14 +162,14 @@ func main() {
 
    _, keyfileExists := args["keyfile"]
    if keyfileExists {
-	   /*
+        /*
         keyFile := pvKeyFile.GetStringValue()
         if debugMode {
             fmt.Printf("reading encryption key file='%s'\n", keyFile)
         }
 
-	encryptKey, errKey := jukebox.FileReadAllText(keyFile)
-	if errKey != nil {
+        encryptKey, errKey := jukebox.FileReadAllText(keyFile)
+        if errKey != nil {
             fmt.Printf("error: unable to read key file '%s'\n", keyFile)
             os.Exit(1)
         }
@@ -179,7 +179,7 @@ func main() {
             fmt.Printf("error: no key found in file '%s'\n", keyFile)
             os.Exit(1)
         }
-	*/
+        */
    }
 
    storageValue, storageExists := args["storage"]
@@ -292,7 +292,7 @@ func main() {
 
       for _, cmd := range nonHelpCmds {
          allCmds = append(allCmds, cmd)
-      } 
+      }
 
       for _, cmd := range updateCmds {
          allCmds = append(allCmds, cmd)
@@ -357,16 +357,16 @@ func main() {
                       defer storageSystem.Exit()
                       fmt.Println("storage system entered")
 
-		      if command == "init-storage" {
+                      if command == "init-storage" {
                           if initStorageSystem(storageSystem) {
-			     os.Exit(0)
+                             os.Exit(0)
                           } else {
                              os.Exit(1)
                           }
-		      }
+                      }
 
-		      //fmt.Println("options given to jukebox:")
-		      //options.Show()
+                      //fmt.Println("options given to jukebox:")
+                      //options.Show()
 
                       jukebox := jukebox.NewJukebox(options, storageSystem, debugMode)
                       if jukebox.Enter() {
@@ -400,7 +400,7 @@ func main() {
                                   jukebox.ShowAlbum(album)
                               } else {
                                   fmt.Println("error: album must be specified using --album option")
-				  exitCode = 1
+                                  exitCode = 1
                               }
                           } else if command == "show-playlist" {
                               if len(playlist) > 0 {

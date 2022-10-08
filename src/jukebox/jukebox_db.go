@@ -20,7 +20,7 @@ type JukeboxDB struct {
 
 func NewJukeboxDB(metadataDbFilePath string,
                   useEncryption bool,
-		  useCompression bool,
+                  useCompression bool,
                   debugPrint bool) *JukeboxDB {
    var jukeboxDB JukeboxDB
    jukeboxDB.debugPrint = true //debugPrint
@@ -79,7 +79,7 @@ func (jukeboxDB *JukeboxDB) enter() bool {
         }
     } else {
         fmt.Println("unable to connect to database")
-	jukeboxDB.dbConnection = nil
+        jukeboxDB.dbConnection = nil
     }
 
     return jukeboxDB.dbConnection != nil
@@ -95,12 +95,12 @@ func (jukeboxDB *JukeboxDB) exit() {
 func (jukeboxDB *JukeboxDB) createTable(sqlStatement string) bool {
     if jukeboxDB.dbConnection != nil {
         stmt, err := jukeboxDB.dbConnection.Prepare(sqlStatement)
-	if err != nil {
+        if err != nil {
             fmt.Printf("prepare of statement failed: %s\n", sqlStatement)
-	    fmt.Printf("error: %v\n", err)
-	    return false
-	}
-	defer stmt.Close()
+            fmt.Printf("error: %v\n", err)
+            return false
+        }
+        defer stmt.Close()
 
         _, errStmtExec := stmt.Exec()
         if errStmtExec != nil {
@@ -122,7 +122,7 @@ func (jukeboxDB *JukeboxDB) createTables() bool {
             fmt.Println("creating tables")
         }
 
-	createGenreTable := "CREATE TABLE genre (" +
+        createGenreTable := "CREATE TABLE genre (" +
                             "genre_uid TEXT UNIQUE NOT NULL, " +
                             "genre_name TEXT UNIQUE NOT NULL, " +
                             "genre_description TEXT);"
@@ -185,8 +185,8 @@ func (jukeboxDB *JukeboxDB) haveTables() bool {
       stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
          fmt.Printf("error: unable to prepare sql: %s\n", sqlQuery)
-	 fmt.Printf("error: %v\n", err)
-	 return false
+         fmt.Printf("error: %v\n", err)
+         return false
       }
       defer stmt.Close()
 
@@ -244,8 +244,8 @@ func (jukeboxDB *JukeboxDB) songsForQueryResults(rows *sql.Rows) []*SongMetadata
 
         if err != nil {
            fmt.Printf("error: scan of row values failed\n")
-	   fmt.Printf("error: %v\n", err)
-	   return resultSongs
+           fmt.Printf("error: %v\n", err)
+           return resultSongs
         }
 
         song := NewSongMetadata()
@@ -293,16 +293,16 @@ func (jukeboxDB *JukeboxDB) retrieveSong(fileName string) *SongMetadata {
         stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
         if err != nil {
             fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
-	    fmt.Printf("error: %v\n", err)
+            fmt.Printf("error: %v\n", err)
             return nil
         }
         defer stmt.Close()
 
-	rows, errRows := stmt.Query(fileName)
-	if errRows != nil {
+        rows, errRows := stmt.Query(fileName)
+        if errRows != nil {
             return nil
         }
-	songResults := jukeboxDB.songsForQueryResults(rows)
+        songResults := jukeboxDB.songsForQueryResults(rows)
         if songResults != nil && len(songResults) > 0 {
             return songResults[0]
         }
@@ -320,7 +320,7 @@ func (jukeboxDB *JukeboxDB) insertPlaylist(plUid string,
        len(plName) > 0 {
 
         tx, errTx := jukeboxDB.dbConnection.Begin()
-	if errTx != nil {
+        if errTx != nil {
             return false
         }
 
@@ -348,7 +348,7 @@ func (jukeboxDB *JukeboxDB) deletePlaylist(plName string) bool {
         sqlQuery := "DELETE FROM playlist " +
                     "WHERE playlist_name = ? "
         tx, errTx := jukeboxDB.dbConnection.Begin()
-	if errTx != nil {
+        if errTx != nil {
             return false
         }
         stmt, err := tx.Prepare(sqlQuery)
@@ -371,8 +371,8 @@ func (jukeboxDB *JukeboxDB) insertSong(song *SongMetadata) bool {
 
     if jukeboxDB.dbConnection != nil && song != nil {
         sqlQuery := "INSERT INTO song VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-	tx, errTx := jukeboxDB.dbConnection.Begin()
-	if errTx != nil {
+        tx, errTx := jukeboxDB.dbConnection.Begin()
+        if errTx != nil {
             return false
         }
         stmt, err := tx.Prepare(sqlQuery)
@@ -423,8 +423,8 @@ func (jukeboxDB *JukeboxDB) updateSong(song *SongMetadata) bool {
                    object_name=?,
                    album_uid=? WHERE song_uid = ?
             `
-	tx, errTx := jukeboxDB.dbConnection.Begin()
-	if errTx != nil {
+        tx, errTx := jukeboxDB.dbConnection.Begin()
+        if errTx != nil {
             return false
         }
         stmt, err := tx.Prepare(sqlQuery)
@@ -532,19 +532,19 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
             sqlQuery += addedClause
         }
 
-	//fmt.Printf("executing query: %s\n", sqlQuery)
-	stmt, errStmt := jukeboxDB.dbConnection.Prepare(sqlQuery)
-	if errStmt != nil {
+        //fmt.Printf("executing query: %s\n", sqlQuery)
+        stmt, errStmt := jukeboxDB.dbConnection.Prepare(sqlQuery)
+        if errStmt != nil {
             fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
             fmt.Printf("error: %v\n", errStmt)
             return nil
         }
-	defer stmt.Close()
+        defer stmt.Close()
 
-	rows, err := stmt.Query()
-	if err != nil {
+        rows, err := stmt.Query()
+        if err != nil {
             fmt.Printf("error: unable to execute query of '%s'\n", sqlQuery)
-	    fmt.Printf("error: %v\n", err)
+            fmt.Printf("error: %v\n", err)
             return nil
         }
 
@@ -601,7 +601,7 @@ func (jukeboxDB *JukeboxDB) showListings() {
       stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
       if err != nil {
           fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
-	  fmt.Printf("error: %v\n", err)
+          fmt.Printf("error: %v\n", err)
           return
       }
       defer stmt.Close()
@@ -647,8 +647,8 @@ func (jukeboxDB *JukeboxDB) showArtists() {
          err = rows.Scan(&artist)
          if err != nil {
             fmt.Printf("error: unable to scan row value (artist)\n")
-	    fmt.Printf("error: %v\n", err)
-	    return
+            fmt.Printf("error: %v\n", err)
+            return
          } else {
             fmt.Printf("%s\n", artist)
          }
@@ -676,8 +676,8 @@ func (jukeboxDB *JukeboxDB) showGenres() {
          err = rows.Scan(&genreName)
          if err != nil {
             fmt.Printf("error: unable to Scan row value (genreName)\n")
-	    fmt.Printf("error: %v\n", err)
-	    return
+            fmt.Printf("error: %v\n", err)
+            return
          } else {
             fmt.Printf("%s\n", genreName)
          }
@@ -746,13 +746,13 @@ func (jukeboxDB *JukeboxDB) deleteSong(songUid string) bool {
    if jukeboxDB.dbConnection != nil {
       if len(songUid) > 0 {
          sqlStatement := "DELETE FROM song WHERE song_uid = ?"
-	 tx, errTx := jukeboxDB.dbConnection.Begin()
-	 if errTx != nil {
+         tx, errTx := jukeboxDB.dbConnection.Begin()
+         if errTx != nil {
              fmt.Printf("error: begin transaction failed\n")
-	     fmt.Printf("error: %v\n", errTx)
+             fmt.Printf("error: %v\n", errTx)
              return false
          }
-	 stmt, err := tx.Prepare(sqlStatement)
+         stmt, err := tx.Prepare(sqlStatement)
          if err != nil {
              tx.Rollback()
              fmt.Printf("error: unable to prepare statement '%s'\n", sqlStatement)
@@ -765,10 +765,10 @@ func (jukeboxDB *JukeboxDB) deleteSong(songUid string) bool {
          if err != nil {
              tx.Rollback()
              fmt.Printf("error: unable to delete song '%s'\n", songUid)
-	     fmt.Printf("error: %v\n", err)
+             fmt.Printf("error: %v\n", err)
              return false
          }
-	 tx.Commit()
+         tx.Commit()
          wasDeleted = true
       }
    }

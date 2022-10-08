@@ -8,7 +8,7 @@ type Artist struct {
 
 func NewArtist(artistUid string,
                artistName string,
-	       artistDescription string) (*Artist) {
+               artistDescription string) (*Artist) {
    var artist Artist
    artist.ArtistUid = artistUid
    artist.ArtistName = artistName
