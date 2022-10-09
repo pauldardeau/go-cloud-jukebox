@@ -26,4 +26,6 @@ func TestAddRequiredArgument(t *testing.T) {
 }
 
 func TestParseArgs(t *testing.T) {
+	//ap := NewArgumentParser()
+	//args := ap.ParseArgs()
 }

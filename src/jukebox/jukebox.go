@@ -532,7 +532,7 @@ func (jukebox *Jukebox) ImportSongs() {
 									var errEncrypt error
 									encodedContents, errEncrypt = EncryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), fileContents)
 									if errEncrypt != nil {
-										fmt.Println("error: encryption failed\n")
+										fmt.Println("error: encryption failed")
 										fmt.Printf("error: %v\n", errEncrypt)
 									} else {
 										fileContents = []byte(encodedContents)
@@ -1138,7 +1138,7 @@ func (jukebox *Jukebox) readFileContents(filePath string) (bool, []byte, int) {
 				var errEncrypt error
 				encodedContents, errEncrypt = EncryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), fileContents)
 				if errEncrypt != nil {
-					fmt.Println("error: encryption failed\n")
+					fmt.Println("error: encryption failed")
 					fmt.Printf("error: %v\n", errEncrypt)
 				} else {
 					fileContents = []byte(encodedContents)

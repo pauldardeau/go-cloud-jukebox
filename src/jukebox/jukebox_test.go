@@ -27,9 +27,14 @@ func TestGetMetadataDbFilePath(t *testing.T) {
 }
 
 func Test_componentsFromFileName(t *testing.T) {
+	artist, album, song := componentsFromFileName("The-Who--Whos-Next--My-Wife")
+	if artist != "The Who" || album != "Whos Next" || song != "My Wife" {
+		t.Fail()
+	}
 }
 
 func Test_artistFromFileName(t *testing.T) {
+	//artist := artistFromFileName("The-Who--Whos-Next--My-Wife")
 }
 
 func Test_albumFromFileName(t *testing.T) {
