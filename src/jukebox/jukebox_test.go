@@ -34,13 +34,24 @@ func Test_componentsFromFileName(t *testing.T) {
 }
 
 func Test_artistFromFileName(t *testing.T) {
-	//artist := artistFromFileName("The-Who--Whos-Next--My-Wife")
+	artist := artistFromFileName("The-Who--Whos-Next--My-Wife")
+	if artist != "The Who" {
+		t.Fail()
+	}
 }
 
 func Test_albumFromFileName(t *testing.T) {
+	album := albumFromFileName("The-Who--Whos-Next--My-Wife")
+	if album != "Whos Next" {
+		t.Fail()
+	}
 }
 
 func Test_songFromFileName(t *testing.T) {
+	song := songFromFileName("The-Who--Whos-Next--My-Wife")
+	if song != "My Wife" {
+		t.Fail()
+	}
 }
 
 func Test_storeSongMetadata(t *testing.T) {

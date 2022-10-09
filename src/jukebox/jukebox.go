@@ -307,7 +307,7 @@ func componentsFromFileName(fileName string) (string, string, string) {
 	}
 }
 
-func (jukebox *Jukebox) artistFromFileName(fileName string) string {
+func artistFromFileName(fileName string) string {
 	if len(fileName) > 0 {
 		artist, _, _ := componentsFromFileName(fileName)
 		if len(artist) > 0 {
@@ -317,7 +317,7 @@ func (jukebox *Jukebox) artistFromFileName(fileName string) string {
 	return ""
 }
 
-func (jukebox *Jukebox) albumFromFileName(fileName string) string {
+func albumFromFileName(fileName string) string {
 	if len(fileName) > 0 {
 		_, album, _ := componentsFromFileName(fileName)
 		if len(album) > 0 {
@@ -327,7 +327,7 @@ func (jukebox *Jukebox) albumFromFileName(fileName string) string {
 	return ""
 }
 
-func (jukebox *Jukebox) songFromFileName(fileName string) string {
+func songFromFileName(fileName string) string {
 	if len(fileName) > 0 {
 		_, _, song := componentsFromFileName(fileName)
 		if len(song) > 0 {
@@ -400,7 +400,7 @@ func (jukebox *Jukebox) containerForSong(songUid string) string {
 	}
 	containerSuffix := songContainerSuffix + jukebox.containerSuffix()
 
-	artist := jukebox.artistFromFileName(songUid)
+	artist := artistFromFileName(songUid)
 	if len(artist) == 0 {
 		return ""
 	}
@@ -452,9 +452,9 @@ func (jukebox *Jukebox) ImportSongs() {
 				_, extension := PathSplitExt(fullPath)
 				if len(extension) > 0 {
 					fileSize := GetFileSize(fullPath)
-					artist := jukebox.artistFromFileName(fileName)
-					album := jukebox.albumFromFileName(fileName)
-					song := jukebox.songFromFileName(fileName)
+					artist := artistFromFileName(fileName)
+					album := albumFromFileName(fileName)
+					song := songFromFileName(fileName)
 					if fileSize > 0 && len(artist) > 0 && len(album) > 0 && len(song) > 0 {
 						objectName := fileName + jukebox.objectFileSuffix()
 						fsSong := NewSongMetadata()
