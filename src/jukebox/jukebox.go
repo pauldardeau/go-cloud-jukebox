@@ -43,6 +43,8 @@
 package jukebox
 
 import (
+   "bytes"
+   "compress/zlib"
    "encoding/json"
    "fmt"
    "os"
@@ -366,17 +368,6 @@ func (jukebox *Jukebox) storeSongPlaylist(fileName string, fileContents []byte) 
    }
 }
 
-/*
-func (jukebox *Jukebox) getEncryptor() {
-    // keyBlockSize = 16  // AES-128
-    // keyBlockSize = 24  // AES-192
-    keyBlockSize = 32  // AES-256
-    return AESBlockEncryption(keyBlockSize,
-                              jukebox.jukeboxOptions.EncryptionKey,
-                              jukebox.jukeboxOptions.EncryptionIv)
-}
-*/
-
 func (jukebox *Jukebox) containerSuffix() (string) {
    suffix := ""
    if jukebox.jukeboxOptions.UseEncryption &&
@@ -449,12 +440,6 @@ func (jukebox *Jukebox) ImportSongs() {
          fmt.Printf(strings.Repeat("\b", progressbarWidth + 1)) // return to start of line, after '['
       }
 
-      //if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.useEncryption {
-      //   encryption = jukebox.getEncryptor()
-      //} else {
-      //   encryption = nil
-      //}
-
       cumulativeUploadTime := 0
       cumulativeUploadBytes := 0
       fileImportCount := 0
@@ -508,15 +493,22 @@ func (jukebox *Jukebox) ImportSongs() {
                      if len(fileContents) > 0 {
                         // for general purposes, it might be useful or helpful to have
                         // a minimum size for compressing
-                        //TODO: add support for compression and encryption
                         if jukebox.jukeboxOptions.UseCompression {
                            if jukebox.debugPrint {
                               fmt.Println("compressing file")
                            }
 
-                           //FUTURE: compression
-                           //fileBytes = bytes(fileContents, 'utf-8')
-                           //fileContents = zlib.compress(fileBytes, 9)
+			   level := zlib.BestCompression
+                           var buffer bytes.Buffer
+                           w, e := zlib.NewWriterLevel(&buffer, level)
+			   if e != nil {
+                              fmt.Printf("error: unable to create new zlib writer for level=%d\n", level)
+			      fmt.Printf("error: %v\n", e)
+                           } else {
+                              w.Write(fileContents)
+                              w.Close()
+			      fileContents = buffer.Bytes()
+                           }
                         }
 
                         if jukebox.jukeboxOptions.UseEncryption {
@@ -524,23 +516,29 @@ func (jukebox *Jukebox) ImportSongs() {
                               fmt.Println("encrypting file")
                            }
 
-                           //FUTURE: encryption
-
                            // the length of the data to encrypt must be a multiple of 16
-                           //numExtraChars := len(fileContents) % 16
-                           //if numExtraChars > 0 {
-                           //   if jukebox.debugPrint {
-                           //      fmt.Println("padding file for encryption")
-                           //   }
-                           //   numPadChars = 16 - numExtraChars
-                           //   fileContents += "".ljust(numPadChars, ' ')
-                           //   fsSong.Fm.PadCharCount = numPadChars
-                           //}
+                           numExtraChars := len(fileContents) % 16
+                           if numExtraChars > 0 {
+                              if jukebox.debugPrint {
+                                 fmt.Println("padding file for encryption")
+                              }
+			      numPadChars := 16 - numExtraChars
+			      padding := []byte(strings.Repeat(" ", numPadChars))
+			      fileContents = append(fileContents, padding...)
+                              fsSong.Fm.PadCharCount = numPadChars
+                           }
 
-                           //fileContents = encryption.encrypt(fileContents)
+                           var encodedContents string
+			   var errEncrypt error
+                           encodedContents, errEncrypt = EncryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), fileContents) 
+			   if errEncrypt != nil {
+                              fmt.Println("error: encryption failed\n")
+			      fmt.Printf("error: %v\n", errEncrypt)
+                           } else {
+			      fileContents = []byte(encodedContents)
+		           }
                         }
                      }
-
 
                      // now that we have the data that will be stored, set the file size for
                      // what's being stored
@@ -732,41 +730,39 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) (bool) {
             }
          }
 
-         //TODO: add support for encryption and compression
-         /*
          // is it encrypted? if so, unencrypt it
-         encrypted = song.Fm.Encrypted
-         compressed = song.Fm.Compressed
+	 encrypted := song.Fm.Encrypted
+	 compressed := song.Fm.Compressed
 
          if encrypted || compressed {
-            //try {
-               with open(file_path, 'rb') as content_file {
-                  file_contents = content_file.read()
-            //  }
-            //except IOError {
-            //   fmt.Printf("error: unable to read file %s\n", file_path)
-            //   return false
-            //}
+            fileContents, errFile := FileReadAllBytes(filePath)
+	    if errFile != nil {
+               fmt.Printf("error: unable to read file %s\n", filePath)
+	       fmt.Printf("error: %v\n", errFile)
+               return false
+            }
 
             if encrypted {
-               encryption = jukebox.get_encryptor()
-               file_contents = encryption.decrypt(file_contents)
+               encodedContents := string(fileContents[:])
+               var errDecrypt error
+               fileContents, errDecrypt = DecryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), encodedContents)
+	       if errDecrypt != nil {
+                  fmt.Printf("error: unable to decrypt file: %s\n", filePath)
+		  fmt.Printf("error: %v\n", errDecrypt)
+		  return false
+               }
             }
 
             if compressed {
-               file_contents = zlib.decompress(file_contents)
+               //file_contents = zlib.decompress(file_contents)
             }
 
             // re-write out the uncompressed, unencrypted file contents
-            //try {
-               with open(file_path, 'wb') as content_file:
-                  content_file.write(file_contents)
-            //} except IOError {
-            //   fmt.Printf("error: unable to write unencrypted/uncompressed file '%s'\n", file_path)
-            //   return false
-            //}
+	    if ! FileWriteAllBytes(filePath, fileContents) {
+               fmt.Printf("error: unable to write unencrypted/uncompressed file '%s'\n", filePath)
+               return false
+            }
          }
-         */
 
          if jukebox.checkFileIntegrity(song) {
             return true
@@ -1086,8 +1082,7 @@ func (jukebox *Jukebox) ShowAlbums() {
    }
 }
 
-func (jukebox *Jukebox) readFileContents(filePath string,
-                                         allowEncryption bool) (bool, []byte, int) {
+func (jukebox *Jukebox) readFileContents(filePath string) (bool, []byte, int) {
     fileRead := false
     padChars := 0
 
@@ -1104,38 +1099,51 @@ func (jukebox *Jukebox) readFileContents(filePath string,
         if len(fileContents) > 0 {
             // for general purposes, it might be useful or helpful to have
             // a minimum size for compressing
-            //TODO: add support for compression
-            /*
-            if jukebox.jukeboxOptions.useCompression {
+            if jukebox.jukeboxOptions.UseCompression {
                 if jukebox.debugPrint {
                     fmt.Println("compressing file")
                 }
 
-                file_bytes = bytes(file_contents, 'utf-8')
-                file_contents = zlib.compress(file_bytes, 9)
+                level := zlib.BestCompression
+                var buffer bytes.Buffer
+                w, e := zlib.NewWriterLevel(&buffer, level)
+                if e != nil {
+                    fmt.Printf("error: unable to create new zlib writer for level=%d\n", level)
+                    fmt.Printf("error: %v\n", e)
+                } else {
+                    w.Write(fileContents)
+                    w.Close()
+                    fileContents = buffer.Bytes()
+                }
             }
-            */
 
-            //TODO: add support for encryption
-            /*
-            if allow_encryption && jukebox.jukeboxOptions.useEncryption {
+            if jukebox.jukeboxOptions.UseEncryption {
                 if jukebox.debugPrint {
                     fmt.Println("encrypting file")
                 }
 
                 // the length of the data to encrypt must be a multiple of 16
-                num_extra_chars = len(file_contents) % 16
-                if num_extra_chars > 0 {
+                numExtraChars := len(fileContents) % 16
+                if numExtraChars > 0 {
                     if jukebox.debugPrint {
                         fmt.Println("padding file for encryption")
                     }
-                    pad_chars = 16 - num_extra_chars
-                    file_contents += "".ljust(pad_chars, ' ')
+                    numPadChars := 16 - numExtraChars
+                    padding := []byte(strings.Repeat(" ", numPadChars))
+                    fileContents = append(fileContents, padding...)
+                    padChars = numPadChars
                 }
 
-                file_contents = encryption.encrypt(file_contents)
+                var encodedContents string
+                var errEncrypt error
+                encodedContents, errEncrypt = EncryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), fileContents)
+                if errEncrypt != nil {
+                    fmt.Println("error: encryption failed\n")
+                    fmt.Printf("error: %v\n", errEncrypt)
+                } else {
+                fileContents = []byte(encodedContents)
+	        }
             }
-            */
         }
     }
 
@@ -1211,7 +1219,7 @@ func (jukebox *Jukebox) ImportPlaylists() {
       for _, fileName := range dirListing {
          fullPath := PathJoin(jukebox.playlistImportDir, fileName)
          objectName := fileName
-         fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
+         fileRead, fileContents, _ := jukebox.readFileContents(fullPath)
          if fileRead && fileContents != nil {
             if jukebox.storageSystem.PutObject(playlistContainer,
                                                objectName,
@@ -1546,7 +1554,7 @@ func (jukebox *Jukebox) ImportAlbumArt() {
       for _, fileName := range dirListing {
          fullPath := PathJoin(jukebox.albumArtImportDir, fileName)
          objectName := fileName
-         fileRead, fileContents, _ := jukebox.readFileContents(fullPath, false)
+         fileRead, fileContents, _ := jukebox.readFileContents(fullPath)
          if fileRead && fileContents != nil {
             if jukebox.storageSystem.PutObject(albumArtContainer,
                                                objectName,

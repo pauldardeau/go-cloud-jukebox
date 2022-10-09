@@ -61,24 +61,17 @@ func (o *JukeboxOptions) ValidateOptions() (bool) {
       return false
    }
 
-   //TODO: add encryption support
-   //if len(o.EncryptionKeyFile) > 0 && ! os.path.isfile(o.EncryptionKeyFile) {
-   //   fmt.Printf("error: encryption key file doesn't exist '%s'\n", o.EncryptionKeyFile)
-   //   return false
-   //}
+   if len(o.EncryptionKeyFile) > 0 && ! FileExists(o.EncryptionKeyFile) {
+      fmt.Printf("error: encryption key file doesn't exist '%s'\n", o.EncryptionKeyFile)
+      return false
+   }
 
-   //TODO: add encryption support
-   //if o.UseEncryption {
-   //   if ! aes.is_available() {
-   //      fmt.Println("encryption support not available")
-   //      return false
-   //   }
-
-   //   if len(o.EncryptionKey) == 0 && len(o.EncryptionKeyFile) == 0 {
-   //      fmt.Println("error: encryption key or encryption key file is required for encryption")
-   //      return false
-   //   }
-   //}
+   if o.UseEncryption {
+      if len(o.EncryptionKey) == 0 && len(o.EncryptionKeyFile) == 0 {
+         fmt.Println("error: encryption key or encryption key file is required for encryption")
+         return false
+      }
+   }
 
    return true
 }
