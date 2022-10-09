@@ -1,17 +1,17 @@
 package jukebox
 
 type Artist struct {
-   ArtistUid string
-   ArtistName string
-   ArtistDescription string
+	ArtistUid         string
+	ArtistName        string
+	ArtistDescription string
 }
 
 func NewArtist(artistUid string,
-               artistName string,
-               artistDescription string) (*Artist) {
-   var artist Artist
-   artist.ArtistUid = artistUid
-   artist.ArtistName = artistName
-   artist.ArtistDescription = artistDescription
-   return &artist
+	artistName string,
+	artistDescription string) *Artist {
+	var artist Artist
+	artist.ArtistUid = artistUid
+	artist.ArtistName = artistName
+	artist.ArtistDescription = artistDescription
+	return &artist
 }
