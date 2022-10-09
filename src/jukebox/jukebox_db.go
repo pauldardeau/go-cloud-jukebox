@@ -523,16 +523,22 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
         sqlQuery += jukeboxDB.sqlWhereClause()
         //if len(artist) > 0:
         //    sqlQuery += " AND artist_name='%s'" % artist
-        if len(album) > 0 {
+	if len(artist) > 0 {
+            var addedClause string
             encodedArtist := EncodeValue(artist)
-            encodedAlbum := EncodeValue(album)
-            addedClause := fmt.Sprintf(" AND object_name LIKE '%s--%s%%'",
-                                       encodedArtist,
-                                       encodedAlbum)
+            if len(album) > 0 {
+                encodedAlbum := EncodeValue(album)
+                addedClause = fmt.Sprintf(" AND object_name LIKE '%s--%s%%'",
+                                          encodedArtist,
+                                          encodedAlbum)
+            } else {
+                addedClause = fmt.Sprintf(" AND object_name LIKE '%s--%%'",
+                                          encodedArtist)
+            }
             sqlQuery += addedClause
         }
 
-        //fmt.Printf("executing query: %s\n", sqlQuery)
+        fmt.Printf("executing query: %s\n", sqlQuery)
         stmt, errStmt := jukeboxDB.dbConnection.Prepare(sqlQuery)
         if errStmt != nil {
             fmt.Printf("error: unable to prepare statement '%s'\n", sqlQuery)
