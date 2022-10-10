@@ -61,9 +61,9 @@ func (ap *ArgumentParser) AddRequiredArgument(arg string, help string) {
 	ap.listCommands = append(ap.listCommands, arg)
 }
 
-func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
+func (ap *ArgumentParser) ParseArgs(args []string) *PropertySet {
 
-	dictArgs := make(map[string]interface{})
+	ps := NewPropertySet()
 
 	numArgs := len(args)
 	working := true
@@ -88,7 +88,7 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 			arg = arg[2:]
 			if argType == TYPE_BOOL {
 				fmt.Printf("adding key=%s value=true\n", arg)
-				dictArgs[arg] = true
+				ps.Add(arg, NewBoolPropertyValue(true))
 			} else if argType == TYPE_INT {
 				i++
 				if i < numArgs {
@@ -96,17 +96,17 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 					intValue, intErr := strconv.Atoi(nextArg)
 					if intErr == nil {
 						fmt.Printf("adding key=%s value=%d\n", arg, intValue)
-						dictArgs[arg] = intValue
+						ps.Add(arg, NewIntPropertyValue(intValue))
 					}
 				} else {
-					// missing int value
+					// missing int valuey
 				}
 			} else if argType == TYPE_STRING {
 				i++
 				if i < numArgs {
 					nextArg := args[i]
 					fmt.Printf("adding key=%s value=%s\n", arg, nextArg)
-					dictArgs[arg] = nextArg
+					ps.Add(arg, NewStringPropertyValue(nextArg))
 				} else {
 					// missing string value
 				}
@@ -120,7 +120,7 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 				if commandsFound < len(ap.listCommands) {
 					commandName := ap.listCommands[commandsFound]
 					fmt.Printf("adding key=%s value=%s\n", commandName, arg)
-					dictArgs[commandName] = arg
+					ps.Add(commandName, NewStringPropertyValue(arg))
 					commandsFound++
 				} else {
 					// unrecognized command
@@ -134,5 +134,5 @@ func (ap *ArgumentParser) ParseArgs(args []string) map[string]interface{} {
 		}
 	}
 
-	return dictArgs
+	return ps
 }

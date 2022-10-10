@@ -97,11 +97,9 @@ func main() {
 
    consoleArgs := os.Args[1:]
 
-   args := optParser.ParseArgs(consoleArgs)
+   ps := optParser.ParseArgs(consoleArgs)
 
-   //args := make(map[string]string);
-
-   if args == nil {
+   if ps == nil {
       fmt.Println("error: unable to obtain command-line arguments")
       os.Exit(1)
    }
@@ -111,14 +109,12 @@ func main() {
    //fmt.Println("initial values for options:")
    //options.Show()
 
-   _, debugExists := args["debug"]
-   if debugExists {
+   if ps.Contains("debug") {
       debugMode = true
       options.DebugMode = true
    }
 
-   _, fileCacheCountExists := args["file_cache_count"]
-   if fileCacheCountExists {
+   if ps.Contains("file_cache_count") {
       //value := args["file_cache_count"]
       //if args.file_cache_count != nil && args.file_cache_count > 0 {
       //   if debug_mode {
@@ -128,105 +124,104 @@ func main() {
       //}
    }
 
-   _, integrityChecksExists := args["integrity_checks"]
-   if integrityChecksExists {
+   if ps.Contains("integrity_checks") {
       if debugMode {
          fmt.Println("setting integrity checks on")
       }
       options.CheckDataIntegrity = true
    }
 
-   _, compressExists := args["compress"]
-   if compressExists {
+   if ps.Contains("compress") {
       if debugMode {
          fmt.Println("setting compression on")
       }
       options.UseCompression = true
    }
 
-   _, encryptExists := args["encrypt"]
-   if encryptExists {
+   if ps.Contains("encrypt") {
       if debugMode {
          fmt.Println("setting encryption on")
       }
       options.UseEncryption = true
    }
 
-   keyValue, keyExists := args["key"]
-   if keyExists {
+   if ps.Contains("key") {
+      pv := ps.Get("key")
+      keyValue := pv.GetStringValue()
       if debugMode {
          fmt.Printf("setting encryption key='%s'\n", keyValue)
       }
-      options.EncryptionKey = fmt.Sprintf("%v", keyValue)
+      options.EncryptionKey = keyValue
    }
 
-   _, keyfileExists := args["keyfile"]
-   if keyfileExists {
-        /*
-        keyFile := pvKeyFile.GetStringValue()
-        if debugMode {
-            fmt.Printf("reading encryption key file='%s'\n", keyFile)
-        }
+   if ps.Contains("keyfile") {
+      pvKeyFile := ps.Get("keyfile")
+      keyFile := pvKeyFile.GetStringValue()
+      if debugMode {
+          fmt.Printf("reading encryption key file='%s'\n", keyFile)
+      }
 
-        encryptKey, errKey := jukebox.FileReadAllText(keyFile)
-        if errKey != nil {
-            fmt.Printf("error: unable to read key file '%s'\n", keyFile)
-            os.Exit(1)
-        }
-        options.EncryptionKey = strings.TrimSpace(encryptKey)
+      encryptKey, errKey := jukebox.FileReadAllText(keyFile)
+      if errKey != nil {
+          fmt.Printf("error: unable to read key file '%s'\n", keyFile)
+          os.Exit(1)
+      }
+      options.EncryptionKey = strings.TrimSpace(encryptKey)
 
-        if len(options.EncryptionKey) == 0 {
-            fmt.Printf("error: no key found in file '%s'\n", keyFile)
-            os.Exit(1)
-        }
-        */
+      if len(options.EncryptionKey) == 0 {
+          fmt.Printf("error: no key found in file '%s'\n", keyFile)
+          os.Exit(1)
+      }
    }
 
-   storageValue, storageExists := args["storage"]
-   if storageExists {
+   if ps.Contains("storage") {
+      pvStorage := ps.Get("storage")
+      storageType := pvStorage.GetStringValue()
+
       supportedSystems := []string{"swift", "s3", "azure", "fs"}
       selectedSystemSupported := false
       for _, supportedSystem := range supportedSystems {
-         if supportedSystem == storageValue {
+         if supportedSystem == storageType {
             selectedSystemSupported = true
             break
          }
       }
 
       if ! selectedSystemSupported {
-         fmt.Printf("error: invalid storage type '%s'\n", storageValue)
+         fmt.Printf("error: invalid storage type '%s'\n", storageType)
          //print("supported systems are: %s" % str(supportedSystems))
          os.Exit(1)
       } else {
          if debugMode {
-            fmt.Printf("setting storage system to '%s'\n", storageValue)
+            fmt.Printf("setting storage system to '%s'\n", storageType)
          }
-         storageType = fmt.Sprintf("%v", storageValue)
       }
    }
 
-   artistValue, artistExists := args["artist"]
-   if artistExists {
-      artist = fmt.Sprintf("%v", artistValue)
+   if ps.Contains("artist") {
+      pvArtist := ps.Get("artist")
+      artist = pvArtist.GetStringValue()
    }
 
-   playlistValue, playlistExists := args["playlist"]
-   if playlistExists {
-      playlist = fmt.Sprintf("%v", playlistValue)
+   if ps.Contains("playlist") {
+      pvPlaylist := ps.Get("playlist")
+      playlist = pvPlaylist.GetStringValue()
    }
 
-   songValue, songExists := args["song"]
-   if songExists {
-      song = fmt.Sprintf("%v", songValue)
+   if ps.Contains("song") {
+      pvSong := ps.Get("song")
+      song = pvSong.GetStringValue()
    }
 
-   albumValue, albumExists := args["album"]
-   if albumExists {
-      album = fmt.Sprintf("%v", albumValue)
+   if ps.Contains("album") {
+      pvAlbum := ps.Get("album")
+      album = pvAlbum.GetStringValue()
    }
 
-   commandValue, commandExists := args["command"]
-   if commandExists {
+   if ps.Contains("command") {
+      pvCommand := ps.Get("command")
+      command := pvCommand.GetStringValue()
+
       if debugMode {
          fmt.Printf("using storage system type '%s'\n", storageType)
       }
@@ -271,8 +266,6 @@ func main() {
       }
 
       options.EncryptionIv = "sw4mpb1ts.juk3b0x"
-
-      command := fmt.Sprintf("%v", commandValue)
 
       helpCmds := []string{"help", "usage"}
       nonHelpCmds := []string{"import-songs", "play", "shuffle-play", "list-songs",
