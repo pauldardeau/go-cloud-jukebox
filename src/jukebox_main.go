@@ -27,7 +27,10 @@ const (
 	cmdDeleteArtist = "delete-artist"
 	cmdDeletePlaylist = "delete-playlist"
 	cmdDeleteSong = "delete-song"
+	cmdExportAlbum = "export-album"
+	cmdExportPlaylist = "export-playlist"
 	cmdHelp = "help"
+	cmdImportAlbum = "import-album"
 	cmdImportAlbumArt = "import-album-art"
 	cmdImportPlaylists = "import-playlists"
 	cmdImportSongs = "import-songs"
@@ -503,7 +506,13 @@ func main() {
                               }
                           } else if command == cmdImportAlbumArt {
                               jukebox.ImportAlbumArt()
-                          }
+                          } else if command == cmdImportAlbum {
+				  //TODO: implement import album
+			  } else if command == cmdExportAlbum {
+				  //TODO: implement export album
+			  } else if command == cmdExportPlaylist {
+				  //TODO: implement export playlist
+			  }
                       } else {
                           fmt.Println("unable to enter jukebox")
                       }
