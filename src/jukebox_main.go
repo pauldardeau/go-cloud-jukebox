@@ -176,7 +176,7 @@ func main() {
 
    if ps.Contains("storage") {
       pvStorage := ps.Get("storage")
-      storageType := pvStorage.GetStringValue()
+      storageType = pvStorage.GetStringValue()
 
       supportedSystems := []string{"swift", "s3", "azure", "fs"}
       selectedSystemSupported := false
