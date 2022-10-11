@@ -9,6 +9,20 @@ import (
 )
 
 const (
+	argDebug = "debug"
+	argFileCacheCount = "file-cache-count"
+	argIntegrityChecks = "integrity-checks"
+	argCompress = "compress"
+	argEncrypt = "encrypt"
+	argKey = "key"
+	argKeyFile = "keyfile"
+	argStorage = "storage"
+	argArtist = "artist"
+	argPlaylist = "playlist"
+	argSong = "song"
+	argAlbum = "album"
+	argCommand = "command"
+
 	cmdDeleteAlbum = "delete-album"
 	cmdDeleteArtist = "delete-artist"
 	cmdDeletePlaylist = "delete-playlist"
@@ -112,19 +126,19 @@ func main() {
    album := ""
 
    optParser := jukebox.NewArgumentParser()
-   optParser.AddOptionalBoolFlag("--debug", "run in debug mode")
-   optParser.AddOptionalIntArgument("--file-cache-count", "number of songs to buffer in cache")
-   optParser.AddOptionalBoolFlag("--integrity-checks", "check file integrity after download")
-   optParser.AddOptionalBoolFlag("--compress", "use gzip compression")
-   optParser.AddOptionalBoolFlag("--encrypt", "encrypt file contents")
-   optParser.AddOptionalStringArgument("--key", "encryption key")
-   optParser.AddOptionalStringArgument("--keyfile", "path to file containing encryption key")
-   optParser.AddOptionalStringArgument("--storage", "storage system type (s3, swift, azure)")
-   optParser.AddOptionalStringArgument("--artist", "limit operations to specified artist")
-   optParser.AddOptionalStringArgument("--playlist", "limit operations to specified playlist")
-   optParser.AddOptionalStringArgument("--song", "limit operations to specified song")
-   optParser.AddOptionalStringArgument("--album", "limit operations to specified album")
-   optParser.AddRequiredArgument("command", "command for jukebox")
+   optParser.AddOptionalBoolFlag("--" + argDebug, "run in debug mode")
+   optParser.AddOptionalIntArgument("--" + argFileCacheCount, "number of songs to buffer in cache")
+   optParser.AddOptionalBoolFlag("--" + argIntegrityChecks, "check file integrity after download")
+   optParser.AddOptionalBoolFlag("--" + argCompress, "use gzip compression")
+   optParser.AddOptionalBoolFlag("--" + argEncrypt, "encrypt file contents")
+   optParser.AddOptionalStringArgument("--" + argKey, "encryption key")
+   optParser.AddOptionalStringArgument("--" + argKeyFile, "path to file containing encryption key")
+   optParser.AddOptionalStringArgument("--" + argStorage, "storage system type (s3, swift, azure)")
+   optParser.AddOptionalStringArgument("--" + argArtist, "limit operations to specified artist")
+   optParser.AddOptionalStringArgument("--" + argPlaylist, "limit operations to specified playlist")
+   optParser.AddOptionalStringArgument("--" + argSong, "limit operations to specified song")
+   optParser.AddOptionalStringArgument("--" + argAlbum, "limit operations to specified album")
+   optParser.AddRequiredArgument(argCommand, "command for jukebox")
 
    consoleArgs := os.Args[1:]
 
@@ -137,50 +151,50 @@ func main() {
 
    options := jukebox.NewJukeboxOptions()
 
-   if ps.Contains("debug") {
+   if ps.Contains(argDebug) {
       debugMode = true
       options.DebugMode = true
    }
 
-   if ps.Contains("file_cache_count") {
-	   value := ps.Get("file_cache_count").GetIntValue()
+   if ps.Contains(argFileCacheCount) {
+	   value := ps.Get(argFileCacheCount).GetIntValue()
 	   if debugMode {
 		fmt.Printf("setting file cache count=%d\n", value)
 	   }
 	   options.FileCacheCount = value
    }
 
-   if ps.Contains("integrity_checks") {
+   if ps.Contains(argIntegrityChecks) {
       if debugMode {
          fmt.Println("setting integrity checks on")
       }
       options.CheckDataIntegrity = true
    }
 
-   if ps.Contains("compress") {
+   if ps.Contains(argCompress) {
       if debugMode {
          fmt.Println("setting compression on")
       }
       options.UseCompression = true
    }
 
-   if ps.Contains("encrypt") {
+   if ps.Contains(argEncrypt) {
       if debugMode {
          fmt.Println("setting encryption on")
       }
       options.UseEncryption = true
    }
 
-   if ps.Contains("key") {
-      keyValue := ps.Get("key").GetStringValue()
+   if ps.Contains(argKey) {
+      keyValue := ps.Get(argKey).GetStringValue()
       if debugMode {
          fmt.Printf("setting encryption key='%s'\n", keyValue)
       }
       options.EncryptionKey = keyValue
    }
 
-   if ps.Contains("keyfile") {
-      keyFile := ps.Get("keyfile").GetStringValue()
+   if ps.Contains(argKeyFile) {
+      keyFile := ps.Get(argKeyFile).GetStringValue()
       if debugMode {
           fmt.Printf("reading encryption key file='%s'\n", keyFile)
       }
@@ -198,8 +212,8 @@ func main() {
       }
    }
 
-   if ps.Contains("storage") {
-      storageType = ps.Get("storage").GetStringValue()
+   if ps.Contains(argStorage) {
+      storageType = ps.Get(argStorage).GetStringValue()
 
       supportedSystems := []string{ssSwift, ssS3, ssAzure, ssFs}
       selectedSystemSupported := false
@@ -221,24 +235,24 @@ func main() {
       }
    }
 
-   if ps.Contains("artist") {
-      artist = ps.Get("artist").GetStringValue()
+   if ps.Contains(argArtist) {
+      artist = ps.Get(argArtist).GetStringValue()
    }
 
-   if ps.Contains("playlist") {
-      playlist = ps.Get("playlist").GetStringValue()
+   if ps.Contains(argPlaylist) {
+      playlist = ps.Get(argPlaylist).GetStringValue()
    }
 
-   if ps.Contains("song") {
-      song = ps.Get("song").GetStringValue()
+   if ps.Contains(argSong) {
+      song = ps.Get(argSong).GetStringValue()
    }
 
-   if ps.Contains("album") {
-      album = ps.Get("album").GetStringValue()
+   if ps.Contains(argAlbum) {
+      album = ps.Get(argAlbum).GetStringValue()
    }
 
-   if ps.Contains("command") {
-      command := ps.Get("command").GetStringValue()
+   if ps.Contains(argCommand) {
+      command := ps.Get(argCommand).GetStringValue()
 
       if debugMode {
          fmt.Printf("using storage system type '%s'\n", storageType)
@@ -407,28 +421,28 @@ func main() {
                               if len(album) > 0 {
                                   jukebox.ShowAlbum(album)
                               } else {
-                                  fmt.Println("error: album must be specified using --album option")
+                                  fmt.Printf("error: album must be specified using --%s option\n", argAlbum)
                                   exitCode = 1
                               }
                           } else if command == cmdShowPlaylist {
                               if len(playlist) > 0 {
                                   jukebox.ShowPlaylist(playlist)
                               } else {
-                                  fmt.Println("error: playlist must be specified using --playlist option")
+                                  fmt.Printf("error: playlist must be specified using --%s option\n", argPlaylist)
                                   exitCode = 1
                               }
                           } else if command == cmdPlayPlaylist {
                               if len(playlist) > 0 {
                                   jukebox.PlayPlaylist(playlist)
                               } else {
-                                  fmt.Println("error: playlist must be specified using --playlist option")
+                                  fmt.Printf("error: playlist must be specified using --%s option\n", argPlaylist)
                                   exitCode = 1
                               }
                           } else if command == cmdPlayAlbum {
                               if len(album) > 0 && len(artist) > 0 {
                                   jukebox.PlayAlbum(artist, album)
                               } else {
-                                  fmt.Println("error: artist and album must be specified using --artist and --album options")
+                                  fmt.Printf("error: artist and album must be specified using --%s and --%s options\n", argArtist, argAlbum)
                               }
                           } else if command == cmdRetrieveCatalog {
 				  //TODO: implement retrieve-catalog
@@ -441,7 +455,7 @@ func main() {
                                       exitCode = 1
                                   }
                               } else {
-                                  fmt.Println("error: song must be specified using --song option")
+                                  fmt.Printf("error: song must be specified using --%s option\n", argSong)
                                   exitCode = 1
                               }
                           } else if command == cmdDeleteArtist {
@@ -453,7 +467,7 @@ func main() {
                                       exitCode = 1
                                   }
                               } else {
-                                  fmt.Println("error: artist must be specified using --artist option")
+                                  fmt.Printf("error: artist must be specified using --%s option\n", argArtist)
                                   exitCode = 1
                               }
                           } else if command == cmdDeleteAlbum {
@@ -465,7 +479,7 @@ func main() {
                                       exitCode = 1
                                   }
                               } else {
-                                  fmt.Println("error: album must be specified using --album option")
+                                  fmt.Printf("error: album must be specified using --%s option\n", argAlbum)
                                   exitCode = 1
                               }
                           } else if command == cmdDeletePlaylist {
@@ -477,7 +491,7 @@ func main() {
                                       exitCode = 1
                                   }
                               } else {
-                                  fmt.Println("error: playlist must be specified using --playlist option")
+                                  fmt.Printf("error: playlist must be specified using --%s option\n", argPlaylist)
                                   exitCode = 1
                               }
                           } else if command == cmdUploadMetadataDb {
