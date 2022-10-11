@@ -72,6 +72,18 @@ const (
 	defaultDbFileName   = "jukebox_db.sqlite3"
 )
 
+type PlaylistSong struct {
+	Artist string `json:"artist"`
+	Album string `json:"album"`
+	Song string `json:"song"`
+}
+
+type Playlist struct {
+	Name string `json:"name"`
+	Tags string `json:"tags"`
+	Songs []PlaylistSong `json:"songs"`
+}
+
 type Jukebox struct {
 	jukeboxOptions          *JukeboxOptions
 	storageSystem           *FSStorageSystem
@@ -195,7 +207,7 @@ func (jukebox *Jukebox) Enter() bool {
 					if jukebox.debugPrint {
 						fmt.Printf("renaming '%s' to '%s'\n", downloadFile, metadataDbFilePath)
 					}
-					os.Rename(downloadFile, metadataDbFilePath)
+					RenameFile(downloadFile, metadataDbFilePath)
 				} else {
 					if jukebox.debugPrint {
 						fmt.Println("error: unable to retrieve metadata DB file")
@@ -1257,118 +1269,76 @@ func (jukebox *Jukebox) ShowAlbum(album string) {
 	//TODO: implement ShowAlbum
 }
 
-func (jukebox *Jukebox) ShowPlaylist(playlist string) {
-	bucketName := "cj-playlists"
-	objectName := fmt.Sprintf("%s.json", EncodeValue(playlist))
-	downloadFile := objectName
-	if jukebox.storageSystem.GetObject(bucketName,
-		objectName,
-		downloadFile) > 0 {
-		//file_read := false
-		//try {
-		//TODO: read playlist file
-		//   with open(download_file, 'rb') as content_file {
-		//      file_contents = content_file.read()
-		//   }
-		//   file_read = true
-		//} except IOError {
-		//   fmt.Printf("error: unable to read file %s\n", full_path)
-		//   file_read = false
-		//}
+func (jukebox *Jukebox) retrievePlaylist(playlist string) *Playlist {
+        objectName := fmt.Sprintf("%s.json", EncodeValue(playlist))
+        downloadFile := objectName
+        if jukebox.storageSystem.GetObject(playlistContainer,
+                objectName,
+                downloadFile) > 0 {
 
-		/*
-		   if file_read {
-		      pl = json.loads(file_contents)
-		      if pl != nil {
-		         if "songs" in pl {
-		            song_list = []
-		            list_song_dicts = pl["songs"]
-		            for song_dict in list_song_dicts {
-		               artist_name = song_dict["artist"]
-		               if "'" in artist_name {
-		                  artist_name = strings.Replace(artist_name, "'", "", -1)
-		               }
-		               artist = EncodeValue(artist_name)
-		               album_name = song_dict["album"]
-		               if "'" in album_name {
-		                  album_name = strings.Replace(album_name, "'", "", -1)
-		               }
-		               album = EncodeValue(album_name)
-		               song_name = song_dict["song"]
-		               if "'" in song_name {
-		                  song_name = strings.Replace(song_name, "'", "", -1)
-		               }
-		               song = EncodeValue(song_name)
-		               base_object_name = "%s--%s--%s" % (artist, album, song)
-		               fmt.Println(base_object_name)
-		            }
-		         }
-		      }
-		   }
-		*/
+                fileRead := false
+                fileContents, err := FileReadAllText(downloadFile)
+                if err == nil {
+                        fileRead = true
+                } else {
+                        fmt.Printf("error: unable to read file %s\n", downloadFile)
+                        fileRead = false
+                }
+
+                if fileRead {
+                        var playlist Playlist
+                        err := json.Unmarshal([]byte(fileContents), &playlist)
+                        if err != nil {
+                                fmt.Printf("error: unable to parse json playlist\n")
+			} else {
+				return &playlist
+			}
+		}
 	} else {
-		fmt.Printf("error: unable to retrieve %s\n", objectName)
+		fmt.Printf("error: unable to retrieve playlist from object storage\n")
+	}
+	return nil
+}
+
+func (jukebox *Jukebox) ShowPlaylist(playlistName string) {
+	playlist := jukebox.retrievePlaylist(playlistName)
+	if playlist != nil {
+		for _, song := range playlist.Songs {
+			fmt.Printf("%s - %s (%s)\n", song.Artist, song.Song, song.Album)
+		}
+	} else {
+		fmt.Printf("error: unable to retrieve playlist '%s'\n", playlistName)
 	}
 }
 
-func (jukebox *Jukebox) PlayPlaylist(playlist string) {
-	bucketName := "cj-playlists"
-	objectName := fmt.Sprintf("%s.json", EncodeValue(playlist))
-	downloadFile := objectName
+func (jukebox *Jukebox) PlayPlaylist(playlistName string) {
+	playlist := jukebox.retrievePlaylist(playlistName)
+	if playlist != nil {
+		songList := make([]*SongMetadata, 0)
+		extList := make([]string, 0)
+		extList = append(extList, ".flac")
+		extList = append(extList, ".m4a")
+		extList = append(extList, ".mp3")
 
-	if jukebox.storageSystem.GetObject(bucketName,
-		objectName,
-		downloadFile) > 0 {
-		//TODO: implement play_playlist
-		/*
-		   with open(download_file, 'rb') as content_file:
-		      file_contents = content_file.read()
-		   file_read = true
-		   //fmt.Printf("error: unable to read file %s\n", full_path)
-		   //file_read = false
-
-		   if file_read {
-		       pl = json.loads(file_contents)
-		       if pl != nil {
-		           if "songs" in pl {
-		               song_list = []
-		               list_song_dicts = pl["songs"]
-		               for song_dict in list_song_dicts {
-		                   artist_name = song_dict["artist"]
-		                   if "'" in artist_name {
-		                       artist_name = strings.Replace(artist_name, "'", "", -1)
-		                   }
-		                   artist = EncodeValue(artist_name)
-		                   album_name = song_dict["album"]
-		                   if "'" in album_name {
-		                       album_name = strings.Replace(album_name, "'", "", -1)
-		                   }
-		                   album = EncodeValue(album_name)
-		                   song_name = song_dict["song"]
-		                   if "'" in song_name {
-		                       song_name = strings.Replace(song_name, "'", "", -1)
-		                   }
-		                   song = EncodeValue(song_name)
-		                   base_object_name = "%s--%s--%s" % (artist, album, song)
-		                   ext_list = [".flac", ".m4a", ".mp3"]
-		                   for ext in ext_list {
-		                       object_name = base_object_name + ext
-		                       db_song = jukebox.jukeboxDb.retrieve_song(object_name)
-		                       if db_song != nil {
-		                           song_list.append(db_song)
-		                           break
-		                       } else {
-		                           fmt.Printf("No song file for %s\n", base_object_name)
-		                       }
-		                   }
-		                   jukebox.playSongList(songList, false)
-		               }
-		           }
-		       }
-		    }
-		*/
+		for _, song := range playlist.Songs {
+			artistName := EncodeValue(song.Artist)
+			albumName := EncodeValue(song.Album)
+			songName := EncodeValue(song.Song)
+			baseObjectName := fmt.Sprintf("%s--%s--%s", artistName, albumName, songName)
+			for _, ext := range extList {
+				objectName := baseObjectName + ext
+				dbSong := jukebox.jukeboxDb.retrieveSong(objectName)
+				if dbSong != nil {
+					songList = append(songList, dbSong)
+					break
+				} else {
+					fmt.Printf("No song file for %s\n", baseObjectName)
+				}
+			}
+		}
+		jukebox.playSongList(songList, false)
 	} else {
-		fmt.Printf("error: unable to retrieve %s\n", objectName)
+		fmt.Printf("error: unable to retrieve playlist '%s'\n", playlistName)
 	}
 }
 

@@ -26,6 +26,15 @@ func FileExists(pathToFile string) bool {
 	return !file.IsDir()
 }
 
+func RenameFile(oldPathToFile string, newPathToFile string) bool {
+	err := os.Rename(oldPathToFile, newPathToFile)
+	if err == nil {
+		return true
+	} else {
+		return false
+	}
+}
+
 func DeleteFile(pathToFile string) bool {
 	err := os.Remove(pathToFile)
 	return err == nil
