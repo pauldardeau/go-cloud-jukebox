@@ -44,8 +44,6 @@
 package jukebox
 
 import (
-	"bytes"
-	"compress/zlib"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -527,16 +525,12 @@ func (jukebox *Jukebox) ImportSongs() {
 										fmt.Println("compressing file")
 									}
 
-									level := zlib.BestCompression
-									var buffer bytes.Buffer
-									w, e := zlib.NewWriterLevel(&buffer, level)
+                                                                        compressed, e := CompressBuffer(fileContents)
 									if e != nil {
-										fmt.Printf("error: unable to create new zlib writer for level=%d\n", level)
+										fmt.Printf("error: unable to compress buffer\n")
 										fmt.Printf("error: %v\n", e)
 									} else {
-										w.Write(fileContents)
-										w.Close()
-										fileContents = buffer.Bytes()
+										fileContents = compressed
 									}
 								}
 
@@ -781,7 +775,13 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) bool {
 				}
 
 				if compressed {
-					//file_contents = zlib.decompress(file_contents)
+					var errZlib error
+					fileContents, errZlib = UncompressBuffer(fileContents)
+					if errZlib != nil {
+						fmt.Printf("error: unable to uncompress buffer\n")
+						fmt.Printf("error: %v\n", errZlib)
+						return false
+					}
 				}
 
 				// re-write out the uncompressed, unencrypted file contents
@@ -1131,16 +1131,12 @@ func (jukebox *Jukebox) readFileContents(filePath string) (bool, []byte, int) {
 					fmt.Println("compressing file")
 				}
 
-				level := zlib.BestCompression
-				var buffer bytes.Buffer
-				w, e := zlib.NewWriterLevel(&buffer, level)
-				if e != nil {
-					fmt.Printf("error: unable to create new zlib writer for level=%d\n", level)
-					fmt.Printf("error: %v\n", e)
-				} else {
-					w.Write(fileContents)
-					w.Close()
-					fileContents = buffer.Bytes()
+				var errZlib error
+				fileContents, errZlib = CompressBuffer(fileContents)
+				if errZlib != nil {
+					fmt.Printf("error: unable to compress buffer\n")
+					fmt.Printf("error: %v\n", errZlib)
+					return false, nil, 0
 				}
 			}
 
