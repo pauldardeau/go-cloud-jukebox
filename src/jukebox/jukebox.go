@@ -1299,16 +1299,10 @@ func (jukebox *Jukebox) retrievePlaylist(playlist string) *Playlist {
                 objectName,
                 downloadFile) > 0 {
 
-                fileRead := false
                 fileContents, err := FileReadAllText(downloadFile)
-                if err == nil {
-                        fileRead = true
-                } else {
+                if err != nil {
                         fmt.Printf("error: unable to read file %s\n", downloadFile)
-                        fileRead = false
-                }
-
-                if fileRead {
+                } else {
                         var playlist Playlist
                         err := json.Unmarshal([]byte(fileContents), &playlist)
                         if err != nil {
