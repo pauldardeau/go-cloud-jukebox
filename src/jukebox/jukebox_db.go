@@ -206,13 +206,17 @@ func (jukeboxDB *JukeboxDB) getPlaylist(playlistName string) *string {
         sqlQuery := "SELECT playlist_uid FROM playlist WHERE playlist_name = ?"
         stmt, err := jukeboxDB.dbConnection.Prepare(sqlQuery)
         if err != nil {
-           //TODO: handle error
+           fmt.Printf("error: unable to prepare query string '%s'\n", sqlQuery)
+	   fmt.Printf("error: %v\n", err)
+	   return nil
         }
         defer stmt.Close()
 
         err = stmt.QueryRow(playlistName).Scan(&plObject)
         if err != nil {
-           //TODO: handle error
+           fmt.Printf("error: unable to execute query for statement '%s'\n", sqlQuery)
+	   fmt.Printf("error: %v\n", err)
+	   return nil
         }
     }
     return &plObject
