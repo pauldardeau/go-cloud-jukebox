@@ -525,8 +525,6 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
         `
 
         sqlQuery += jukeboxDB.sqlWhereClause()
-        //if len(artist) > 0:
-        //    sqlQuery += " AND artist_name='%s'" % artist
 	if len(artist) > 0 {
             var addedClause string
             encodedArtist := EncodeValue(artist)
