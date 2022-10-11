@@ -382,18 +382,18 @@ func (jukebox *Jukebox) storeSongMetadata(fsSong *SongMetadata) bool {
 }
 
 func (jukebox *Jukebox) storeSongPlaylist(fileName string, fileContents []byte) bool {
-	var result map[string]interface{}
-	err := json.Unmarshal(fileContents, &result)
+        var playlist Playlist
+        err := json.Unmarshal([]byte(fileContents), &playlist)
 	if err == nil {
-		anyPlName, exists := result["name"]
-		if exists {
-			plUid := fileName
-			plName := fmt.Sprintf("%v", anyPlName)
-			return jukebox.jukeboxDb.insertPlaylist(plUid, plName, "")
+		if len(playlist.Name) > 0 {
+			return jukebox.jukeboxDb.insertPlaylist(fileName, playlist.Name, "")
 		} else {
+			fmt.Printf("error: playlist name is missing\n")
 			return false
 		}
 	} else {
+		fmt.Printf("error: unable to parse playlist json\n")
+		fmt.Printf("error: %v\n", err)
 		return false
 	}
 }
