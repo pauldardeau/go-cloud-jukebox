@@ -8,19 +8,50 @@ import (
    "strings"
 )
 
+const (
+	cmdDeleteAlbum = "delete-album"
+	cmdDeleteArtist = "delete-artist"
+	cmdDeletePlaylist = "delete-playlist"
+	cmdDeleteSong = "delete-song"
+	cmdHelp = "help"
+	cmdImportAlbumArt = "import-album-art"
+	cmdImportPlaylists = "import-playlists"
+	cmdImportSongs = "import-songs"
+	cmdInitStorage = "init-storage"
+	cmdListAlbums = "list-albums"
+	cmdListArtists = "list-artists"
+	cmdListContainers = "list-containers"
+	cmdListGenres = "list-genres"
+	cmdListPlaylists = "list-playlists"
+	cmdListSongs = "list-songs"
+	cmdPlay = "play"
+	cmdPlayAlbum = "play-album"
+	cmdPlayPlaylist = "play-playlist"
+	cmdRetrieveCatalog = "retrieve-catalog"
+	cmdShowAlbum = "show-album"
+	cmdShowPlaylist = "show-playlist"
+	cmdShufflePlay = "shuffle-play"
+	cmdUploadMetadataDb = "upload-metadata-db"
+	cmdUsage = "usage"
+
+	ssAzure = "azure"
+	ssFs = "fs"
+	ssS3 = "s3"
+	ssSwift = "swift"
+)
 
 func connectStorageSystem(systemName string,
                           credentials map[string]string,
                           prefix string,
                           inDebugMode bool,
                           isUpdate bool) *jukebox.FSStorageSystem {
-   if systemName == "swift" {
+   if systemName == ssSwift {
       //return connectSwiftSystem(credentials, prefix, inDebugMode, isUpdate)
-   } else if systemName == "s3" {
+   } else if systemName == ssS3 {
       //return connectS3System(credentials, prefix, inDebugMode, isUpdate)
-   } else if systemName == "azure" {
+   } else if systemName == ssAzure {
       //return connectAzureSystem(credentials, prefix, inDebugMode, isUpdate)
-   } else if systemName == "fs" {
+   } else if systemName == ssFs {
       rootDir, exists := credentials["root_dir"]
       if exists && len(rootDir) > 0 {
          return jukebox.NewFSStorageSystem(rootDir, inDebugMode)
@@ -31,30 +62,30 @@ func connectStorageSystem(systemName string,
 
 func showUsage() {
    fmt.Println("Supported Commands:")
-   fmt.Println("\tdelete-artist      - delete specified artist")
-   fmt.Println("\tdelete-album       - delete specified album")
-   fmt.Println("\tdelete-playlist    - delete specified playlist")
-   fmt.Println("\tdelete-song        - delete specified song")
-   fmt.Println("\thelp               - show this help message")
-   fmt.Println("\timport-songs       - import all new songs from song-import subdirectory")
-   fmt.Println("\timport-playlists   - import all new playlists from playlist-import subdirectory")
-   fmt.Println("\timport-album-art   - import all album art from album-art-import subdirectory")
-   fmt.Println("\tlist-songs         - show listing of all available songs")
-   fmt.Println("\tlist-artists       - show listing of all available artists")
-   fmt.Println("\tlist-containers    - show listing of all available storage containers")
-   fmt.Println("\tlist-albums        - show listing of all available albums")
-   fmt.Println("\tlist-genres        - show listing of all available genres")
-   fmt.Println("\tlist-playlists     - show listing of all available playlists")
-   fmt.Println("\tshow-album         - show songs in a specified album")
-   fmt.Println("\tshow-playlist      - show songs in specified playlist")
-   fmt.Println("\tplay               - start playing songs")
-   fmt.Println("\tshuffle-play       - play songs randomly")
-   fmt.Println("\tplay-playlist      - play specified playlist")
-   fmt.Println("\tplay-album         - play specified album")
-   fmt.Println("\tretrieve-catalog   - retrieve copy of music catalog")
-   fmt.Println("\tupload-metadata-db - upload SQLite metadata")
-   fmt.Println("\tinit-storage       - initialize storage system")
-   fmt.Println("\tusage              - show this help message")
+   fmt.Printf("\t%s      - delete specified artist", cmdDeleteArtist)
+   fmt.Printf("\t%s       - delete specified album", cmdDeleteAlbum)
+   fmt.Printf("\t%s    - delete specified playlist", cmdDeletePlaylist)
+   fmt.Printf("\t%s        - delete specified song", cmdDeleteSong)
+   fmt.Printf("\t%s               - show this help message", cmdHelp)
+   fmt.Printf("\t%s       - import all new songs from song-import subdirectory", cmdImportSongs)
+   fmt.Printf("\t%s   - import all new playlists from playlist-import subdirectory", cmdImportPlaylists)
+   fmt.Printf("\t%s   - import all album art from album-art-import subdirectory", cmdImportAlbumArt)
+   fmt.Printf("\t%s         - show listing of all available songs", cmdListSongs)
+   fmt.Printf("\t%s       - show listing of all available artists", cmdListArtists)
+   fmt.Printf("\t%s    - show listing of all available storage containers", cmdListContainers)
+   fmt.Printf("\t%s        - show listing of all available albums", cmdListAlbums)
+   fmt.Printf("\t%s        - show listing of all available genres", cmdListGenres)
+   fmt.Printf("\t%s     - show listing of all available playlists", cmdListPlaylists)
+   fmt.Printf("\t%s         - show songs in a specified album", cmdShowAlbum)
+   fmt.Printf("\t%s      - show songs in specified playlist", cmdShowPlaylist)
+   fmt.Printf("\t%s               - start playing songs", cmdPlay)
+   fmt.Printf("\t%s       - play songs randomly", cmdShufflePlay)
+   fmt.Printf("\t%s      - play specified playlist", cmdPlayPlaylist)
+   fmt.Printf("\t%s         - play specified album", cmdPlayAlbum)
+   fmt.Printf("\t%s   - retrieve copy of music catalog", cmdRetrieveCatalog)
+   fmt.Printf("\t%s - upload SQLite metadata", cmdUploadMetadataDb)
+   fmt.Printf("\t%s       - initialize storage system", cmdInitStorage)
+   fmt.Printf("\t%s              - show this help message", cmdUsage)
    fmt.Println("")
 }
 
@@ -73,7 +104,7 @@ func initStorageSystem(storageSys *jukebox.FSStorageSystem) bool {
 func main() {
    exitCode := 0
    debugMode := false
-   storageType := "swift"
+   storageType := ssFs
    artist := ""
    shuffle := false
    playlist := ""
@@ -170,7 +201,7 @@ func main() {
    if ps.Contains("storage") {
       storageType = ps.Get("storage").GetStringValue()
 
-      supportedSystems := []string{"swift", "s3", "azure", "fs"}
+      supportedSystems := []string{ssSwift, ssS3, ssAzure, ssFs}
       selectedSystemSupported := false
       for _, supportedSystem := range supportedSystems {
          if supportedSystem == storageType {
@@ -254,17 +285,17 @@ func main() {
 
       options.EncryptionIv = "sw4mpb1ts.juk3b0x"
 
-      helpCmds := []string{"help", "usage"}
-      nonHelpCmds := []string{"import-songs", "play", "shuffle-play", "list-songs",
-                                "list-artists", "list-containers", "list-genres",
-                                "list-albums", "retrieve-catalog", "import-playlists",
-                                "list-playlists", "show-playlist", "play-playlist",
-                                "delete-song", "delete-album", "delete-playlist",
-                                "delete-artist", "upload-metadata-db",
-                                "import-album-art", "play-album", "show-album"}
-      updateCmds := []string{"import-songs", "import-playlists", "delete-song",
-                              "delete-album", "delete-playlist", "delete-artist",
-                              "upload-metadata-db", "import-album-art", "init-storage"}
+      helpCmds := []string{cmdHelp, cmdUsage}
+      nonHelpCmds := []string{cmdImportSongs, cmdPlay, cmdShufflePlay, cmdListSongs,
+                              cmdListArtists, cmdListContainers, cmdListGenres,
+                              cmdListAlbums, cmdRetrieveCatalog, cmdImportPlaylists,
+                              cmdListPlaylists, cmdShowPlaylist, cmdPlayPlaylist,
+                              cmdDeleteSong, cmdDeleteAlbum, cmdDeletePlaylist,
+                              cmdDeleteArtist, cmdUploadMetadataDb,
+                              cmdImportAlbumArt, cmdPlayAlbum, cmdShowAlbum}
+      updateCmds := []string{cmdImportSongs, cmdImportPlaylists, cmdDeleteSong,
+                             cmdDeleteAlbum, cmdDeletePlaylist, cmdDeleteArtist,
+                             cmdUploadMetadataDb, cmdImportAlbumArt, cmdInitStorage}
       allCmds := []string{}
       for _, cmd := range helpCmds {
          allCmds = append(allCmds, cmd)
@@ -315,7 +346,7 @@ func main() {
                   os.Exit(1)
               }
 
-              if command == "upload-metadata-db" {
+              if command == cmdUploadMetadataDb {
                   options.SuppressMetadataDownload = true
               } else {
                   options.SuppressMetadataDownload = false
@@ -337,7 +368,7 @@ func main() {
                       defer storageSystem.Exit()
                       fmt.Println("storage system entered")
 
-                      if command == "init-storage" {
+                      if command == cmdInitStorage {
                           if initStorageSystem(storageSystem) {
                              os.Exit(0)
                           } else {
@@ -350,58 +381,58 @@ func main() {
                           defer jukebox.Exit()
                           fmt.Println("jukebox entered")
 
-                          if command == "import-songs" {
+                          if command == cmdImportSongs {
                               jukebox.ImportSongs()
-                          } else if command == "import-playlists" {
+                          } else if command == cmdImportPlaylists {
                               jukebox.ImportPlaylists()
-                          } else if command == "play" {
+                          } else if command == cmdPlay {
                               shuffle = false
                               jukebox.PlaySongs(shuffle, artist, album)
-                          } else if command == "shuffle-play" {
+                          } else if command == cmdShufflePlay {
                               shuffle = true
                               jukebox.PlaySongs(shuffle, artist, album)
-                          } else if command == "list-songs" {
+                          } else if command == cmdListSongs {
                               jukebox.ShowListings()
-                          } else if command == "list-artists" {
+                          } else if command == cmdListArtists {
                               jukebox.ShowArtists()
-                          } else if command == "list-containers" {
+                          } else if command == cmdListContainers {
                               jukebox.ShowListContainers()
-                          } else if command == "list-genres" {
+                          } else if command == cmdListGenres {
                               jukebox.ShowGenres()
-                          } else if command == "list-albums" {
+                          } else if command == cmdListAlbums {
                               jukebox.ShowAlbums()
-                          } else if command == "list-playlists" {
+                          } else if command == cmdListPlaylists {
                               jukebox.ShowPlaylists()
-                          } else if command == "show-album" {
+                          } else if command == cmdShowAlbum {
                               if len(album) > 0 {
                                   jukebox.ShowAlbum(album)
                               } else {
                                   fmt.Println("error: album must be specified using --album option")
                                   exitCode = 1
                               }
-                          } else if command == "show-playlist" {
+                          } else if command == cmdShowPlaylist {
                               if len(playlist) > 0 {
                                   jukebox.ShowPlaylist(playlist)
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
                                   exitCode = 1
                               }
-                          } else if command == "play-playlist" {
+                          } else if command == cmdPlayPlaylist {
                               if len(playlist) > 0 {
                                   jukebox.PlayPlaylist(playlist)
                               } else {
                                   fmt.Println("error: playlist must be specified using --playlist option")
                                   exitCode = 1
                               }
-                          } else if command == "play-album" {
+                          } else if command == cmdPlayAlbum {
                               if len(album) > 0 && len(artist) > 0 {
                                   jukebox.PlayAlbum(artist, album)
                               } else {
                                   fmt.Println("error: artist and album must be specified using --artist and --album options")
                               }
-                          } else if command == "retrieve-catalog" {
+                          } else if command == cmdRetrieveCatalog {
 				  //TODO: implement retrieve-catalog
-                          } else if command == "delete-song" {
+                          } else if command == cmdDeleteSong {
                               if len(song) > 0 {
                                   if jukebox.DeleteSong(song, false) {
                                       fmt.Println("song deleted")
@@ -413,7 +444,7 @@ func main() {
                                   fmt.Println("error: song must be specified using --song option")
                                   exitCode = 1
                               }
-                          } else if command == "delete-artist" {
+                          } else if command == cmdDeleteArtist {
                               if len(artist) > 0 {
                                   if jukebox.DeleteArtist(artist) {
                                       fmt.Println("artist deleted")
@@ -425,7 +456,7 @@ func main() {
                                   fmt.Println("error: artist must be specified using --artist option")
                                   exitCode = 1
                               }
-                          } else if command == "delete-album" {
+                          } else if command == cmdDeleteAlbum {
                               if len(album) > 0 {
                                   if jukebox.DeleteAlbum(album) {
                                       fmt.Println("album deleted")
@@ -437,7 +468,7 @@ func main() {
                                   fmt.Println("error: album must be specified using --album option")
                                   exitCode = 1
                               }
-                          } else if command == "delete-playlist" {
+                          } else if command == cmdDeletePlaylist {
                               if len(playlist) > 0 {
                                   if jukebox.DeletePlaylist(playlist) {
                                       fmt.Println("playlist deleted")
@@ -449,14 +480,14 @@ func main() {
                                   fmt.Println("error: playlist must be specified using --playlist option")
                                   exitCode = 1
                               }
-                          } else if command == "upload-metadata-db" {
+                          } else if command == cmdUploadMetadataDb {
                               if jukebox.UploadMetadataDb() {
                                   fmt.Println("metadata db uploaded")
                               } else {
                                   fmt.Println("error: unable to upload metadata db")
                                   exitCode = 1
                               }
-                          } else if command == "import-album-art" {
+                          } else if command == cmdImportAlbumArt {
                               jukebox.ImportAlbumArt()
                           }
                       } else {
