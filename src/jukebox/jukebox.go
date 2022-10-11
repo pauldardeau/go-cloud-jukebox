@@ -448,7 +448,6 @@ func (jukebox *Jukebox) ImportSongs() {
 		if !jukebox.debugPrint {
 			// setup progressbar
 			fmt.Printf("[%s]", strings.Repeat(" ", progressbarWidth))
-			//sys.stdout.flush()
 			fmt.Printf(strings.Repeat("\b", progressbarWidth+1)) // return to start of line, after '['
 		}
 
@@ -598,7 +597,6 @@ func (jukebox *Jukebox) ImportSongs() {
 							for j := 0; j < numNewChars; j++ {
 								fmt.Print(progressbarChar)
 							}
-							//sys.stdout.flush()
 							barChars += numNewChars
 						}
 					}
@@ -613,7 +611,6 @@ func (jukebox *Jukebox) ImportSongs() {
 				for j := 0; j < numNewChars; j++ {
 					fmt.Print(progressbarChar)
 				}
-				//sys.stdout.flush()
 			}
 			fmt.Printf("\n")
 		}
