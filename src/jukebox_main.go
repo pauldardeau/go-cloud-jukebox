@@ -75,7 +75,7 @@ func main() {
    debugMode := false
    storageType := "swift"
    artist := ""
-   //shuffle := false
+   shuffle := false
    playlist := ""
    song := ""
    album := ""
@@ -106,22 +106,17 @@ func main() {
 
    options := jukebox.NewJukeboxOptions()
 
-   //fmt.Println("initial values for options:")
-   //options.Show()
-
    if ps.Contains("debug") {
       debugMode = true
       options.DebugMode = true
    }
 
    if ps.Contains("file_cache_count") {
-      //value := args["file_cache_count"]
-      //if args.file_cache_count != nil && args.file_cache_count > 0 {
-      //   if debug_mode {
-      //      fmt.Printf("setting file cache count=%d", args.file_cache_count)
-      //   }
-      //   options.FileCacheCount = args.file_cache_count
-      //}
+	   value := ps.Get("file_cache_count").GetIntValue()
+	   if debugMode {
+		fmt.Printf("setting file cache count=%d\n", value)
+	   }
+	   options.FileCacheCount = value
    }
 
    if ps.Contains("integrity_checks") {
@@ -146,8 +141,7 @@ func main() {
    }
 
    if ps.Contains("key") {
-      pv := ps.Get("key")
-      keyValue := pv.GetStringValue()
+      keyValue := ps.Get("key").GetStringValue()
       if debugMode {
          fmt.Printf("setting encryption key='%s'\n", keyValue)
       }
@@ -155,8 +149,7 @@ func main() {
    }
 
    if ps.Contains("keyfile") {
-      pvKeyFile := ps.Get("keyfile")
-      keyFile := pvKeyFile.GetStringValue()
+      keyFile := ps.Get("keyfile").GetStringValue()
       if debugMode {
           fmt.Printf("reading encryption key file='%s'\n", keyFile)
       }
@@ -175,8 +168,7 @@ func main() {
    }
 
    if ps.Contains("storage") {
-      pvStorage := ps.Get("storage")
-      storageType = pvStorage.GetStringValue()
+      storageType = ps.Get("storage").GetStringValue()
 
       supportedSystems := []string{"swift", "s3", "azure", "fs"}
       selectedSystemSupported := false
@@ -199,28 +191,23 @@ func main() {
    }
 
    if ps.Contains("artist") {
-      pvArtist := ps.Get("artist")
-      artist = pvArtist.GetStringValue()
+      artist = ps.Get("artist").GetStringValue()
    }
 
    if ps.Contains("playlist") {
-      pvPlaylist := ps.Get("playlist")
-      playlist = pvPlaylist.GetStringValue()
+      playlist = ps.Get("playlist").GetStringValue()
    }
 
    if ps.Contains("song") {
-      pvSong := ps.Get("song")
-      song = pvSong.GetStringValue()
+      song = ps.Get("song").GetStringValue()
    }
 
    if ps.Contains("album") {
-      pvAlbum := ps.Get("album")
-      album = pvAlbum.GetStringValue()
+      album = ps.Get("album").GetStringValue()
    }
 
    if ps.Contains("command") {
-      pvCommand := ps.Get("command")
-      command := pvCommand.GetStringValue()
+      command := ps.Get("command").GetStringValue()
 
       if debugMode {
          fmt.Printf("using storage system type '%s'\n", storageType)
@@ -358,9 +345,6 @@ func main() {
                           }
                       }
 
-                      //fmt.Println("options given to jukebox:")
-                      //options.Show()
-
                       jukebox := jukebox.NewJukebox(options, storageSystem, debugMode)
                       if jukebox.Enter() {
                           defer jukebox.Exit()
@@ -371,10 +355,10 @@ func main() {
                           } else if command == "import-playlists" {
                               jukebox.ImportPlaylists()
                           } else if command == "play" {
-                              shuffle := false
+                              shuffle = false
                               jukebox.PlaySongs(shuffle, artist, album)
                           } else if command == "shuffle-play" {
-                              shuffle := true
+                              shuffle = true
                               jukebox.PlaySongs(shuffle, artist, album)
                           } else if command == "list-songs" {
                               jukebox.ShowListings()
@@ -416,7 +400,7 @@ func main() {
                                   fmt.Println("error: artist and album must be specified using --artist and --album options")
                               }
                           } else if command == "retrieve-catalog" {
-                              //pass
+				  //TODO: implement retrieve-catalog
                           } else if command == "delete-song" {
                               if len(song) > 0 {
                                   if jukebox.DeleteSong(song, false) {
@@ -482,11 +466,8 @@ func main() {
                       fmt.Println("unable to enter storage system")
                   }
               }
-                //except requests.exceptions.ConnectionError:
-                //    print("Error: unable to connect to storage system server")
-                //    os.Exit(1)
-            }
-         }
+          }
+      }
    } else {
       fmt.Println("Error: no command given")
       showUsage()
