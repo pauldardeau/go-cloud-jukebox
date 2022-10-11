@@ -465,7 +465,7 @@ func (jukebox *Jukebox) ImportSongs() {
 
 		if !jukebox.debugPrint {
 			// setup progressbar
-			fmt.Printf("[%s]", strings.Repeat(" ", progressbarWidth))
+			fmt.Printf("[%s]", strings.Repeat(".", progressbarWidth))
 			fmt.Printf(strings.Repeat("\b", progressbarWidth+1)) // return to start of line, after '['
 		}
 
