@@ -108,7 +108,6 @@ func (ps *PropertySet) GetStringValue(propName string) string {
 }
 
 func (ps *PropertySet) WriteToFile(filePath string) bool {
-	success := false
 	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return false
@@ -116,27 +115,8 @@ func (ps *PropertySet) WriteToFile(filePath string) bool {
 
 	defer f.Close()
 
-	for key, pv := range ps.mapProps {
-		if pv.IsBool() {
-			var value string
-			if pv.GetBoolValue() {
-				value = psValueTrue
-			} else {
-				value = psValueFalse
-			}
-			f.WriteString(fmt.Sprintf("%s|%s|%s\n", psTypeBool, key, value))
-		} else if pv.IsString() {
-			f.WriteString(fmt.Sprintf("%s|%s|%s\n", psTypeString, key, pv.GetStringValue()))
-		} else if pv.IsInt() {
-			f.WriteString(fmt.Sprintf("%s|%s|%d\n", psTypeInt, key, pv.GetIntValue()))
-		} else if pv.IsLong() {
-			f.WriteString(fmt.Sprintf("%s|%s|%d\n", psTypeLong, key, pv.GetLongValue()))
-		} else if pv.IsUlong() {
-			f.WriteString(fmt.Sprintf("%s|%s|%d\n", psTypeUlong, key, pv.GetUlongValue()))
-		}
-	}
-	success = true
-	return success
+	f.WriteString(ps.ToString())
+	return true
 }
 
 func (ps *PropertySet) ReadFromFile(filePath string) bool {
@@ -204,19 +184,24 @@ func (ps *PropertySet) Count() int {
 }
 
 func (ps *PropertySet) ToString() string {
-	firstProp := true
-	var propsString string
-	const commaSpace string = ", "
-
-	for key := range ps.mapProps {
-		if !firstProp {
-			propsString += commaSpace
-		}
-
-		propsString += key
-
-		if firstProp {
-			firstProp = false
+	propsString := ""
+	for key, pv := range ps.mapProps {
+		if pv.IsBool() {
+			var value string
+			if pv.GetBoolValue() {
+				value = psValueTrue
+			} else {
+				value = psValueFalse
+			}
+			propsString += fmt.Sprintf("%s|%s|%s\n", psTypeBool, key, value)
+		} else if pv.IsString() {
+			propsString += fmt.Sprintf("%s|%s|%s\n", psTypeString, key, pv.GetStringValue())
+		} else if pv.IsInt() {
+			propsString += fmt.Sprintf("%s|%s|%d\n", psTypeInt, key, pv.GetIntValue())
+		} else if pv.IsLong() {
+			propsString += fmt.Sprintf("%s|%s|%d\n", psTypeLong, key, pv.GetLongValue())
+		} else if pv.IsUlong() {
+			propsString += fmt.Sprintf("%s|%s|%d\n", psTypeUlong, key, pv.GetUlongValue())
 		}
 	}
 

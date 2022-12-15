@@ -530,11 +530,11 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
             encodedArtist := EncodeValue(artist)
             if len(album) > 0 {
                 encodedAlbum := EncodeValue(album)
-                addedClause = fmt.Sprintf(" AND object_name LIKE '%s--%s%%'",
+                addedClause = fmt.Sprintf(" AND song_uid LIKE '%s--%s%%'",
                                           encodedArtist,
                                           encodedAlbum)
             } else {
-                addedClause = fmt.Sprintf(" AND object_name LIKE '%s--%%'",
+                addedClause = fmt.Sprintf(" AND song_uid LIKE '%s--%%'",
                                           encodedArtist)
             }
             sqlQuery += addedClause

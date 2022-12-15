@@ -6,7 +6,8 @@ import (
 )
 
 func TestEncryptAES(t *testing.T) {
-	plainText := "Now is the time for all good men to come to the aid of their country."
+	//plainText := "Now is the time for all good men to come to the "
+	plainText := "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789"
 	var key string
 	var encrypted string
 	var decrypted []byte
@@ -31,6 +32,7 @@ func TestEncryptAES(t *testing.T) {
 	if decryptedText != plainText {
 		t.Log("128-bit encryption - decryptedText != plainText")
 		t.Log(fmt.Sprintf("plainText = '%s'", plainText))
+		t.Log(fmt.Sprintf("encrypted = '%s'", encrypted))
 		t.Log(fmt.Sprintf("decrypted = '%s'", decryptedText))
 		t.Fail()
 	}
