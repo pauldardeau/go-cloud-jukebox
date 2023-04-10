@@ -1246,15 +1246,21 @@ func (jukebox *Jukebox) PlayPlaylist(playlistName string) {
 
 		for _, song := range playlist.Songs {
 			baseObjectName := EncodeArtistAlbumSong(song.Artist, song.Album, song.Song)
+
+			songFound := false
+
 			for _, ext := range extList {
 				objectName := baseObjectName + ext
 				dbSong := jukebox.jukeboxDb.retrieveSong(objectName)
 				if dbSong != nil {
+					songFound = true
 					songList = append(songList, dbSong)
 					break
-				} else {
-					fmt.Printf("No song file for %s\n", baseObjectName)
 				}
+			}
+
+			if !songFound {
+				fmt.Printf("No song file for %s\n", baseObjectName)
 			}
 		}
 		jukebox.playSongList(songList, false)
@@ -1306,15 +1312,21 @@ func (jukebox *Jukebox) PlayAlbum(artist string, albumName string) {
 				if posDot > 0 {
 					baseObjectName = baseObjectName[0:posDot]
 				}
+
+				songFound := false
+
 				for _, ext := range extList {
 					objectName := baseObjectName + ext
 					dbSong := jukebox.jukeboxDb.retrieveSong(objectName)
 					if dbSong != nil {
+						songFound = true
 						songList = append(songList, dbSong)
 						break
-					} else {
-						fmt.Printf("No song file for %s\n", baseObjectName)
 					}
+				}
+
+				if !songFound {
+					fmt.Printf("No song file for %s\n", baseObjectName)
 				}
 			}
 			if len(songList) > 0 {
