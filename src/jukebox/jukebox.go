@@ -832,25 +832,7 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
 		}
 	} else {
 		fmt.Printf("song file doesn't exist: '%s'\n", songFilePath)
-
-		f, err := os.OpenFile("404.txt",
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-			0644)
-		if err != nil {
-			fmt.Println("error: unable to open 404.txt to append song file")
-			fmt.Println(err)
-			return
-		}
-		defer func() {
-			if err := f.Close(); err != nil {
-				panic(err)
-			}
-		}()
-
-		if _, err := f.WriteString(songFilePath + "\n"); err != nil {
-			fmt.Println("error: unable to write to 404.txt")
-			fmt.Println(err)
-		}
+		FileAppendText("404.txt", songFilePath+"\n")
 	}
 }
 

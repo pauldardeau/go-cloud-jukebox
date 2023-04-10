@@ -190,6 +190,28 @@ func FileWriteAllText(filePath string, fileContents string) bool {
 	return true
 }
 
+func FileAppendText(filePath string, contentsToAppend string) bool {
+	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("error: unable to open %s to append\n", filePath)
+		fmt.Println(err)
+		return false
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if _, err := f.WriteString(contentsToAppend); err != nil {
+		fmt.Printf("error: unable to write to %s\n", filePath)
+		fmt.Println(err)
+		return false
+	}
+
+	return true
+}
+
 func FileWriteAllBytes(filePath string, fileContents []byte) bool {
 	f, err := os.Create(filePath)
 	if err != nil {
