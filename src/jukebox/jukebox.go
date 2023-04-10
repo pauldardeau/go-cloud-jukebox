@@ -110,6 +110,7 @@ func (jukebox *Jukebox) installSignalHandlers() {
 func NewJukebox(jbOptions *JukeboxOptions,
 	storageSys StorageSystem,
 	debugPrint bool) *Jukebox {
+
 	var jukebox Jukebox
 	jukebox.jukeboxOptions = jbOptions
 	jukebox.storageSystem = storageSys
@@ -118,6 +119,9 @@ func NewJukebox(jbOptions *JukeboxOptions,
 	cwd, err := os.Getwd()
 	if err == nil {
 		jukebox.currentDir = cwd
+	} else {
+		fmt.Println("error: unable to determine current working directory")
+		return nil
 	}
 	jukebox.songImportDir = PathJoin(jukebox.currentDir, songImportDir)
 	jukebox.playlistImportDir = PathJoin(jukebox.currentDir, playlistImportDir)
@@ -140,11 +144,15 @@ func NewJukebox(jbOptions *JukeboxOptions,
 	if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.DebugMode {
 		jukebox.debugPrint = true
 	}
+
 	if jukebox.debugPrint {
 		fmt.Printf("currentDir = '%s'\n", jukebox.currentDir)
-		fmt.Printf("songImportDir = '%s'\n", jukebox.songImportDir)
 		fmt.Printf("songPlayDir = '%s'\n", jukebox.songPlayDir)
+		fmt.Printf("albumArtImportDir = '%s'\n", jukebox.albumArtImportDir)
+		fmt.Printf("playlistImportDir = '%s'\n", jukebox.playlistImportDir)
+		fmt.Printf("songImportDir = '%s'\n", jukebox.songImportDir)
 	}
+
 	return &jukebox
 }
 
@@ -635,6 +643,7 @@ func (jukebox *Jukebox) batchDownloadComplete() {
 
 func (jukebox *Jukebox) retrieveFile(fm *FileMetadata, dirPath string) int64 {
 	var bytesRetrieved int64
+	bytesRetrieved = 0
 
 	if jukebox.storageSystem != nil && fm != nil && len(dirPath) > 0 {
 		localFilePath := PathJoin(dirPath, fm.FileUid)
@@ -679,10 +688,8 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) bool {
 				}
 			}
 
-			// is it encrypted? if so, unencrypt it
-			encrypted := song.Fm.Encrypted
-
-			if encrypted {
+			// is it encrypted? if so, decrypt it
+			if song.Fm.Encrypted {
 				fileContents, errFile := FileReadAllBytes(filePath)
 				if errFile != nil {
 					fmt.Printf("error: unable to read file %s\n", filePath)
@@ -729,9 +736,9 @@ func (jukebox *Jukebox) playSong(song *SongMetadata) {
 		if len(jukebox.audioPlayerExeFileName) > 0 {
 			var args []string
 			if len(jukebox.audioPlayerCommandArgs) > 0 {
-				vecAddlArgs := strings.Split(jukebox.audioPlayerCommandArgs, " ")
-				for _, addlArg := range vecAddlArgs {
-					args = append(args, addlArg)
+				vecExtraArgs := strings.Split(jukebox.audioPlayerCommandArgs, " ")
+				for _, extraArg := range vecExtraArgs {
+					args = append(args, extraArg)
 				}
 			}
 			args = append(args, songFilePath)
