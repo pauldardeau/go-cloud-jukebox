@@ -1245,10 +1245,7 @@ func (jukebox *Jukebox) PlayPlaylist(playlistName string) {
 		extList = append(extList, ".mp3")
 
 		for _, song := range playlist.Songs {
-			artistName := EncodeValue(song.Artist)
-			albumName := EncodeValue(song.Album)
-			songName := EncodeValue(song.Song)
-			baseObjectName := fmt.Sprintf("%s--%s--%s", artistName, albumName, songName)
+			baseObjectName := EncodeArtistAlbumSong(song.Artist, song.Album, song.Song)
 			for _, ext := range extList {
 				objectName := baseObjectName + ext
 				dbSong := jukebox.jukeboxDb.retrieveSong(objectName)
@@ -1293,7 +1290,7 @@ func (jukebox *Jukebox) getAlbum(albumUid string) *Album {
 }
 
 func (jukebox *Jukebox) PlayAlbum(artist string, albumName string) {
-	objectName := fmt.Sprintf("%s--%s.json", EncodeValue(artist), EncodeValue(albumName))
+	objectName := fmt.Sprintf("%s.json", EncodeArtistAlbum(artist, albumName))
 	album := jukebox.getAlbum(objectName)
 	if album != nil {
 		if len(album.Tracks) > 0 {
