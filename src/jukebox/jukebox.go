@@ -1492,7 +1492,7 @@ func InitializeStorageSystem(storageSys StorageSystem) bool {
 	}
 
 	// create the other (non-song) containers
-	containerNames := make([]string, 0)
+	containerNames := make([]string, 4)
 	containerNames = append(containerNames, metadataContainer)
 	containerNames = append(containerNames, albumArtContainer)
 	containerNames = append(containerNames, albumContainer)
@@ -1506,9 +1506,8 @@ func InitializeStorageSystem(storageSys StorageSystem) bool {
 	}
 
 	// delete metadata DB file if present
-	metadataDbFile := "jukebox_db.sqlite3"
-	if FileExists(metadataDbFile) {
-		DeleteFile(metadataDbFile)
+	if FileExists(defaultDbFileName) {
+		DeleteFile(defaultDbFileName)
 	}
 
 	return true

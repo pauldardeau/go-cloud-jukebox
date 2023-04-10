@@ -272,6 +272,7 @@ func main() {
 
 		if !selectedSystemSupported {
 			fmt.Printf("error: invalid storage type '%s'\n", storageType)
+			//TODO: print message indicating which storage systems are supported
 			//print("supported systems are: %s" % str(supportedSystems))
 			os.Exit(1)
 		} else {
@@ -318,6 +319,7 @@ func main() {
 				fmt.Printf("reading creds file '%s'\n", credsFilePath)
 			}
 
+			//TODO: convert the code below to use jukebox.FileReadAllText
 			readFile, err := os.Open(credsFilePath)
 			if err != nil {
 				fmt.Println(err)
@@ -492,6 +494,7 @@ func main() {
 								}
 							} else if command == cmdRetrieveCatalog {
 								//TODO: implement retrieve-catalog
+								fmt.Printf("%s not yet implemented\n", cmdRetrieveCatalog)
 							} else if command == cmdDeleteSong {
 								if len(song) > 0 {
 									if jukebox.DeleteSong(song, false) {
@@ -551,10 +554,13 @@ func main() {
 								jukebox.ImportAlbumArt()
 							} else if command == cmdImportAlbum {
 								//TODO: implement import album
+								fmt.Printf("%s not yet implemented\n", cmdImportAlbum)
 							} else if command == cmdExportAlbum {
 								//TODO: implement export album
+								fmt.Printf("%s not yet implemented\n", cmdExportAlbum)
 							} else if command == cmdExportPlaylist {
 								//TODO: implement export playlist
+								fmt.Printf("%s not yet implemented\n", cmdExportPlaylist)
 							}
 						} else {
 							fmt.Println("unable to enter jukebox")
