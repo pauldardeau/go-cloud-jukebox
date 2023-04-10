@@ -140,3 +140,23 @@ func (fm *FileMetadata) ToDictionaryWithPrefix(prefix string) map[string]string 
 		prefix + "ObjectName":     fm.ObjectName,
 	}
 }
+
+func (fm *FileMetadata) ToPropertySet() *PropertySet {
+	return fm.ToPropertySetWithPrefix("")
+}
+
+func (fm *FileMetadata) ToPropertySetWithPrefix(prefix string) *PropertySet {
+	props := NewPropertySet()
+	props.Add(prefix+"file_uid", NewStringPropertyValue(fm.FileUid))
+	props.Add(prefix+"file_name", NewStringPropertyValue(fm.FileName))
+	props.Add(prefix+"origin_file_size", NewLongPropertyValue(fm.OriginFileSize))
+	props.Add(prefix+"stored_file_size", NewLongPropertyValue(fm.StoredFileSize))
+	props.Add(prefix+"pad_char_count", NewIntPropertyValue(fm.PadCharCount))
+	props.Add(prefix+"file_time", NewStringPropertyValue(fm.FileTime))
+	props.Add(prefix+"md5_hash", NewStringPropertyValue(fm.Md5Hash))
+	props.Add(prefix+"compressed", NewBoolPropertyValue(fm.Compressed))
+	props.Add(prefix+"encrypted", NewBoolPropertyValue(fm.Encrypted))
+	props.Add(prefix+"container_name", NewStringPropertyValue(fm.ContainerName))
+	props.Add(prefix+"object_name", NewStringPropertyValue(fm.ObjectName))
+	return props
+}

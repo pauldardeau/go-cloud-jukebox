@@ -1,0 +1,5 @@
+go-cloud-jukebox
+jukebox.pid
+jukebox_db.sqlite3
+s3_creds.txt
+song-play/

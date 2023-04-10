@@ -7,7 +7,6 @@ import (
 type JukeboxOptions struct {
 	DebugMode                bool
 	UseEncryption            bool
-	UseCompression           bool
 	CheckDataIntegrity       bool
 	FileCacheCount           int
 	NumberSongs              int
@@ -21,7 +20,6 @@ func NewJukeboxOptions() *JukeboxOptions {
 	var o JukeboxOptions
 	o.DebugMode = false
 	o.UseEncryption = false
-	o.UseCompression = false
 	o.CheckDataIntegrity = false
 	o.FileCacheCount = 3
 	o.NumberSongs = 0
@@ -44,7 +42,6 @@ func (o *JukeboxOptions) Show() {
 	fmt.Println("========= Start JukeboxOptions ========")
 	printBoolValue("DebugMode", o.DebugMode)
 	printBoolValue("UseEncryption", o.UseEncryption)
-	printBoolValue("UseCompression", o.UseCompression)
 	printBoolValue("CheckDataIntegrity", o.CheckDataIntegrity)
 	fmt.Printf("FileCacheCount = %d\n", o.FileCacheCount)
 	fmt.Printf("NumberSongs = %d\n", o.NumberSongs)

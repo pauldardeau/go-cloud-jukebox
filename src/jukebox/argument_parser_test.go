@@ -3,7 +3,7 @@ package jukebox
 import "testing"
 
 func TestNewArgumentParser(t *testing.T) {
-	ap := NewArgumentParser()
+	ap := NewArgumentParser(false)
 	if ap == nil {
 		t.Log("NewArgumentParser should not return nil")
 		t.Fail()
@@ -12,7 +12,7 @@ func TestNewArgumentParser(t *testing.T) {
 
 func TestAddOptionalBoolFlag(t *testing.T) {
 	th := NewTestHelper(t)
-	ap := NewArgumentParser()
+	ap := NewArgumentParser(false)
 	ap.AddOptionalBoolFlag("--debug", "turn on debugging support")
 	args := make([]string, 0)
 
@@ -33,7 +33,7 @@ func TestAddOptionalBoolFlag(t *testing.T) {
 
 func TestAddOptionalIntArgument(t *testing.T) {
 	th := NewTestHelper(t)
-	ap := NewArgumentParser()
+	ap := NewArgumentParser(false)
 	ap.AddOptionalIntArgument("--logLevel", "adjust logging level up or down")
 
 	args := make([]string, 0)
@@ -56,7 +56,7 @@ func TestAddOptionalIntArgument(t *testing.T) {
 
 func TestAddOptionalStringArgument(t *testing.T) {
 	th := NewTestHelper(t)
-	ap := NewArgumentParser()
+	ap := NewArgumentParser(false)
 	ap.AddOptionalStringArgument("--user", "user id for command")
 
 	args := make([]string, 0)
@@ -79,7 +79,7 @@ func TestAddOptionalStringArgument(t *testing.T) {
 
 func TestAddRequiredArgument(t *testing.T) {
 	th := NewTestHelper(t)
-	ap := NewArgumentParser()
+	ap := NewArgumentParser(false)
 	ap.AddRequiredArgument("command", "command to execute")
 
 	args := make([]string, 0)
@@ -101,7 +101,7 @@ func TestAddRequiredArgument(t *testing.T) {
 
 func TestParseArgs(t *testing.T) {
 	th := NewTestHelper(t)
-	ap := NewArgumentParser()
+	ap := NewArgumentParser(false)
 	ap.AddOptionalBoolFlag("--debug", "provide debugging support")
 	ap.AddOptionalIntArgument("--logLevel", "adjust logging level up or down")
 	ap.AddOptionalStringArgument("--user", "user issuing command")

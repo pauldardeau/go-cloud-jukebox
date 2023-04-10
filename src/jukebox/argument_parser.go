@@ -13,13 +13,14 @@ type ArgumentParser struct {
 	dictStringOptions    map[string]string
 	dictCommands         map[string]string
 	listCommands         []string
+	debugMode            bool
 }
 
-const TYPE_BOOL = "bool"
-const TYPE_INT = "int"
-const TYPE_STRING = "string"
+const TypeBool = "bool"
+const TypeInt = "int"
+const TypeString = "string"
 
-func NewArgumentParser() *ArgumentParser {
+func NewArgumentParser(debugMode bool) *ArgumentParser {
 	var argParser ArgumentParser
 	argParser.dictAllReservedWords = make(map[string]string)
 	argParser.dictBoolOptions = make(map[string]string)
@@ -27,6 +28,7 @@ func NewArgumentParser() *ArgumentParser {
 	argParser.dictStringOptions = make(map[string]string)
 	argParser.dictCommands = make(map[string]string)
 	argParser.listCommands = []string{}
+	argParser.debugMode = debugMode
 	return &argParser
 }
 
@@ -35,25 +37,25 @@ func (ap *ArgumentParser) addOption(o string,
 	help string) {
 	ap.dictAllReservedWords[o] = optionType
 
-	if optionType == TYPE_BOOL {
+	if optionType == TypeBool {
 		ap.dictBoolOptions[o] = help
-	} else if optionType == TYPE_INT {
+	} else if optionType == TypeInt {
 		ap.dictIntOptions[o] = help
-	} else if optionType == TYPE_STRING {
+	} else if optionType == TypeString {
 		ap.dictStringOptions[o] = help
 	}
 }
 
 func (ap *ArgumentParser) AddOptionalBoolFlag(flag string, help string) {
-	ap.addOption(flag, TYPE_BOOL, help)
+	ap.addOption(flag, TypeBool, help)
 }
 
 func (ap *ArgumentParser) AddOptionalIntArgument(arg string, help string) {
-	ap.addOption(arg, TYPE_INT, help)
+	ap.addOption(arg, TypeInt, help)
 }
 
 func (ap *ArgumentParser) AddOptionalStringArgument(arg string, help string) {
-	ap.addOption(arg, TYPE_STRING, help)
+	ap.addOption(arg, TypeString, help)
 }
 
 func (ap *ArgumentParser) AddRequiredArgument(arg string, help string) {
@@ -86,26 +88,32 @@ func (ap *ArgumentParser) ParseArgs(args []string) *PropertySet {
 		if ok {
 			argType := dictValue
 			arg = arg[2:]
-			if argType == TYPE_BOOL {
-				fmt.Printf("adding key=%s value=true\n", arg)
+			if argType == TypeBool {
+				if ap.debugMode {
+					fmt.Printf("adding key=%s value=true\n", arg)
+				}
 				ps.Add(arg, NewBoolPropertyValue(true))
-			} else if argType == TYPE_INT {
+			} else if argType == TypeInt {
 				i++
 				if i < numArgs {
 					nextArg := args[i]
 					intValue, intErr := strconv.Atoi(nextArg)
 					if intErr == nil {
-						fmt.Printf("adding key=%s value=%d\n", arg, intValue)
+						if ap.debugMode {
+							fmt.Printf("adding key=%s value=%d\n", arg, intValue)
+						}
 						ps.Add(arg, NewIntPropertyValue(intValue))
 					}
 				} else {
-					// missing int valuey
+					// missing int value
 				}
-			} else if argType == TYPE_STRING {
+			} else if argType == TypeString {
 				i++
 				if i < numArgs {
 					nextArg := args[i]
-					fmt.Printf("adding key=%s value=%s\n", arg, nextArg)
+					if ap.debugMode {
+						fmt.Printf("adding key=%s value=%s\n", arg, nextArg)
+					}
 					ps.Add(arg, NewStringPropertyValue(nextArg))
 				} else {
 					// missing string value
@@ -119,7 +127,9 @@ func (ap *ArgumentParser) ParseArgs(args []string) *PropertySet {
 			} else {
 				if commandsFound < len(ap.listCommands) {
 					commandName := ap.listCommands[commandsFound]
-					fmt.Printf("adding key=%s value=%s\n", commandName, arg)
+					if ap.debugMode {
+						fmt.Printf("adding key=%s value=%s\n", commandName, arg)
+					}
 					ps.Add(commandName, NewStringPropertyValue(arg))
 					commandsFound++
 				} else {

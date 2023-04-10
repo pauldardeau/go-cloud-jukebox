@@ -4,18 +4,18 @@ import (
 	"testing"
 )
 
-func TestUnencodeValue(t *testing.T) {
-	artist := UnencodeValue("The-Who")
+func TestDecodeValue(t *testing.T) {
+	artist := DecodeValue("The-Who")
 	if artist != "The Who" {
 		t.Fail()
 	}
 
-	album := UnencodeValue("Whos-Next")
+	album := DecodeValue("Whos-Next")
 	if album != "Whos Next" {
 		t.Fail()
 	}
 
-	song := UnencodeValue("My-Wife")
+	song := DecodeValue("My-Wife")
 	if song != "My Wife" {
 		t.Fail()
 	}
@@ -56,7 +56,7 @@ func TestCreateDirectory(t *testing.T) {
 func TestListDirsInDirectory(t *testing.T) {
 }
 
-func TestDirectoryDeleteDirectory(t *testing.T) {
+func TestDeleteDirectory(t *testing.T) {
 }
 
 func TestListFilesInDirectory(t *testing.T) {

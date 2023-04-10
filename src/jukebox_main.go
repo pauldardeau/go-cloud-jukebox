@@ -12,7 +12,6 @@ const (
 	argDebug           = "debug"
 	argFileCacheCount  = "file-cache-count"
 	argIntegrityChecks = "integrity-checks"
-	argCompress        = "compress"
 	argEncrypt         = "encrypt"
 	argKey             = "key"
 	argKeyFile         = "keyfile"
@@ -51,23 +50,75 @@ const (
 	cmdUploadMetadataDb = "upload-metadata-db"
 	cmdUsage            = "usage"
 
-	ssAzure = "azure"
-	ssFs    = "fs"
-	ssS3    = "s3"
-	ssSwift = "swift"
+	ssFs = "fs"
+	ssS3 = "s3"
 )
+
+func connectS3StorageSystem(credentials map[string]string,
+	prefix string,
+	inDebugMode bool,
+	isUpdate bool) jukebox.StorageSystem {
+
+	awsAccessKey := ""
+	awsSecretKey := ""
+	updateAwsAccessKey := ""
+	updateAwsSecretKey := ""
+
+	if accessKey, ok := credentials["aws_access_key"]; ok {
+		awsAccessKey = accessKey
+	}
+	if secretKey, ok := credentials["aws_secret_key"]; ok {
+		awsSecretKey = secretKey
+	}
+
+	updateAccessKey, okAccessKey := credentials["update_aws_access_key"]
+	updateSecretKey, okSecretKey := credentials["update_aws_secret_key"]
+
+	if okAccessKey && okSecretKey {
+		updateAwsAccessKey = updateAccessKey
+		updateAwsSecretKey = updateSecretKey
+	}
+
+	if inDebugMode {
+		fmt.Printf("aws_access_key=%s\n", awsAccessKey)
+		fmt.Printf("aws_secret_key=%s\n", awsSecretKey)
+		if len(updateAwsAccessKey) > 0 && len(updateAwsSecretKey) > 0 {
+			fmt.Printf("update_aws_access_key=%s\n", updateAwsAccessKey)
+			fmt.Printf("update_aws_secret_key=%s\n", updateAwsSecretKey)
+		}
+	}
+
+	if len(awsAccessKey) == 0 || len(awsSecretKey) == 0 {
+		fmt.Println("error: no s3 credentials given. please specify aws_access_key " +
+			"and aws_secret_key in credentials file")
+		return nil
+	} else {
+		var accessKey string
+		var secretKey string
+
+		if isUpdate {
+			accessKey = updateAwsAccessKey
+			secretKey = updateAwsSecretKey
+		} else {
+			accessKey = awsAccessKey
+			secretKey = awsSecretKey
+		}
+
+		if inDebugMode {
+			fmt.Println("Creating S3StorageSystem")
+		}
+		return jukebox.NewS3StorageSystem(accessKey, secretKey, prefix, inDebugMode)
+	}
+}
 
 func connectStorageSystem(systemName string,
 	credentials map[string]string,
 	prefix string,
 	inDebugMode bool,
-	isUpdate bool) *jukebox.FSStorageSystem {
-	if systemName == ssSwift {
-		//return connectSwiftSystem(credentials, prefix, inDebugMode, isUpdate)
-	} else if systemName == ssS3 {
-		//return connectS3System(credentials, prefix, inDebugMode, isUpdate)
-	} else if systemName == ssAzure {
-		//return connectAzureSystem(credentials, prefix, inDebugMode, isUpdate)
+	isUpdate bool) jukebox.StorageSystem {
+
+	if systemName == ssS3 {
+		return connectS3StorageSystem(credentials, prefix, inDebugMode, isUpdate)
 	} else if systemName == ssFs {
 		rootDir, exists := credentials["root_dir"]
 		if exists && len(rootDir) > 0 {
@@ -106,7 +157,7 @@ func showUsage() {
 	fmt.Println("")
 }
 
-func initStorageSystem(storageSys *jukebox.FSStorageSystem) bool {
+func initStorageSystem(storageSys jukebox.StorageSystem) bool {
 	var success bool
 	if jukebox.InitializeStorageSystem(storageSys) {
 		fmt.Println("storage system successfully initialized")
@@ -128,15 +179,14 @@ func main() {
 	song := ""
 	album := ""
 
-	optParser := jukebox.NewArgumentParser()
+	optParser := jukebox.NewArgumentParser(debugMode)
 	optParser.AddOptionalBoolFlag("--"+argDebug, "run in debug mode")
 	optParser.AddOptionalIntArgument("--"+argFileCacheCount, "number of songs to buffer in cache")
 	optParser.AddOptionalBoolFlag("--"+argIntegrityChecks, "check file integrity after download")
-	optParser.AddOptionalBoolFlag("--"+argCompress, "use gzip compression")
 	optParser.AddOptionalBoolFlag("--"+argEncrypt, "encrypt file contents")
 	optParser.AddOptionalStringArgument("--"+argKey, "encryption key")
 	optParser.AddOptionalStringArgument("--"+argKeyFile, "path to file containing encryption key")
-	optParser.AddOptionalStringArgument("--"+argStorage, "storage system type (s3, swift, azure)")
+	optParser.AddOptionalStringArgument("--"+argStorage, "storage system type (s3, fs)")
 	optParser.AddOptionalStringArgument("--"+argArtist, "limit operations to specified artist")
 	optParser.AddOptionalStringArgument("--"+argPlaylist, "limit operations to specified playlist")
 	optParser.AddOptionalStringArgument("--"+argSong, "limit operations to specified song")
@@ -172,13 +222,6 @@ func main() {
 			fmt.Println("setting integrity checks on")
 		}
 		options.CheckDataIntegrity = true
-	}
-
-	if ps.Contains(argCompress) {
-		if debugMode {
-			fmt.Println("setting compression on")
-		}
-		options.UseCompression = true
 	}
 
 	if ps.Contains(argEncrypt) {
@@ -218,7 +261,7 @@ func main() {
 	if ps.Contains(argStorage) {
 		storageType = ps.Get(argStorage).GetStringValue()
 
-		supportedSystems := []string{ssSwift, ssS3, ssAzure, ssFs}
+		supportedSystems := []string{ssS3, ssFs}
 		selectedSystemSupported := false
 		for _, supportedSystem := range supportedSystems {
 			if supportedSystem == storageType {
@@ -313,7 +356,7 @@ func main() {
 		updateCmds := []string{cmdImportSongs, cmdImportPlaylists, cmdDeleteSong,
 			cmdDeleteAlbum, cmdDeletePlaylist, cmdDeleteArtist,
 			cmdUploadMetadataDb, cmdImportAlbumArt, cmdInitStorage}
-		allCmds := []string{}
+		allCmds := make([]string, 0)
 		for _, cmd := range helpCmds {
 			allCmds = append(allCmds, cmd)
 		}

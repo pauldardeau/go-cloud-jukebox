@@ -115,7 +115,10 @@ func (ps *PropertySet) WriteToFile(filePath string) bool {
 
 	defer f.Close()
 
-	f.WriteString(ps.ToString())
+	_, err = f.WriteString(ps.ToString())
+	if err != nil {
+		return false
+	}
 	return true
 }
 

@@ -10,14 +10,6 @@ import (
 	"time"
 )
 
-func UnencodeValue(encodedValue string) string {
-	return strings.Replace(encodedValue, "-", " ", -1)
-}
-
-func EncodeValue(value string) string {
-	return strings.Replace(value, " ", "-", -1)
-}
-
 func FileExists(pathToFile string) bool {
 	file, err := os.Stat(pathToFile)
 	if err != nil {
@@ -87,7 +79,7 @@ func ListDirsInDirectory(dirPath string) ([]string, error) {
 	return fileList, nil
 }
 
-func DirectoryDeleteDirectory(dirPath string) bool {
+func DeleteDirectory(dirPath string) bool {
 	err := os.Remove(dirPath)
 	return err == nil
 }
@@ -185,9 +177,16 @@ func FileWriteAllText(filePath string, fileContents string) bool {
 		fmt.Printf("error: unable to create file '%s': %v\n", filePath, err)
 		return false
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
-	f.Write([]byte(fileContents))
+	_, err = f.Write([]byte(fileContents))
+	if err != nil {
+		return false
+	}
 	return true
 }
 
@@ -197,9 +196,16 @@ func FileWriteAllBytes(filePath string, fileContents []byte) bool {
 		fmt.Printf("error: unable to create file '%s': %v\n", filePath, err)
 		return false
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
-	f.Write(fileContents)
+	_, err = f.Write(fileContents)
+	if err != nil {
+		return false
+	}
 	return true
 }
 
@@ -218,7 +224,11 @@ func Md5ForFile(pathToFile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	h := md5.New()
 	if _, err := io.Copy(h, f); err != nil {
