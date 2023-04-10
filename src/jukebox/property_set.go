@@ -2,7 +2,6 @@ package jukebox
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -80,7 +79,7 @@ func (ps *PropertySet) GetLongValue(propName string) int64 {
 	}
 }
 
-func (ps *PropertySet) GetUlongValue(propName string) uint64 {
+func (ps *PropertySet) GetUnsignedLongValue(propName string) uint64 {
 	pv := ps.Get(propName)
 	if pv != nil && pv.IsUlong() {
 		return pv.GetUlongValue()
@@ -108,18 +107,12 @@ func (ps *PropertySet) GetStringValue(propName string) string {
 }
 
 func (ps *PropertySet) WriteToFile(filePath string) bool {
-	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return false
+	success := false
+	s := ps.ToString()
+	if len(s) > 0 {
+		success = FileWriteAllText(filePath, s)
 	}
-
-	defer f.Close()
-
-	_, err = f.WriteString(ps.ToString())
-	if err != nil {
-		return false
-	}
-	return true
+	return success
 }
 
 func (ps *PropertySet) ReadFromFile(filePath string) bool {
@@ -137,10 +130,7 @@ func (ps *PropertySet) ReadFromFile(filePath string) bool {
 						propName := fields[1]
 						propValue := fields[2]
 
-						if len(dataType) > 0 &&
-							len(propName) > 0 &&
-							len(propValue) > 0 {
-
+						if len(dataType) > 0 && len(propName) > 0 && len(propValue) > 0 {
 							if dataType == psTypeBool {
 								if propValue == psValueTrue || propValue == psValueFalse {
 									boolValue := propValue == psValueTrue
@@ -156,18 +146,24 @@ func (ps *PropertySet) ReadFromFile(filePath string) bool {
 								if errConv == nil {
 									ps.Add(propName, NewIntPropertyValue(intValue))
 								} else {
+									fmt.Printf("error: unable to convert property %s value (%s) to integer\n", propName, propValue)
+									return false
 								}
 							} else if dataType == psTypeLong {
 								longValue, errConv := strconv.ParseInt(propValue, 10, 64)
 								if errConv == nil {
 									ps.Add(propName, NewLongPropertyValue(longValue))
 								} else {
+									fmt.Printf("error: unable to convert property %s value (%s) to long\n", propName, propValue)
+									return false
 								}
 							} else if dataType == psTypeUlong {
-								ulongValue, errConv := strconv.ParseUint(propValue, 10, 64)
+								unsignedLongValue, errConv := strconv.ParseUint(propValue, 10, 64)
 								if errConv == nil {
-									ps.Add(propName, NewUlongPropertyValue(ulongValue))
+									ps.Add(propName, NewUlongPropertyValue(unsignedLongValue))
 								} else {
+									fmt.Printf("error: unable to convert property %s value (%s) to unsigned long\n", propName, propValue)
+									return false
 								}
 							} else {
 								fmt.Printf("error: unrecognized data type '%s', skipping\n", dataType)

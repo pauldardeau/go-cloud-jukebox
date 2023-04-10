@@ -98,14 +98,14 @@ func TestPSGetLongValue(t *testing.T) {
 	th.Require(longValue == 9, "GetLongValue should return matching value used in Add")
 }
 
-func TestPSGetUlongValue(t *testing.T) {
+func TestPSGetUnsignedLongValue(t *testing.T) {
 	th := NewTestHelper(t)
 	ps := NewPropertySet()
-	ulongValue := ps.GetUlongValue("foo")
-	th.Require(ulongValue == 0, "GetUlongValue should return 0 for non-existing property")
+	unsignedLongValue := ps.GetUnsignedLongValue("foo")
+	th.Require(unsignedLongValue == 0, "GetUnsignedLongValue should return 0 for non-existing property")
 	ps.Add("numPlanets", NewUlongPropertyValue(9))
-	ulongValue = ps.GetUlongValue("numPlanets")
-	th.Require(ulongValue == 9, "GetUlongValue should return matching value used in Add")
+	unsignedLongValue = ps.GetUnsignedLongValue("numPlanets")
+	th.Require(unsignedLongValue == 9, "GetUnsignedLongValue should return matching value used in Add")
 }
 
 func TestPSGetBoolValue(t *testing.T) {
