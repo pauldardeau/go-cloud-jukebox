@@ -221,7 +221,7 @@ func (jukeboxDB *JukeboxDB) getPlaylist(playlistName string) *string {
 }
 
 func (jukeboxDB *JukeboxDB) songsForQueryResults(rows *sql.Rows) []*SongMetadata {
-	resultSongs := make([]*SongMetadata, 0)
+	var resultSongs []*SongMetadata
 
 	for rows.Next() {
 		var fileUid string
@@ -557,7 +557,7 @@ func (jukeboxDB *JukeboxDB) retrieveSongs(artist string,
 }
 
 func (jukeboxDB *JukeboxDB) songsForArtist(artistName string) []*SongMetadata {
-	songs := make([]*SongMetadata, 0)
+	var songs []*SongMetadata
 	if jukeboxDB.dbConnection != nil {
 		sqlQuery := `
             SELECT song_uid,

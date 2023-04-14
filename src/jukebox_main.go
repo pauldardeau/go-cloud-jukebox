@@ -358,7 +358,7 @@ func main() {
 		updateCmds := []string{cmdImportSongs, cmdImportPlaylists, cmdDeleteSong,
 			cmdDeleteAlbum, cmdDeletePlaylist, cmdDeleteArtist,
 			cmdUploadMetadataDb, cmdImportAlbumArt, cmdInitStorage}
-		allCmds := make([]string, 0)
+		var allCmds []string
 		for _, cmd := range helpCmds {
 			allCmds = append(allCmds, cmd)
 		}

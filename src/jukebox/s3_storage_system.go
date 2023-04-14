@@ -111,7 +111,7 @@ func (ss *S3StorageSystem) ListAccountContainers() (*[]string, error) {
 			fmt.Printf("ListBuckets failed\n")
 			return nil, err
 		} else {
-			listContainers := make([]string, len(result.Buckets))
+			var listContainers []string
 			for _, bucket := range result.Buckets {
 				listContainers = append(listContainers, *bucket.Name)
 			}
@@ -173,7 +173,7 @@ func (ss *S3StorageSystem) ListContainerContents(containerName string) ([]string
 		bucket := aws.String(containerName)
 		resp, err := ss.s3Client.ListObjectsV2(&s3.ListObjectsV2Input{Bucket: bucket})
 		if err == nil {
-			listObjects := make([]string, len(resp.Contents))
+			var listObjects []string
 			for _, item := range resp.Contents {
 				if len(*item.Key) > 0 {
 					listObjects = append(listObjects, *item.Key)

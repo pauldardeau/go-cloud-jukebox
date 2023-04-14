@@ -65,7 +65,7 @@ func CreateDirectory(dirPath string) bool {
 }
 
 func ListDirsInDirectory(dirPath string) ([]string, error) {
-	fileList := make([]string, 0)
+	var fileList []string
 	files, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func DeleteDirectory(dirPath string) bool {
 }
 
 func ListFilesInDirectory(dirPath string) ([]string, error) {
-	fileList := make([]string, 0)
+	var fileList []string
 	files, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err

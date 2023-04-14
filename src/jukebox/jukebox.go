@@ -406,6 +406,10 @@ func (jukebox *Jukebox) containerForSong(songUid string) string {
 
 func (jukebox *Jukebox) ImportSongs() {
 	if jukebox.jukeboxDb != nil && jukebox.jukeboxDb.isOpen() {
+		if !DirectoryExists(jukebox.songImportDir) {
+			fmt.Printf("error: %s directory doesn't exist\n", jukebox.songImportDir)
+			return
+		}
 		dirListing, err := ListFilesInDirectory(jukebox.songImportDir)
 		if err != nil {
 			return
@@ -1227,8 +1231,8 @@ func (jukebox *Jukebox) ShowPlaylist(playlistName string) {
 func (jukebox *Jukebox) PlayPlaylist(playlistName string) {
 	playlist := jukebox.retrievePlaylist(playlistName)
 	if playlist != nil {
-		songList := make([]*SongMetadata, 0)
-		extList := make([]string, 0)
+		var songList []*SongMetadata
+		var extList []string
 		extList = append(extList, ".flac")
 		extList = append(extList, ".m4a")
 		extList = append(extList, ".mp3")
@@ -1492,7 +1496,7 @@ func InitializeStorageSystem(storageSys StorageSystem) bool {
 	}
 
 	// create the other (non-song) containers
-	containerNames := make([]string, 4)
+	var containerNames []string
 	containerNames = append(containerNames, metadataContainer)
 	containerNames = append(containerNames, albumArtContainer)
 	containerNames = append(containerNames, albumContainer)
