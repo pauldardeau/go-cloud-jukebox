@@ -16,10 +16,10 @@ import (
 
 const (
 	downloadExtension   = ".download"
-	albumContainer      = "cj-albums"
+	albumContainer      = "albums"
 	albumArtContainer   = "album-art"
 	metadataContainer   = "music-metadata"
-	playlistContainer   = "cj-playlists"
+	playlistContainer   = "playlists"
 	songContainerSuffix = "-artist-songs"
 	albumArtImportDir   = "album-art-import"
 	playlistImportDir   = "playlist-import"
@@ -64,12 +64,17 @@ type Jukebox struct {
 	storageSystem           StorageSystem
 	debugPrint              bool
 	jukeboxDb               *JukeboxDB
+	containerPrefix         string
 	currentDir              string
 	songImportDir           string
 	playlistImportDir       string
 	songPlayDir             string
 	albumArtImportDir       string
 	metadataDbFile          string
+	metadataContainer       string
+	playlistContainer       string
+	albumContainer          string
+	albumArtContainer       string
 	songList                []*SongMetadata
 	numberSongs             int
 	songIndex               int
@@ -109,6 +114,7 @@ func (jukebox *Jukebox) installSignalHandlers() {
 
 func NewJukebox(jbOptions *JukeboxOptions,
 	storageSys StorageSystem,
+	containerPrefix string,
 	debugPrint bool) *Jukebox {
 
 	var jukebox Jukebox
@@ -116,6 +122,7 @@ func NewJukebox(jbOptions *JukeboxOptions,
 	jukebox.storageSystem = storageSys
 	jukebox.debugPrint = debugPrint
 	jukebox.jukeboxDb = nil
+	jukebox.containerPrefix = containerPrefix
 	cwd, err := os.Getwd()
 	if err == nil {
 		jukebox.currentDir = cwd
@@ -140,6 +147,10 @@ func NewJukebox(jbOptions *JukeboxOptions,
 	jukebox.exitRequested = false
 	jukebox.isPaused = false
 	jukebox.songSecondsOffset = 0
+	jukebox.metadataContainer = containerPrefix + metadataContainer
+	jukebox.playlistContainer = containerPrefix + playlistContainer
+	jukebox.albumContainer = containerPrefix + albumContainer
+	jukebox.albumArtContainer = containerPrefix + albumArtContainer
 
 	if jukebox.jukeboxOptions != nil && jukebox.jukeboxOptions.DebugMode {
 		jukebox.debugPrint = true
@@ -159,12 +170,12 @@ func NewJukebox(jbOptions *JukeboxOptions,
 func (jukebox *Jukebox) Enter() bool {
 	// look for stored metadata in the storage system
 	if jukebox.storageSystem != nil &&
-		jukebox.storageSystem.HasContainer(metadataContainer) &&
+		jukebox.storageSystem.HasContainer(jukebox.metadataContainer) &&
 		!jukebox.jukeboxOptions.SuppressMetadataDownload {
 
 		// metadata container exists, retrieve container listing
 		metadataFileInContainer := false
-		containerContents, err := jukebox.storageSystem.ListContainerContents(metadataContainer)
+		containerContents, err := jukebox.storageSystem.ListContainerContents(jukebox.metadataContainer)
 		if err == nil && len(containerContents) > 0 {
 			for _, container := range containerContents {
 				if container == jukebox.metadataDbFile {
@@ -179,7 +190,7 @@ func (jukebox *Jukebox) Enter() bool {
 			// download it
 			metadataDbFilePath := jukebox.GetMetadataDbFilePath()
 			downloadFile := metadataDbFilePath + downloadExtension
-			if jukebox.storageSystem.GetObject(metadataContainer, jukebox.metadataDbFile, downloadFile) > 0 {
+			if jukebox.storageSystem.GetObject(jukebox.metadataContainer, jukebox.metadataDbFile, downloadFile) > 0 {
 				// have an existing metadata DB file?
 				if FileExists(metadataDbFilePath) {
 					if jukebox.debugPrint {
@@ -204,7 +215,6 @@ func (jukebox *Jukebox) Enter() bool {
 		}
 
 		jukebox.jukeboxDb = NewJukeboxDB(jukebox.GetMetadataDbFilePath(),
-			jukebox.jukeboxOptions.UseEncryption,
 			jukebox.debugPrint)
 		jukeboxDbSuccess := jukebox.jukeboxDb.enter()
 		if !jukeboxDbSuccess {
@@ -362,27 +372,10 @@ func (jukebox *Jukebox) storeSongPlaylist(fileName string, fileContents []byte) 
 	}
 }
 
-func (jukebox *Jukebox) containerSuffix() string {
-	suffix := ""
-	if jukebox.jukeboxOptions.UseEncryption {
-		suffix += "-e"
-	}
-	return suffix
-}
-
-func (jukebox *Jukebox) objectFileSuffix() string {
-	suffix := ""
-	if jukebox.jukeboxOptions.UseEncryption {
-		suffix = ".e"
-	}
-	return suffix
-}
-
 func (jukebox *Jukebox) containerForSong(songUid string) string {
 	if len(songUid) == 0 {
 		return ""
 	}
-	containerSuffix := songContainerSuffix + jukebox.containerSuffix()
 
 	artist := artistFromFileName(songUid)
 	if len(artist) == 0 {
@@ -400,8 +393,7 @@ func (jukebox *Jukebox) containerForSong(songUid string) string {
 		artistLetter = artistValue[0:1]
 	}
 
-	containerName := strings.ToLower(artistLetter) + containerSuffix
-	return containerName
+	return jukebox.containerPrefix + strings.ToLower(artistLetter) + songContainerSuffix
 }
 
 func (jukebox *Jukebox) ImportSongs() {
@@ -443,7 +435,7 @@ func (jukebox *Jukebox) ImportSongs() {
 					album := albumFromFileName(fileName)
 					song := songFromFileName(fileName)
 					if fileSize > 0 && len(artist) > 0 && len(album) > 0 && len(song) > 0 {
-						objectName := fileName + jukebox.objectFileSuffix()
+						objectName := fileName
 						fsSong := NewSongMetadata()
 						fsSong.Fm = NewFileMetadata()
 						fsSong.Fm.FileUid = objectName
@@ -459,7 +451,6 @@ func (jukebox *Jukebox) ImportSongs() {
 						if errHash == nil {
 							fsSong.Fm.Md5Hash = md5Hash
 						}
-						fsSong.Fm.Encrypted = jukebox.jukeboxOptions.UseEncryption
 						fsSong.Fm.ObjectName = objectName
 						fsSong.Fm.PadCharCount = 0
 
@@ -476,36 +467,6 @@ func (jukebox *Jukebox) ImportSongs() {
 						}
 
 						if fileRead && fileContents != nil {
-							if len(fileContents) > 0 {
-								if jukebox.jukeboxOptions.UseEncryption {
-									if jukebox.debugPrint {
-										fmt.Println("encrypting file")
-									}
-
-									// the length of the data to encrypt must be a multiple of 16
-									numExtraChars := len(fileContents) % 16
-									if numExtraChars > 0 {
-										if jukebox.debugPrint {
-											fmt.Println("padding file for encryption")
-										}
-										numPadChars := 16 - numExtraChars
-										padding := []byte(strings.Repeat(" ", numPadChars))
-										fileContents = append(fileContents, padding...)
-										fsSong.Fm.PadCharCount = numPadChars
-									}
-
-									var encodedContents string
-									var errEncrypt error
-									encodedContents, errEncrypt = EncryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), fileContents)
-									if errEncrypt != nil {
-										fmt.Println("error: encryption failed")
-										fmt.Printf("error: %v\n", errEncrypt)
-									} else {
-										fileContents = []byte(encodedContents)
-									}
-								}
-							}
-
 							// now that we have the data that will be stored, set the file size for
 							// what's being stored
 							fsSong.Fm.StoredFileSize = int64(len(fileContents))
@@ -688,31 +649,6 @@ func (jukebox *Jukebox) downloadSong(song *SongMetadata) bool {
 
 				if songBytesRetrieved != song.Fm.StoredFileSize {
 					fmt.Printf("error: file size check failed for '%s'\n", filePath)
-					return false
-				}
-			}
-
-			// is it encrypted? if so, decrypt it
-			if song.Fm.Encrypted {
-				fileContents, errFile := FileReadAllBytes(filePath)
-				if errFile != nil {
-					fmt.Printf("error: unable to read file %s\n", filePath)
-					fmt.Printf("error: %v\n", errFile)
-					return false
-				}
-
-				encodedContents := string(fileContents[:])
-				var errDecrypt error
-				fileContents, errDecrypt = DecryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), encodedContents)
-				if errDecrypt != nil {
-					fmt.Printf("error: unable to decrypt file: %s\n", filePath)
-					fmt.Printf("error: %v\n", errDecrypt)
-					return false
-				}
-
-				// re-write out the unencrypted file contents
-				if !FileWriteAllBytes(filePath, fileContents) {
-					fmt.Printf("error: unable to write unencrypted/uncompressed file '%s'\n", filePath)
 					return false
 				}
 			}
@@ -1043,46 +979,14 @@ func (jukebox *Jukebox) readFileContents(filePath string) (bool, []byte, int) {
 		fileRead = true
 	}
 
-	if fileRead && fileContents != nil {
-		if len(fileContents) > 0 {
-			if jukebox.jukeboxOptions.UseEncryption {
-				if jukebox.debugPrint {
-					fmt.Println("encrypting file")
-				}
-
-				// the length of the data to encrypt must be a multiple of 16
-				numExtraChars := len(fileContents) % 16
-				if numExtraChars > 0 {
-					if jukebox.debugPrint {
-						fmt.Println("padding file for encryption")
-					}
-					numPadChars := 16 - numExtraChars
-					padding := []byte(strings.Repeat(" ", numPadChars))
-					fileContents = append(fileContents, padding...)
-					padChars = numPadChars
-				}
-
-				var encodedContents string
-				var errEncrypt error
-				encodedContents, errEncrypt = EncryptAES([]byte(jukebox.jukeboxOptions.EncryptionKey), fileContents)
-				if errEncrypt != nil {
-					fmt.Println("error: encryption failed")
-					fmt.Printf("error: %v\n", errEncrypt)
-				} else {
-					fileContents = []byte(encodedContents)
-				}
-			}
-		}
-	}
-
 	return fileRead, fileContents, padChars
 }
 
 func (jukebox *Jukebox) UploadMetadataDb() bool {
 	metadataDbUpload := false
 	haveMetadataContainer := false
-	if !jukebox.storageSystem.HasContainer(metadataContainer) {
-		haveMetadataContainer = jukebox.storageSystem.CreateContainer(metadataContainer)
+	if !jukebox.storageSystem.HasContainer(jukebox.metadataContainer) {
+		haveMetadataContainer = jukebox.storageSystem.CreateContainer(jukebox.metadataContainer)
 	} else {
 		haveMetadataContainer = true
 	}
@@ -1098,7 +1002,7 @@ func (jukebox *Jukebox) UploadMetadataDb() bool {
 		dbFilePath := jukebox.GetMetadataDbFilePath()
 		dbFileContents, errFile := FileReadAllBytes(dbFilePath)
 		if errFile == nil {
-			metadataDbUpload = jukebox.storageSystem.PutObject(metadataContainer,
+			metadataDbUpload = jukebox.storageSystem.PutObject(jukebox.metadataContainer,
 				jukebox.metadataDbFile,
 				dbFileContents,
 				nil)
@@ -1132,8 +1036,8 @@ func (jukebox *Jukebox) ImportPlaylists() {
 		}
 
 		haveContainer := false
-		if !jukebox.storageSystem.HasContainer(playlistContainer) {
-			haveContainer = jukebox.storageSystem.CreateContainer(playlistContainer)
+		if !jukebox.storageSystem.HasContainer(jukebox.playlistContainer) {
+			haveContainer = jukebox.storageSystem.CreateContainer(jukebox.playlistContainer)
 		} else {
 			haveContainer = true
 		}
@@ -1148,14 +1052,14 @@ func (jukebox *Jukebox) ImportPlaylists() {
 			objectName := fileName
 			fileRead, fileContents, _ := jukebox.readFileContents(fullPath)
 			if fileRead && fileContents != nil {
-				if jukebox.storageSystem.PutObject(playlistContainer,
+				if jukebox.storageSystem.PutObject(jukebox.playlistContainer,
 					objectName,
 					fileContents,
 					nil) {
 					fmt.Println("put of playlist succeeded")
 					if !jukebox.storeSongPlaylist(objectName, fileContents) {
 						fmt.Println("storing of playlist to db failed")
-						jukebox.storageSystem.DeleteObject(playlistContainer,
+						jukebox.storageSystem.DeleteObject(jukebox.playlistContainer,
 							objectName)
 					} else {
 						fmt.Println("storing of playlist succeeded")
@@ -1195,7 +1099,7 @@ func (jukebox *Jukebox) ShowAlbum(albumUid string) {
 func (jukebox *Jukebox) retrievePlaylist(playlist string) *Playlist {
 	objectName := fmt.Sprintf("%s.json", EncodeValue(playlist))
 	downloadFile := objectName
-	if jukebox.storageSystem.GetObject(playlistContainer,
+	if jukebox.storageSystem.GetObject(jukebox.playlistContainer,
 		objectName,
 		downloadFile) > 0 {
 
@@ -1264,7 +1168,7 @@ func (jukebox *Jukebox) PlayPlaylist(playlistName string) {
 
 func (jukebox *Jukebox) getAlbum(albumUid string) *Album {
 	downloadFile := albumUid
-	if jukebox.storageSystem.GetObject(albumContainer,
+	if jukebox.storageSystem.GetObject(jukebox.albumContainer,
 		albumUid,
 		downloadFile) > 0 {
 
@@ -1414,8 +1318,8 @@ func (jukebox *Jukebox) DeletePlaylist(playlistName string) bool {
 		objectNameValue := *objectName
 		dbDeleted := jukebox.jukeboxDb.deletePlaylist(playlistName)
 		if dbDeleted {
-			fmt.Printf("container='%s', object='%s'\n", playlistContainer, objectNameValue)
-			if jukebox.storageSystem.DeleteObject(playlistContainer, objectNameValue) {
+			fmt.Printf("container='%s', object='%s'\n", jukebox.playlistContainer, objectNameValue)
+			if jukebox.storageSystem.DeleteObject(jukebox.playlistContainer, objectNameValue) {
 				isDeleted = true
 			} else {
 				fmt.Println("error: object delete failed")
@@ -1450,8 +1354,8 @@ func (jukebox *Jukebox) ImportAlbumArt() {
 
 		haveContainer := false
 
-		if !jukebox.storageSystem.HasContainer(albumArtContainer) {
-			haveContainer = jukebox.storageSystem.CreateContainer(albumArtContainer)
+		if !jukebox.storageSystem.HasContainer(jukebox.albumArtContainer) {
+			haveContainer = jukebox.storageSystem.CreateContainer(jukebox.albumArtContainer)
 		} else {
 			haveContainer = true
 		}
@@ -1466,7 +1370,7 @@ func (jukebox *Jukebox) ImportAlbumArt() {
 			objectName := fileName
 			fileRead, fileContents, _ := jukebox.readFileContents(fullPath)
 			if fileRead && fileContents != nil {
-				if jukebox.storageSystem.PutObject(albumArtContainer,
+				if jukebox.storageSystem.PutObject(jukebox.albumArtContainer,
 					objectName,
 					fileContents,
 					nil) {
@@ -1483,12 +1387,12 @@ func (jukebox *Jukebox) ImportAlbumArt() {
 	}
 }
 
-func InitializeStorageSystem(storageSys StorageSystem) bool {
+func InitializeStorageSystem(storageSys StorageSystem, containerPrefix string) bool {
 	// create the containers that will hold songs
 	artistSongChars := "0123456789abcdefghijklmnopqrstuvwxyz"
 
 	for _, ch := range artistSongChars {
-		containerName := fmt.Sprintf("%c%s", ch, songContainerSuffix)
+		containerName := containerPrefix + fmt.Sprintf("%c%s", ch, songContainerSuffix)
 		if !storageSys.CreateContainer(containerName) {
 			fmt.Printf("error: unable to create container '%s'\n", containerName)
 			return false
@@ -1503,8 +1407,9 @@ func InitializeStorageSystem(storageSys StorageSystem) bool {
 	containerNames = append(containerNames, playlistContainer)
 
 	for _, containerName := range containerNames {
-		if !storageSys.CreateContainer(containerName) {
-			fmt.Printf("error: unable to create container '%s'\n", containerName)
+		cnrName := containerPrefix + containerName
+		if !storageSys.CreateContainer(cnrName) {
+			fmt.Printf("error: unable to create container '%s'\n", cnrName)
 			return false
 		}
 	}

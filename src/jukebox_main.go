@@ -9,18 +9,17 @@ import (
 )
 
 const (
+	argPrefix          = "--"
 	argDebug           = "debug"
 	argFileCacheCount  = "file-cache-count"
 	argIntegrityChecks = "integrity-checks"
-	argEncrypt         = "encrypt"
-	argKey             = "key"
-	argKeyFile         = "keyfile"
 	argStorage         = "storage"
 	argArtist          = "artist"
 	argPlaylist        = "playlist"
 	argSong            = "song"
 	argAlbum           = "album"
 	argCommand         = "command"
+	argFormat          = "format"
 
 	cmdDeleteAlbum      = "delete-album"
 	cmdDeleteArtist     = "delete-artist"
@@ -52,43 +51,56 @@ const (
 
 	ssFs = "fs"
 	ssS3 = "s3"
+
+	credsFileSuffix      = "_creds.txt"
+	credsContainerPrefix = "container_prefix"
+
+	awsAccessKey       = "aws_access_key"
+	awsSecretKey       = "aws_secret_key"
+	updateAwsAccessKey = "update_aws_access_key"
+	updateAwsSecretKey = "update_aws_secret_key"
+
+	fsRootDir = "root_dir"
+
+	audioFileTypeMp3  = "mp3"
+	audioFileTypeM4a  = "m4a"
+	audioFileTypeFlac = "flac"
 )
 
 func connectS3StorageSystem(credentials map[string]string,
-	prefix string,
 	inDebugMode bool,
 	isUpdate bool) jukebox.StorageSystem {
 
-	awsAccessKey := ""
-	awsSecretKey := ""
-	updateAwsAccessKey := ""
-	updateAwsSecretKey := ""
+	theAwsAccessKey := ""
+	theAwsSecretKey := ""
+	theUpdateAwsAccessKey := ""
+	theUpdateAwsSecretKey := ""
 
-	if accessKey, ok := credentials["aws_access_key"]; ok {
-		awsAccessKey = accessKey
+	if accessKey, ok := credentials[awsAccessKey]; ok {
+		theAwsAccessKey = accessKey
 	}
-	if secretKey, ok := credentials["aws_secret_key"]; ok {
-		awsSecretKey = secretKey
+	if secretKey, ok := credentials[awsSecretKey]; ok {
+		theAwsSecretKey = secretKey
 	}
 
-	updateAccessKey, okAccessKey := credentials["update_aws_access_key"]
-	updateSecretKey, okSecretKey := credentials["update_aws_secret_key"]
+	theUpdateAccessKeyValue, okAccessKey := credentials[updateAwsAccessKey]
+	theUpdateSecretKeyValue, okSecretKey := credentials[updateAwsSecretKey]
 
 	if okAccessKey && okSecretKey {
-		updateAwsAccessKey = updateAccessKey
-		updateAwsSecretKey = updateSecretKey
+		theUpdateAwsAccessKey = theUpdateAccessKeyValue
+		theUpdateAwsSecretKey = theUpdateSecretKeyValue
 	}
 
 	if inDebugMode {
-		fmt.Printf("aws_access_key=%s\n", awsAccessKey)
-		fmt.Printf("aws_secret_key=%s\n", awsSecretKey)
-		if len(updateAwsAccessKey) > 0 && len(updateAwsSecretKey) > 0 {
-			fmt.Printf("update_aws_access_key=%s\n", updateAwsAccessKey)
-			fmt.Printf("update_aws_secret_key=%s\n", updateAwsSecretKey)
+		fmt.Printf("%s=%s\n", awsAccessKey, theAwsAccessKey)
+		fmt.Printf("%s=%s\n", awsSecretKey, theAwsSecretKey)
+		if len(theUpdateAwsAccessKey) > 0 && len(theUpdateAwsSecretKey) > 0 {
+			fmt.Printf("%s=%s\n", updateAwsAccessKey, theUpdateAwsAccessKey)
+			fmt.Printf("%s=%s\n", updateAwsSecretKey, theUpdateAwsSecretKey)
 		}
 	}
 
-	if len(awsAccessKey) == 0 || len(awsSecretKey) == 0 {
+	if len(theAwsAccessKey) == 0 || len(theAwsSecretKey) == 0 {
 		fmt.Println("error: no s3 credentials given. please specify aws_access_key " +
 			"and aws_secret_key in credentials file")
 		return nil
@@ -97,30 +109,35 @@ func connectS3StorageSystem(credentials map[string]string,
 		var secretKey string
 
 		if isUpdate {
-			accessKey = updateAwsAccessKey
-			secretKey = updateAwsSecretKey
+			accessKey = theUpdateAwsAccessKey
+			secretKey = theUpdateAwsSecretKey
 		} else {
-			accessKey = awsAccessKey
-			secretKey = awsSecretKey
+			accessKey = theAwsAccessKey
+			secretKey = theAwsSecretKey
 		}
 
 		if inDebugMode {
 			fmt.Println("Creating S3StorageSystem")
 		}
-		return jukebox.NewS3StorageSystem(accessKey, secretKey, prefix, inDebugMode)
+		return jukebox.NewS3StorageSystem(accessKey, secretKey, inDebugMode)
 	}
 }
 
 func connectStorageSystem(systemName string,
 	credentials map[string]string,
-	prefix string,
+	containerPrefix string,
 	inDebugMode bool,
 	isUpdate bool) jukebox.StorageSystem {
 
 	if systemName == ssS3 {
-		return connectS3StorageSystem(credentials, prefix, inDebugMode, isUpdate)
+		if len(containerPrefix) > 0 {
+			return connectS3StorageSystem(credentials, inDebugMode, isUpdate)
+		} else {
+			fmt.Printf("error: a container prefix MUST be specified for S3")
+			return nil
+		}
 	} else if systemName == ssFs {
-		rootDir, exists := credentials["root_dir"]
+		rootDir, exists := credentials[fsRootDir]
 		if exists && len(rootDir) > 0 {
 			return jukebox.NewFSStorageSystem(rootDir, inDebugMode)
 		}
@@ -157,9 +174,9 @@ func showUsage() {
 	fmt.Println("")
 }
 
-func initStorageSystem(storageSys jukebox.StorageSystem) bool {
+func initStorageSystem(storageSys jukebox.StorageSystem, containerPrefix string) bool {
 	var success bool
-	if jukebox.InitializeStorageSystem(storageSys) {
+	if jukebox.InitializeStorageSystem(storageSys, containerPrefix) {
 		fmt.Println("storage system successfully initialized")
 		success = true
 	} else {
@@ -180,17 +197,14 @@ func main() {
 	album := ""
 
 	optParser := jukebox.NewArgumentParser(debugMode)
-	optParser.AddOptionalBoolFlag("--"+argDebug, "run in debug mode")
-	optParser.AddOptionalIntArgument("--"+argFileCacheCount, "number of songs to buffer in cache")
-	optParser.AddOptionalBoolFlag("--"+argIntegrityChecks, "check file integrity after download")
-	optParser.AddOptionalBoolFlag("--"+argEncrypt, "encrypt file contents")
-	optParser.AddOptionalStringArgument("--"+argKey, "encryption key")
-	optParser.AddOptionalStringArgument("--"+argKeyFile, "path to file containing encryption key")
-	optParser.AddOptionalStringArgument("--"+argStorage, "storage system type (s3, fs)")
-	optParser.AddOptionalStringArgument("--"+argArtist, "limit operations to specified artist")
-	optParser.AddOptionalStringArgument("--"+argPlaylist, "limit operations to specified playlist")
-	optParser.AddOptionalStringArgument("--"+argSong, "limit operations to specified song")
-	optParser.AddOptionalStringArgument("--"+argAlbum, "limit operations to specified album")
+	optParser.AddOptionalBoolFlag(argPrefix+argDebug, "run in debug mode")
+	optParser.AddOptionalIntArgument(argPrefix+argFileCacheCount, "number of songs to buffer in cache")
+	optParser.AddOptionalBoolFlag(argPrefix+argIntegrityChecks, "check file integrity after download")
+	optParser.AddOptionalStringArgument(argPrefix+argStorage, "storage system type (s3, fs)")
+	optParser.AddOptionalStringArgument(argPrefix+argArtist, "limit operations to specified artist")
+	optParser.AddOptionalStringArgument(argPrefix+argPlaylist, "limit operations to specified playlist")
+	optParser.AddOptionalStringArgument(argPrefix+argSong, "limit operations to specified song")
+	optParser.AddOptionalStringArgument(argPrefix+argAlbum, "limit operations to specified album")
 	optParser.AddRequiredArgument(argCommand, "command for jukebox")
 
 	consoleArgs := os.Args[1:]
@@ -222,40 +236,6 @@ func main() {
 			fmt.Println("setting integrity checks on")
 		}
 		options.CheckDataIntegrity = true
-	}
-
-	if ps.Contains(argEncrypt) {
-		if debugMode {
-			fmt.Println("setting encryption on")
-		}
-		options.UseEncryption = true
-	}
-
-	if ps.Contains(argKey) {
-		keyValue := ps.Get(argKey).GetStringValue()
-		if debugMode {
-			fmt.Printf("setting encryption key='%s'\n", keyValue)
-		}
-		options.EncryptionKey = keyValue
-	}
-
-	if ps.Contains(argKeyFile) {
-		keyFile := ps.Get(argKeyFile).GetStringValue()
-		if debugMode {
-			fmt.Printf("reading encryption key file='%s'\n", keyFile)
-		}
-
-		encryptKey, errKey := jukebox.FileReadAllText(keyFile)
-		if errKey != nil {
-			fmt.Printf("error: unable to read key file '%s'\n", keyFile)
-			os.Exit(1)
-		}
-		options.EncryptionKey = strings.TrimSpace(encryptKey)
-
-		if len(options.EncryptionKey) == 0 {
-			fmt.Printf("error: no key found in file '%s'\n", keyFile)
-			os.Exit(1)
-		}
 	}
 
 	if ps.Contains(argStorage) {
@@ -305,8 +285,8 @@ func main() {
 			fmt.Printf("using storage system type '%s'\n", storageType)
 		}
 
-		containerPrefix := "com.swampbits.jukebox."
-		credsFile := storageType + "_creds.txt"
+		containerPrefix := ""
+		credsFile := storageType + credsFileSuffix
 		var creds = make(map[string]string)
 		credsFilePath := ""
 		wd, errWd := os.Getwd()
@@ -338,14 +318,18 @@ func main() {
 						key := strings.Trim(lineTokens[0], " ")
 						value := strings.Trim(lineTokens[1], " ")
 						creds[key] = value
+						if key == credsContainerPrefix {
+							containerPrefix = value
+							if debugMode {
+								fmt.Printf("using container prefix: '%s'\n", containerPrefix)
+							}
+						}
 					}
 				}
 			}
 		} else {
 			fmt.Printf("no creds file (%s)\n", credsFilePath)
 		}
-
-		options.EncryptionIv = "sw4mpb1ts.juk3b0x"
 
 		helpCmds := []string{cmdHelp, cmdUsage}
 		nonHelpCmds := []string{cmdImportSongs, cmdPlay, cmdShufflePlay, cmdListSongs,
@@ -431,64 +415,64 @@ func main() {
 						fmt.Println("storage system entered")
 
 						if command == cmdInitStorage {
-							if initStorageSystem(storageSystem) {
+							if initStorageSystem(storageSystem, containerPrefix) {
 								os.Exit(0)
 							} else {
 								os.Exit(1)
 							}
 						}
 
-						jukebox := jukebox.NewJukebox(options, storageSystem, debugMode)
-						if jukebox.Enter() {
-							defer jukebox.Exit()
+						jb := jukebox.NewJukebox(options, storageSystem, containerPrefix, debugMode)
+						if jb.Enter() {
+							defer jb.Exit()
 							fmt.Println("jukebox entered")
 
 							if command == cmdImportSongs {
-								jukebox.ImportSongs()
+								jb.ImportSongs()
 							} else if command == cmdImportPlaylists {
-								jukebox.ImportPlaylists()
+								jb.ImportPlaylists()
 							} else if command == cmdPlay {
 								shuffle = false
-								jukebox.PlaySongs(shuffle, artist, album)
+								jb.PlaySongs(shuffle, artist, album)
 							} else if command == cmdShufflePlay {
 								shuffle = true
-								jukebox.PlaySongs(shuffle, artist, album)
+								jb.PlaySongs(shuffle, artist, album)
 							} else if command == cmdListSongs {
-								jukebox.ShowListings()
+								jb.ShowListings()
 							} else if command == cmdListArtists {
-								jukebox.ShowArtists()
+								jb.ShowArtists()
 							} else if command == cmdListContainers {
-								jukebox.ShowListContainers()
+								jb.ShowListContainers()
 							} else if command == cmdListGenres {
-								jukebox.ShowGenres()
+								jb.ShowGenres()
 							} else if command == cmdListAlbums {
-								jukebox.ShowAlbums()
+								jb.ShowAlbums()
 							} else if command == cmdListPlaylists {
-								jukebox.ShowPlaylists()
+								jb.ShowPlaylists()
 							} else if command == cmdShowAlbum {
 								if len(album) > 0 {
-									jukebox.ShowAlbum(album)
+									jb.ShowAlbum(album)
 								} else {
 									fmt.Printf("error: album must be specified using --%s option\n", argAlbum)
 									exitCode = 1
 								}
 							} else if command == cmdShowPlaylist {
 								if len(playlist) > 0 {
-									jukebox.ShowPlaylist(playlist)
+									jb.ShowPlaylist(playlist)
 								} else {
 									fmt.Printf("error: playlist must be specified using --%s option\n", argPlaylist)
 									exitCode = 1
 								}
 							} else if command == cmdPlayPlaylist {
 								if len(playlist) > 0 {
-									jukebox.PlayPlaylist(playlist)
+									jb.PlayPlaylist(playlist)
 								} else {
 									fmt.Printf("error: playlist must be specified using --%s option\n", argPlaylist)
 									exitCode = 1
 								}
 							} else if command == cmdPlayAlbum {
 								if len(album) > 0 && len(artist) > 0 {
-									jukebox.PlayAlbum(artist, album)
+									jb.PlayAlbum(artist, album)
 								} else {
 									fmt.Printf("error: artist and album must be specified using --%s and --%s options\n", argArtist, argAlbum)
 								}
@@ -497,7 +481,7 @@ func main() {
 								fmt.Printf("%s not yet implemented\n", cmdRetrieveCatalog)
 							} else if command == cmdDeleteSong {
 								if len(song) > 0 {
-									if jukebox.DeleteSong(song, false) {
+									if jb.DeleteSong(song, false) {
 										fmt.Println("song deleted")
 									} else {
 										fmt.Println("error: unable to delete song")
@@ -509,7 +493,7 @@ func main() {
 								}
 							} else if command == cmdDeleteArtist {
 								if len(artist) > 0 {
-									if jukebox.DeleteArtist(artist) {
+									if jb.DeleteArtist(artist) {
 										fmt.Println("artist deleted")
 									} else {
 										fmt.Println("error: unable to delete artist")
@@ -521,7 +505,7 @@ func main() {
 								}
 							} else if command == cmdDeleteAlbum {
 								if len(album) > 0 {
-									if jukebox.DeleteAlbum(album) {
+									if jb.DeleteAlbum(album) {
 										fmt.Println("album deleted")
 									} else {
 										fmt.Println("error: unable to delete album")
@@ -533,7 +517,7 @@ func main() {
 								}
 							} else if command == cmdDeletePlaylist {
 								if len(playlist) > 0 {
-									if jukebox.DeletePlaylist(playlist) {
+									if jb.DeletePlaylist(playlist) {
 										fmt.Println("playlist deleted")
 									} else {
 										fmt.Println("error: unable to delete playlist")
@@ -544,14 +528,14 @@ func main() {
 									exitCode = 1
 								}
 							} else if command == cmdUploadMetadataDb {
-								if jukebox.UploadMetadataDb() {
+								if jb.UploadMetadataDb() {
 									fmt.Println("metadata db uploaded")
 								} else {
 									fmt.Println("error: unable to upload metadata db")
 									exitCode = 1
 								}
 							} else if command == cmdImportAlbumArt {
-								jukebox.ImportAlbumArt()
+								jb.ImportAlbumArt()
 							} else if command == cmdImportAlbum {
 								//TODO: implement import album
 								fmt.Printf("%s not yet implemented\n", cmdImportAlbum)

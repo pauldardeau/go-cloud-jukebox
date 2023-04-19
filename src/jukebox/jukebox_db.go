@@ -11,18 +11,15 @@ import (
 
 type JukeboxDB struct {
 	debugPrint         bool
-	useEncryption      bool
 	dbConnection       *sql.DB
 	metadataDbFilePath string
 }
 
 func NewJukeboxDB(metadataDbFilePath string,
-	useEncryption bool,
 	debugPrint bool) *JukeboxDB {
 
 	var jukeboxDB JukeboxDB
 	jukeboxDB.debugPrint = debugPrint
-	jukeboxDB.useEncryption = useEncryption
 	jukeboxDB.dbConnection = nil
 	if len(metadataDbFilePath) > 0 {
 		jukeboxDB.metadataDbFilePath = metadataDbFilePath
@@ -481,17 +478,7 @@ func (jukeboxDB *JukeboxDB) storeSongMetadata(song *SongMetadata) bool {
 }
 
 func (jukeboxDB *JukeboxDB) sqlWhereClause() string {
-	var encryption int
-	if jukeboxDB.useEncryption {
-		encryption = 1
-	} else {
-		encryption = 0
-	}
-
-	whereClause := ""
-	whereClause += " WHERE "
-	whereClause += "encrypted = "
-	whereClause += fmt.Sprintf("%d", encryption)
+	whereClause := " WHERE encrypted = 0"
 	return whereClause
 }
 

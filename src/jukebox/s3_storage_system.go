@@ -12,38 +12,29 @@ import (
 )
 
 type S3StorageSystem struct {
-	debugMode       bool
-	awsAccessKey    string
-	awsSecretKey    string
-	containerPrefix string
-	listContainers  []string
-	s3Client        *s3.S3
-	s3Session       *session.Session
+	debugMode      bool
+	awsAccessKey   string
+	awsSecretKey   string
+	listContainers []string
+	s3Client       *s3.S3
+	s3Session      *session.Session
 }
 
 func NewS3StorageSystem(accessKey string,
 	secretKey string,
-	cnrPrefix string,
 	debugMode bool) *S3StorageSystem {
 
 	ss := S3StorageSystem{
-		debugMode:       debugMode,
-		awsAccessKey:    accessKey,
-		awsSecretKey:    secretKey,
-		containerPrefix: cnrPrefix,
-		listContainers:  nil,
-		s3Client:        nil,
-		s3Session:       nil,
+		debugMode:      debugMode,
+		awsAccessKey:   accessKey,
+		awsSecretKey:   secretKey,
+		listContainers: nil,
+		s3Client:       nil,
+		s3Session:      nil,
 	}
 
 	if debugMode {
 		fmt.Printf("Using accessKey='%s', secretKey='%s'\n", accessKey, secretKey)
-	}
-
-	if len(cnrPrefix) > 0 {
-		if debugMode {
-			fmt.Printf("using containerPrefix='%s'\n", cnrPrefix)
-		}
 	}
 
 	return &ss

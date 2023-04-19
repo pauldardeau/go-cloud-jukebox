@@ -9,7 +9,8 @@ func DecodeValue(encodedValue string) string {
 }
 
 func EncodeValue(value string) string {
-	return strings.Replace(value, " ", "-", -1)
+	cleanValue := RemovePunctuation(value)
+	return strings.Replace(cleanValue, " ", "-", -1)
 }
 
 func EncodeArtistAlbum(artist string, album string) string {
