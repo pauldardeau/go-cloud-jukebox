@@ -59,6 +59,8 @@ const (
 	awsSecretKey       = "aws_secret_key"
 	updateAwsAccessKey = "update_aws_access_key"
 	updateAwsSecretKey = "update_aws_secret_key"
+	endpointUrl        = "endpoint_url"
+	region             = "region"
 
 	fsRootDir = "root_dir"
 
@@ -75,6 +77,8 @@ func connectS3StorageSystem(credentials map[string]string,
 	theAwsSecretKey := ""
 	theUpdateAwsAccessKey := ""
 	theUpdateAwsSecretKey := ""
+	theEndpointUrl := ""
+	theRegion := ""
 
 	if accessKey, ok := credentials[awsAccessKey]; ok {
 		theAwsAccessKey = accessKey
@@ -89,6 +93,19 @@ func connectS3StorageSystem(credentials map[string]string,
 	if okAccessKey && okSecretKey {
 		theUpdateAwsAccessKey = theUpdateAccessKeyValue
 		theUpdateAwsSecretKey = theUpdateSecretKeyValue
+	}
+
+	theEndpointUrlValue, okEndpointUrl := credentials[endpointUrl]
+	if okEndpointUrl {
+		theEndpointUrl = theEndpointUrlValue
+	} else {
+		fmt.Printf("error: s3 requires %s to be configured in creds file\n", endpointUrl)
+		return nil
+	}
+
+	theRegionValue, okRegion := credentials[region]
+	if okRegion {
+		theRegion = theRegionValue
 	}
 
 	if inDebugMode {
@@ -119,7 +136,7 @@ func connectS3StorageSystem(credentials map[string]string,
 		if inDebugMode {
 			fmt.Println("Creating S3StorageSystem")
 		}
-		return jukebox.NewS3StorageSystem(accessKey, secretKey, inDebugMode)
+		return jukebox.NewS3StorageSystem(accessKey, secretKey, theEndpointUrl, theRegion, inDebugMode)
 	}
 }
 
@@ -133,7 +150,7 @@ func connectStorageSystem(systemName string,
 		if len(containerPrefix) > 0 {
 			return connectS3StorageSystem(credentials, inDebugMode, isUpdate)
 		} else {
-			fmt.Printf("error: a container prefix MUST be specified for S3")
+			fmt.Printf("error: a container prefix MUST be specified for S3\n")
 			return nil
 		}
 	} else if systemName == ssFs {
@@ -176,6 +193,7 @@ func showUsage() {
 
 func initStorageSystem(storageSys jukebox.StorageSystem, containerPrefix string) bool {
 	var success bool
+	fmt.Println("starting storage system initialization...")
 	if jukebox.InitializeStorageSystem(storageSys, containerPrefix) {
 		fmt.Println("storage system successfully initialized")
 		success = true

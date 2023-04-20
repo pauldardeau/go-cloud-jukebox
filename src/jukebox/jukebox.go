@@ -473,7 +473,8 @@ func (jukebox *Jukebox) ImportSongs() {
 							startUploadTime := time.Now()
 
 							// store song file to storage system
-							if jukebox.storageSystem.PutObject(fsSong.Fm.ContainerName,
+							containerName := jukebox.containerPrefix + fsSong.Fm.ContainerName
+							if jukebox.storageSystem.PutObject(containerName,
 								fsSong.Fm.ObjectName,
 								fileContents,
 								nil) {
@@ -488,7 +489,7 @@ func (jukebox *Jukebox) ImportSongs() {
 									// from the storage system since we won't have any way to access it
 									// since we can't store the song metadata locally.
 									fmt.Printf("unable to store metadata, deleting obj '%s'", fsSong.Fm.ObjectName)
-									jukebox.storageSystem.DeleteObject(fsSong.Fm.ContainerName,
+									jukebox.storageSystem.DeleteObject(containerName,
 										fsSong.Fm.ObjectName)
 								} else {
 									fileImportCount += 1
@@ -612,7 +613,7 @@ func (jukebox *Jukebox) retrieveFile(fm *FileMetadata, dirPath string) int64 {
 
 	if jukebox.storageSystem != nil && fm != nil && len(dirPath) > 0 {
 		localFilePath := PathJoin(dirPath, fm.FileUid)
-		bytesRetrieved = jukebox.storageSystem.GetObject(fm.ContainerName, fm.ObjectName, localFilePath)
+		bytesRetrieved = jukebox.storageSystem.GetObject(jukebox.containerPrefix+fm.ContainerName, fm.ObjectName, localFilePath)
 	}
 
 	return bytesRetrieved
@@ -1286,7 +1287,7 @@ func (jukebox *Jukebox) DeleteAlbum(album string) bool {
 			for _, song := range listAlbumSongs {
 				fmt.Printf("%s %s\n", song.Fm.ContainerName, song.Fm.ObjectName)
 				// delete each song audio file
-				if jukebox.storageSystem.DeleteObject(song.Fm.ContainerName,
+				if jukebox.storageSystem.DeleteObject(jukebox.containerPrefix+song.Fm.ContainerName,
 					song.Fm.ObjectName) {
 					numSongsDeleted += 1
 					// delete song metadata

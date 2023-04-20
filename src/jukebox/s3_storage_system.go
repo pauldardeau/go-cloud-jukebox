@@ -15,6 +15,8 @@ type S3StorageSystem struct {
 	debugMode      bool
 	awsAccessKey   string
 	awsSecretKey   string
+	endpointUrl    string
+	region         string
 	listContainers []string
 	s3Client       *s3.S3
 	s3Session      *session.Session
@@ -22,12 +24,16 @@ type S3StorageSystem struct {
 
 func NewS3StorageSystem(accessKey string,
 	secretKey string,
+	theEndpointUrl string,
+	theRegion string,
 	debugMode bool) *S3StorageSystem {
 
 	ss := S3StorageSystem{
 		debugMode:      debugMode,
 		awsAccessKey:   accessKey,
 		awsSecretKey:   secretKey,
+		endpointUrl:    theEndpointUrl,
+		region:         theRegion,
 		listContainers: nil,
 		s3Client:       nil,
 		s3Session:      nil,
@@ -46,16 +52,22 @@ func (ss *S3StorageSystem) Enter() bool {
 		fmt.Println("attempting to connect to S3")
 	}
 
+	credentials := credentials.NewStaticCredentials(ss.awsAccessKey, ss.awsSecretKey, "")
+	if credentials == nil {
+		fmt.Printf("error: unable to create credentials\n")
+		return false
+	}
+
 	s3Config := aws.Config{
-		Credentials:      credentials.NewStaticCredentials(ss.awsAccessKey, ss.awsSecretKey, ""),
-		Endpoint:         aws.String("https://s3.us-central-1.wasabisys.com"),
-		Region:           aws.String("us-central-1"),
+		Credentials:      credentials,
+		Endpoint:         aws.String(ss.endpointUrl),
+		Region:           aws.String(ss.region),
 		S3ForcePathStyle: aws.Bool(true),
 	}
 
 	s3Session, err := session.NewSessionWithOptions(session.Options{
-		Config:  s3Config,
-		Profile: "wasabi",
+		Config: s3Config,
+		//Profile: "wasabi",
 	})
 	if err != nil {
 		fmt.Println("unable to establish S3 session")
@@ -128,6 +140,8 @@ func (ss *S3StorageSystem) CreateContainer(containerName string) bool {
 		if err == nil {
 			containerCreated = true
 			ss.AddContainer(containerName)
+		} else {
+			fmt.Printf("error: CreateBucket failed - %v\n", err)
 		}
 	}
 
