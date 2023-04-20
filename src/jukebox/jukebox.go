@@ -40,7 +40,7 @@ type Album struct {
 	Artist    string       `json:"artist"`
 	Album     string       `json:"album"`
 	AlbumArt  string       `json:"album-art"`
-	Year      int          `json:"year"`
+	Year      string       `json:"year"`
 	Genre     []string     `json:"genre"`
 	AlbumType string       `json:"type"`
 	Wiki      string       `json:"wiki"`
