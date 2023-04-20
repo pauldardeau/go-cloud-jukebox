@@ -451,7 +451,11 @@ func main() {
 								jb.ImportPlaylists()
 							} else if command == cmdPlay {
 								shuffle = false
-								jb.PlaySongs(shuffle, artist, album)
+								if len(artist) == 0 && len(album) == 0 && len(playlist) > 0 {
+									jb.PlayPlaylist(playlist)
+								} else {
+									jb.PlaySongs(shuffle, artist, album)
+								}
 							} else if command == cmdShufflePlay {
 								shuffle = true
 								jb.PlaySongs(shuffle, artist, album)
