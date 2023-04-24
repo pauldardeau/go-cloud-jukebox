@@ -118,8 +118,8 @@ func connectS3StorageSystem(credentials map[string]string,
 	}
 
 	if len(theAwsAccessKey) == 0 || len(theAwsSecretKey) == 0 {
-		fmt.Println("error: no s3 credentials given. please specify aws_access_key " +
-			"and aws_secret_key in credentials file")
+		fmt.Printf("error: no s3 credentials given. please specify %s and %s in credentials file\n",
+			awsAccessKey, awsSecretKey)
 		return nil
 	} else {
 		var accessKey string

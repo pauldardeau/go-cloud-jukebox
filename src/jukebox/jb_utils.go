@@ -34,5 +34,9 @@ func RemovePunctuation(s string) string {
 		s = strings.Replace(s, "?", "", -1)
 	}
 
+	if strings.Contains(s, "&") {
+		s = strings.Replace(s, "&", "", -1)
+	}
+
 	return s
 }

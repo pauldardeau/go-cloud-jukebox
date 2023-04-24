@@ -1088,7 +1088,7 @@ func (jukebox *Jukebox) ShowPlaylists() {
 func (jukebox *Jukebox) ShowAlbum(albumUid string) {
 	album := jukebox.getAlbum(albumUid)
 	if album != nil {
-		fmt.Printf("%s %d (%s)\n", album.Album, album.Year, album.Artist)
+		fmt.Printf("%s %s (%s)\n", album.Album, album.Year, album.Artist)
 		for _, track := range album.Tracks {
 			fmt.Printf("%d %s (%s)\n", track.Number, track.Title, track.Length)
 		}
